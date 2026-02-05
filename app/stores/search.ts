@@ -41,6 +41,7 @@ export const useSearchStore = defineStore('search', () => {
   const searchDebounced = useDebounceFn(async (force = false) => {
     if (!query.value.trim()) {
       clear()
+      isLoading.value = false
 
       return
     }
@@ -57,6 +58,7 @@ export const useSearchStore = defineStore('search', () => {
         results.value = [...results.value, ...cached.data]
       }
       total.value = cached.total
+      isLoading.value = false
 
       return
     }
@@ -125,7 +127,11 @@ export const useSearchStore = defineStore('search', () => {
     type.value = newType
     offset.value = 0
     results.value = []
-    search()
+
+    // Only search if there's a query
+    if (query.value.trim()) {
+      search(true) // Force new search with the new type
+    }
   }
 
   // Set query and trigger search
@@ -134,8 +140,14 @@ export const useSearchStore = defineStore('search', () => {
     offset.value = 0
     results.value = []
     total.value = 0
-    isLoading.value = true // Set loading immediately
-    search()
+
+    if (newQuery.trim()) {
+      isLoading.value = true // Set loading immediately only if there's a query
+      search()
+    }
+    else {
+      isLoading.value = false
+    }
   }
 
   // Clear search
@@ -144,6 +156,7 @@ export const useSearchStore = defineStore('search', () => {
     results.value = []
     offset.value = 0
     total.value = 0
+    isLoading.value = false
   }
 
   // Refresh (force reload)

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const route = useRoute()
-const router = useRouter()
 const seriesStore = useSeriesStore()
 
 const slug = route.params.slug as string
@@ -11,7 +10,7 @@ const { data: series, error: seriesError } = await useAsyncData(
   () => seriesStore.fetchSeries(slug),
 )
 
-const { data: books, error: booksError } = await useAsyncData(
+const { data: books } = await useAsyncData(
   `series-books-${slug}`,
   () => seriesStore.fetchSeriesBooks(slug),
 )
@@ -61,12 +60,12 @@ useSeriesStructuredData({
             >
               <span class="text-body-2 text-secondary">by </span>
 
-              <a
+              <NuxtLink
                 class="text-body-2 text-primary text-decoration-none cursor-pointer"
-                @click="router.push(`/authors/${series.author.slug}`)"
+                :to="`/authors/${series.author.slug}`"
               >
                 {{ series.author.name }}
-              </a>
+              </NuxtLink>
             </div>
 
             <v-chip

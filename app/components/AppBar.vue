@@ -3,14 +3,11 @@ import { useDisplay } from 'vuetify'
 
 const { mobile } = useDisplay()
 
-const router = useRouter()
 const themeStore = useThemeStore()
 const drawer = ref(false)
 
-function goHome() {
-  router.push('/')
-  drawer.value = false
-}
+// Separate state for AppBar search (not connected to search store)
+const appBarSearchQuery = ref('')
 </script>
 
 <template>
@@ -22,7 +19,7 @@ function goHome() {
     <v-btn
       v-if="mobile"
       icon
-      @click="goHome"
+      to="/"
     >
       <v-icon
         icon="mdi-snowflake"
@@ -34,7 +31,7 @@ function goHome() {
     <v-app-bar-title
       v-if="!mobile"
       class="logo-container"
-      @click="goHome"
+      to="/"
     >
       <div class="logo-wrapper">
         <v-icon
@@ -53,7 +50,10 @@ function goHome() {
 
     <!-- Search Bar (responsive) -->
     <div class="search-container">
-      <SearchBar variant="appbar" />
+      <SearchBar
+        v-model="appBarSearchQuery"
+        variant="appbar"
+      />
     </div>
 
     <v-spacer v-if="!mobile" />
@@ -90,7 +90,7 @@ function goHome() {
       <!-- App Logo/Name -->
       <v-list-item
         class="drawer-logo"
-        @click="goHome"
+        to="/"
       >
         <template #prepend>
           <v-icon

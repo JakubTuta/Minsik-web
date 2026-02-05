@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const route = useRoute()
-const router = useRouter()
 const booksStore = useBooksStore()
 
 const slug = route.params.slug as string
@@ -45,7 +44,6 @@ useBookStructuredData({
 })
 
 const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg')
-const authorNames = computed(() => book.value?.authors.map(a => a.name).join(', ') || '')
 </script>
 
 <template>
@@ -100,12 +98,12 @@ const authorNames = computed(() => book.value?.authors.map(a => a.name).join(', 
                     v-for="(author, index) in book.authors"
                     :key="author.id"
                   >
-                    <a
+                    <NuxtLink
                       class="text-body-2 text-primary text-decoration-none cursor-pointer"
-                      @click="router.push(`/authors/${author.slug}`)"
+                      :to="`/authors/${author.slug}`"
                     >
                       {{ author.name }}
-                    </a>
+                    </NuxtLink>
 
                     <span
                       v-if="index < book.authors.length - 1"
@@ -122,7 +120,7 @@ const authorNames = computed(() => book.value?.authors.map(a => a.name).join(', 
                   <v-chip
                     color="info"
                     variant="tonal"
-                    @click="router.push(`/series/${book.series.slug}`)"
+                    :to="`/series/${book.series.slug}`"
                   >
                     {{ book.series.name }}
                     <span v-if="book.series_position"> #{{ book.series_position }}</span>

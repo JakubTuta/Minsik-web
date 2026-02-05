@@ -78,6 +78,8 @@ export interface SearchResult {
   slug: string
   cover_url?: string | null
   authors: string[]
+  author_slugs: string[]
+  series_slug: string | null
   relevance_score: number
   view_count: number
 }

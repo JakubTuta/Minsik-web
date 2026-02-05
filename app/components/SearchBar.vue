@@ -8,7 +8,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   variant: 'appbar',
   modelValue: '',
-  autofocus: false,
 })
 
 const emit = defineEmits<{
@@ -24,6 +23,11 @@ const showResults = ref(false)
 const searchFieldRef = ref()
 const resultsCardRef = ref()
 const dropdownStyle = ref({ top: '0px', left: '0px', width: '0px' })
+
+// For appbar variant: use separate local search results (not the store)
+const localResults = ref<any[]>([])
+const localIsLoading = ref(false)
+const localIsEmpty = ref(false)
 
 // Update dropdown position when it shows (centered below search field)
 function updateDropdownPosition() {
@@ -82,19 +86,70 @@ watch(() => props.modelValue, (newVal) => {
   localQuery.value = newVal
 })
 
-// Auto-search in both modes with debounce
+// Auto-search with debounce
+const debouncedSearch = useDebounceFn(async (query: string) => {
+  if (!query.trim()) {
+    localResults.value = []
+    localIsEmpty.value = false
+    localIsLoading.value = false
+
+    return
+  }
+
+  if (props.variant === 'appbar') {
+    // AppBar: fetch results independently
+    localIsLoading.value = true
+    localIsEmpty.value = false
+
+    try {
+      const apiStore = useApiStore()
+      const response = await apiStore.client.get('/api/v1/search', {
+        params: {
+          q: query,
+          type: 'all',
+          limit: 20,
+          offset: 0,
+        },
+      })
+
+      localResults.value = response.data.data.results || []
+      localIsEmpty.value = localResults.value.length === 0
+    }
+    catch (error) {
+      console.error('Search error:', error)
+      localResults.value = []
+      localIsEmpty.value = true
+    }
+    finally {
+      localIsLoading.value = false
+    }
+  }
+  else {
+    // Full mode: use the search store (for search page)
+    searchStore.setQuery(query)
+  }
+}, 500)
+
 watch(localQuery, (newQuery) => {
   emit('update:modelValue', newQuery)
-
-  // Trigger auto-search with debounce in both appbar and full modes
-  searchStore.setQuery(newQuery)
 
   // Show results dropdown in appbar mode when there's a query
   if (props.variant === 'appbar' && newQuery.trim()) {
     showResults.value = true
+    localIsLoading.value = true // Show loading immediately
+    localIsEmpty.value = false // Don't show empty until search completes
+    localResults.value = [] // Clear previous results
+    debouncedSearch(newQuery)
+  }
+  else if (props.variant === 'appbar') {
+    showResults.value = false
+    localResults.value = []
+    localIsLoading.value = false
+    localIsEmpty.value = false
   }
   else {
-    showResults.value = false
+    // Full mode
+    debouncedSearch(newQuery)
   }
 })
 
@@ -116,6 +171,8 @@ function clearSearch() {
   localQuery.value = ''
   emit('update:modelValue', '')
   showResults.value = false
+  localResults.value = []
+  localIsEmpty.value = false
 
   if (props.variant === 'full') {
     searchStore.clear()
@@ -123,7 +180,7 @@ function clearSearch() {
 }
 
 const isLoading = computed(() => (props.variant === 'appbar'
-  ? searchStore.isLoading
+  ? localIsLoading.value
   : searchStore.isLoading))
 
 // Group results by type for appbar dropdown (limit to 10 per category for scrolling)
@@ -131,9 +188,13 @@ const groupedResults = computed(() => {
   if (props.variant !== 'appbar')
     return null
 
-  const books = searchStore.results.filter(r => r.type === 'book').slice(0, 10)
-  const series = searchStore.results.filter(r => r.type === 'series').slice(0, 10)
-  const authors = searchStore.results.filter(r => r.type === 'author').slice(0, 10)
+  const results = props.variant === 'appbar'
+    ? localResults.value
+    : searchStore.results
+
+  const books = results.filter(r => r.type === 'book').slice(0, 10)
+  const series = results.filter(r => r.type === 'series').slice(0, 10)
+  const authors = results.filter(r => r.type === 'author').slice(0, 10)
 
   return { books, series, authors }
 })
@@ -162,14 +223,14 @@ const hasResults = computed(() => {
   if (props.variant !== 'appbar')
     return false
 
-  return searchStore.hasData
+  return localResults.value.length > 0
 })
 
 const isEmpty = computed(() => {
   if (props.variant !== 'appbar')
     return false
 
-  return searchStore.isEmpty
+  return localIsEmpty.value
 })
 </script>
 

@@ -13,84 +13,77 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
 })
 
-const router = useRouter()
-
-function navigateToAuthor() {
-  if (props.author) {
-    router.push(`/authors/${props.author.slug}`)
-  }
-}
-
+const authorLink = computed(() => (props.author
+  ? `/authors/${props.author.slug}`
+  : ''))
 const photoUrl = computed(() => props.author?.photo_url || '/placeholder-avatar.jpg')
 const name = computed(() => props.author?.name || '')
 const biography = computed(() => {
   if (!props.author?.biography)
     return ''
 
-  return props.author.biography.length > 120
-    ? `${props.author.biography.substring(0, 120)}...`
+  return props.author.biography.length > 100
+    ? `${props.author.biography.substring(0, 100)}...`
     : props.author.biography
 })
 </script>
 
 <template>
   <v-card
+    :to="authorLink"
     :loading="loading"
     hover
-    class="cursor-pointer"
-    @click="navigateToAuthor"
+    class="author-card d-flex flex-column h-100"
   >
     <template v-if="loading">
       <v-skeleton-loader type="list-item-avatar-three-line" />
     </template>
 
     <template v-else-if="author">
-      <v-card-text>
-        <div class="d-flex gap-3 align-start">
-          <v-avatar
-            size="64"
-            color="surface-variant"
+      <v-card-text class="d-flex flex-column align-center flex-grow-1 pa-4 text-center">
+        <v-avatar
+          size="120"
+          color="surface-variant"
+          class="mb-4"
+        >
+          <v-img
+            :src="photoUrl"
+            :alt="name"
           >
-            <v-img
-              :src="photoUrl"
-              :alt="name"
-            >
-              <template #placeholder>
-                <v-icon
-                  icon="mdi-account"
-                  size="large"
-                />
-              </template>
-            </v-img>
-          </v-avatar>
+            <template #placeholder>
+              <v-icon
+                icon="mdi-account"
+                size="x-large"
+              />
+            </template>
+          </v-img>
+        </v-avatar>
 
-          <div class="flex-1-1">
-            <div class="text-subtitle-1 font-weight-bold mb-1">
-              {{ name }}
-            </div>
-
-            <div
-              v-if="author.display_dates"
-              class="text-caption text-secondary mb-2"
-            >
-              {{ author.display_dates }}
-            </div>
-
-            <v-chip
-              size="small"
-              color="primary"
-              variant="tonal"
-            >
-              {{ author.book_count }} {{ author.book_count === 1
-                ? 'book'
-                : 'books' }}
-            </v-chip>
-          </div>
+        <div class="text-h6 font-weight-bold mb-2">
+          {{ name }}
         </div>
 
         <div
+          v-if="author.display_dates"
+          class="text-body-2 text-secondary mb-3"
+        >
+          {{ author.display_dates }}
+        </div>
+
+        <v-chip
+          size="small"
+          color="primary"
+          variant="tonal"
+          class="mb-3"
+        >
+          {{ author.book_count }} {{ author.book_count === 1
+            ? 'book'
+            : 'books' }}
+        </v-chip>
+
+        <div
           v-if="biography && variant === 'default'"
-          class="text-caption text-secondary mt-3"
+          class="text-body-2 text-secondary line-clamp-3 w-100"
         >
           {{ biography }}
         </div>
@@ -98,3 +91,16 @@ const biography = computed(() => {
     </template>
   </v-card>
 </template>
+
+<style scoped>
+.author-card {
+  min-height: 280px;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

@@ -11,57 +11,51 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
 })
 
-const router = useRouter()
-
-function navigateToSeries() {
-  if (props.series) {
-    router.push(`/series/${props.series.slug}`)
-  }
-}
-
-function navigateToAuthor(event: Event) {
-  if (props.series?.author) {
-    event.stopPropagation()
-    router.push(`/authors/${props.series.author.slug}`)
-  }
-}
-
+const seriesLink = computed(() => (props.series
+  ? `/series/${props.series.slug}`
+  : ''))
 const name = computed(() => props.series?.name || '')
 const description = computed(() => {
   if (!props.series?.description)
     return ''
 
-  return props.series.description.length > 150
-    ? `${props.series.description.substring(0, 150)}...`
+  return props.series.description.length > 120
+    ? `${props.series.description.substring(0, 120)}...`
     : props.series.description
 })
 </script>
 
 <template>
   <v-card
+    :to="seriesLink"
     :loading="loading"
     hover
-    class="cursor-pointer"
-    @click="navigateToSeries"
+    class="series-card d-flex flex-column h-100"
   >
     <template v-if="loading">
       <v-skeleton-loader type="article" />
     </template>
 
     <template v-else-if="series">
-      <v-card-text>
+      <v-card-text class="d-flex flex-column flex-grow-1 pa-4">
         <div class="d-flex justify-space-between mb-3 gap-3 align-start">
           <div class="flex-1-1">
-            <div class="text-subtitle-1 font-weight-bold mb-2">
+            <div class="text-h6 font-weight-bold line-clamp-2 mb-2">
               {{ name }}
             </div>
 
             <div
               v-if="series.author"
-              class="text-caption text-secondary hover:text-primary cursor-pointer"
-              @click="navigateToAuthor"
+              class="text-body-2"
             >
-              by {{ series.author.name }}
+              <span class="text-secondary">by </span>
+
+              <NuxtLink
+                class="author-link text-secondary"
+                :to="`/authors/${series.author.slug}`"
+              >
+                {{ series.author.name }}
+              </NuxtLink>
             </div>
           </div>
 
@@ -78,7 +72,7 @@ const description = computed(() => {
 
         <div
           v-if="description"
-          class="text-caption text-secondary"
+          class="text-body-2 text-secondary line-clamp-4 mt-auto"
         >
           {{ description }}
         </div>
@@ -86,3 +80,34 @@ const description = computed(() => {
     </template>
   </v-card>
 </template>
+
+<style scoped>
+.series-card {
+  min-height: 240px;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.author-link {
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.author-link:hover {
+  color: rgb(var(--v-theme-primary)) !important;
+  text-decoration: underline;
+}
+</style>

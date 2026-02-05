@@ -3,6 +3,14 @@ const route = useRoute()
 const router = useRouter()
 const searchStore = useSearchStore()
 
+// Computed for type filter that calls setType
+const selectedType = computed({
+  get: () => searchStore.type,
+  set: (value) => {
+    searchStore.setType(value)
+  },
+})
+
 // Initialize from URL query params
 onMounted(() => {
   const query = route.query.q as string
@@ -36,15 +44,23 @@ watch(() => searchStore.type, (newType) => {
 
 // Watch for query changes and update URL
 watch(() => searchStore.query, (newQuery) => {
-  if (!newQuery || !router || !import.meta.client)
+  if (!router || !import.meta.client)
     return
 
-  router.replace({
-    query: {
-      ...route.query,
-      q: newQuery,
-    },
-  })
+  if (!newQuery) {
+    // Clear URL when query is empty
+    router.replace({
+      query: {},
+    })
+  }
+  else {
+    router.replace({
+      query: {
+        ...route.query,
+        q: newQuery,
+      },
+    })
+  }
 })
 
 // Infinite scroll
@@ -64,17 +80,43 @@ useSeo({
   description: 'Search for books, authors, and series on Minsik.',
 })
 
-// Render book/author/series card based on type
-function getResultComponent(type: string) {
-  switch (type) {
-    case 'book':
-      return 'BookCard'
-    case 'author':
-      return 'AuthorCard'
-    case 'series':
-      return 'SeriesCard'
-    default:
-      return 'BookCard'
+// Transform search result to card-compatible format
+function transformToBook(result: any) {
+  return {
+    id: result.id.toString(),
+    slug: result.slug,
+    title: result.title,
+    cover_url: result.cover_url,
+    authors: result.authors.map((name: string, index: number) => ({
+      name,
+      slug: result.author_slugs[index] || '',
+    })),
+    view_count: result.view_count,
+    rating: 0,
+    rating_count: 0,
+    genres: [],
+    formats: [],
+  }
+}
+
+function transformToAuthor(result: any) {
+  return {
+    id: result.id.toString(),
+    slug: result.slug,
+    name: result.title,
+    photo_url: result.cover_url,
+    view_count: result.view_count,
+    book_count: 0,
+  }
+}
+
+function transformToSeries(result: any) {
+  return {
+    id: result.id.toString(),
+    slug: result.slug,
+    name: result.title,
+    view_count: result.view_count,
+    book_count: 0,
   }
 }
 </script>
@@ -91,7 +133,7 @@ function getResultComponent(type: string) {
         />
 
         <SearchFilters
-          v-model="searchStore.type"
+          v-model="selectedType"
           class="mb-6"
         />
 
@@ -110,23 +152,25 @@ function getResultComponent(type: string) {
     <v-row v-if="searchStore.hasData">
       <v-col
         v-for="result in searchStore.results"
-        :key="`${result.type}-${result.data.id}`"
+        :key="`${result.type}-${result.id}`"
         cols="12"
         sm="6"
         md="4"
         lg="3"
       >
-        <component
-          :is="getResultComponent(result.type)"
-          :book="result.type === 'book'
-            ? result.data
-            : undefined"
-          :author="result.type === 'author'
-            ? result.data
-            : undefined"
-          :series="result.type === 'series'
-            ? result.data
-            : undefined"
+        <BookCard
+          v-if="result.type === 'book'"
+          :book="transformToBook(result)"
+        />
+
+        <AuthorCard
+          v-else-if="result.type === 'author'"
+          :author="transformToAuthor(result)"
+        />
+
+        <SeriesCard
+          v-else-if="result.type === 'series'"
+          :series="transformToSeries(result)"
         />
       </v-col>
     </v-row>
@@ -138,8 +182,8 @@ function getResultComponent(type: string) {
       :count="8"
     />
 
-    <!-- Loading More Indicator -->
-    <v-row v-if="searchStore.isLoading && searchStore.hasData">
+    <!-- Loading More Indicator (only show when scrolling for more) -->
+    <v-row v-if="searchStore.isLoading && searchStore.hasData && searchStore.offset > 0">
       <v-col
         cols="12"
         class="py-8 text-center"
