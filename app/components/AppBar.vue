@@ -1,8 +1,15 @@
 <script setup lang="ts">
+import { useDisplay } from 'vuetify'
+
+const { mobile } = useDisplay()
+
 const router = useRouter()
+const themeStore = useThemeStore()
+const drawer = ref(false)
 
 function goHome() {
   router.push('/')
+  drawer.value = false
 }
 </script>
 
@@ -11,7 +18,21 @@ function goHome() {
     elevation="3"
     color="primary"
   >
+    <!-- Mobile: Logo Icon Only -->
+    <v-btn
+      v-if="mobile"
+      icon
+      @click="goHome"
+    >
+      <v-icon
+        icon="mdi-snowflake"
+        size="large"
+      />
+    </v-btn>
+
+    <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title
+      v-if="!mobile"
       class="logo-container"
       @click="goHome"
     >
@@ -26,18 +47,81 @@ function goHome() {
       </div>
     </v-app-bar-title>
 
-    <v-spacer />
+    <v-spacer v-if="!mobile" />
 
-    <div class="flex-1-1 mx-4 max-w-600px">
+    <v-spacer v-if="!mobile" />
+
+    <!-- Search Bar (responsive) -->
+    <div class="search-container">
       <SearchBar variant="appbar" />
     </div>
 
-    <v-spacer />
+    <v-spacer v-if="!mobile" />
 
-    <ThemeToggle />
+    <v-spacer v-if="!mobile" />
 
-    <UserMenu />
+    <!-- Desktop: Theme Toggle & User Menu -->
+    <ThemeToggle
+      v-if="!mobile"
+    />
+
+    <UserMenu
+      v-if="!mobile"
+    />
+
+    <!-- Mobile: Menu Button -->
+    <v-btn
+      v-if="mobile"
+      icon
+      @click="drawer = !drawer"
+    >
+      <v-icon>mdi-menu</v-icon>
+    </v-btn>
   </v-app-bar>
+
+  <!-- Mobile Drawer -->
+  <v-navigation-drawer
+    v-model="drawer"
+    location="right"
+    temporary
+    width="280"
+  >
+    <v-list>
+      <!-- App Logo/Name -->
+      <v-list-item
+        class="drawer-logo"
+        @click="goHome"
+      >
+        <template #prepend>
+          <v-icon
+            icon="mdi-snowflake"
+            size="large"
+            color="primary"
+          />
+        </template>
+
+        <v-list-item-title class="text-h6 font-weight-bold">
+          Minsik
+        </v-list-item-title>
+      </v-list-item>
+
+      <v-divider class="my-2" />
+
+      <!-- Theme Toggle -->
+      <v-list-item @click="themeStore.toggleTheme">
+        <div class="d-flex align-center justify-space-between w-100">
+          <v-list-item-title>Theme</v-list-item-title>
+
+          <ThemeToggle />
+        </div>
+      </v-list-item>
+
+      <v-divider class="my-2" />
+
+      <!-- User Menu Items (expanded) -->
+      <UserMenu drawer-mode />
+    </v-list>
+  </v-navigation-drawer>
 </template>
 
 <style scoped>
@@ -58,19 +142,9 @@ function goHome() {
 .logo-icon {
   color: white;
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
-  animation: snowflakeRotate 30s linear infinite, iconPulse 2s ease-in-out infinite;
   transition: all 0.3s ease;
   position: relative;
   z-index: 1;
-}
-
-@keyframes snowflakeRotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes iconPulse {
@@ -112,11 +186,34 @@ function goHome() {
 
 .logo-wrapper:hover .logo-icon {
   filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
-  animation: snowflakeRotate 20s linear infinite, iconPulse 1s ease-in-out infinite;
 }
 
 .logo-wrapper:active {
   transform: scale(0.98);
   transition: transform 0.1s ease;
+}
+
+/* Search container */
+.search-container {
+  flex: 1 1 auto;
+  max-width: 600px;
+  min-width: 400px;
+}
+
+@media (max-width: 959px) {
+  .search-container {
+    flex: 1 1 auto;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0 8px;
+  }
+}
+
+.drawer-logo {
+  cursor: pointer;
+}
+
+.drawer-logo:hover {
+  background-color: rgba(0, 0, 0, 0.04);
 }
 </style>
