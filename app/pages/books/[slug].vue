@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const booksStore = useBooksStore()
+const authorsStore = useAuthorsStore()
 
 const slug = route.params.slug as string
 
@@ -44,6 +45,21 @@ useBookStructuredData({
 })
 
 const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-book.jpg')
+
+// Fetch full author data (non-blocking, for caching)
+const primaryAuthor = ref<any>(null)
+
+onMounted(async () => {
+  if (book.value?.authors[0]?.slug) {
+    try {
+      // Fetch full author data to cache it for when user navigates to author page
+      primaryAuthor.value = await authorsStore.fetchAuthor(book.value.authors[0].slug)
+    }
+    catch (error) {
+      console.error('Error fetching author data:', error)
+    }
+  }
+})
 </script>
 
 <template>
@@ -57,6 +73,7 @@ const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-b
               cols="12"
               md="4"
               lg="3"
+              class="pa-0"
             >
               <v-img
                 :src="coverUrl"
@@ -79,38 +96,13 @@ const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-b
             <!-- Book Info -->
             <v-col
               cols="12"
-              md="8"
-              lg="9"
+              md="5"
+              lg="6"
             >
               <v-card-text>
                 <h1 class="text-h4 font-weight-bold mb-3">
                   {{ book.title }}
                 </h1>
-
-                <!-- Authors -->
-                <div
-                  v-if="book.authors.length > 0"
-                  class="mb-3"
-                >
-                  <span class="font-weight-bold text-h6 text-secondary">by </span>
-
-                  <template
-                    v-for="(author, index) in book.authors"
-                    :key="author.author_id"
-                  >
-                    <NuxtLink
-                      class="font-weight-bold text-h6 text-primary text-decoration-none cursor-pointer"
-                      :to="`/authors/${author.slug}`"
-                    >
-                      {{ author.name }}
-                    </NuxtLink>
-
-                    <span
-                      v-if="index < book.authors.length - 1"
-                      class="font-weight-bold text-h6 text-secondary"
-                    >, </span>
-                  </template>
-                </div>
 
                 <!-- Series -->
                 <div
@@ -187,7 +179,7 @@ const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-b
                     size="small"
                     class="mb-2 mr-2"
                   >
-                    {{ genre.name }}
+                    {{ toTitleCase(genre.name) }}
                   </v-chip>
                 </div>
 
@@ -207,10 +199,76 @@ const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-b
                     variant="outlined"
                     class="mb-2 mr-2"
                   >
-                    {{ format }}
+                    {{ toTitleCase(format) }}
                   </v-chip>
                 </div>
               </v-card-text>
+            </v-col>
+
+            <!-- About Author -->
+            <v-col
+              v-if="book.authors.length > 0"
+              cols="12"
+              md="3"
+              lg="3"
+            >
+              <v-card
+                variant="outlined"
+                class="h-100"
+              >
+                <v-card-text class="pa-4">
+                  <h3 class="text-h6 font-weight-bold mb-4">
+                    About Author
+                  </h3>
+
+                  <v-divider
+                    class="mb-4"
+                  />
+
+                  <div class="d-flex flex-column align-center text-center">
+                    <!-- Author Photo -->
+                    <v-avatar
+                      v-if="book.authors[0]?.photo_url"
+                      size="120"
+                      class="mb-3"
+                    >
+                      <v-img
+                        :src="book.authors[0]?.photo_url"
+                        :alt="book.authors[0]?.name"
+                      />
+                    </v-avatar>
+
+                    <!-- Author Name -->
+                    <NuxtLink
+                      class="text-h5 font-weight-medium text-primary text-decoration-none mb-2"
+                      :to="`/authors/${book.authors[0]?.slug}`"
+                    >
+                      {{ book.authors[0]?.name }}
+                    </NuxtLink>
+
+                    <!-- Multiple authors indicator -->
+                    <div
+                      v-if="book.authors.length > 1"
+                      class="text-caption text-secondary mb-3"
+                    >
+                      +{{ book.authors.length - 1 }} more author{{
+                        book.authors.length > 2
+                          ? 's'
+                          : ''
+                      }}
+                    </div>
+
+                    <!-- Author Biography -->
+                    <p
+                      v-if="primaryAuthor?.biography"
+                      class="text-body-2 text-secondary mt-2"
+                      style="white-space: pre-line; text-align: left;"
+                    >
+                      {{ primaryAuthor.biography }}
+                    </p>
+                  </div>
+                </v-card-text>
+              </v-card>
             </v-col>
           </v-row>
 
@@ -223,7 +281,7 @@ const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-b
             </h2>
 
             <p
-              class="text-body-1"
+              class="font-size-4"
               style="white-space: pre-line;"
             >
               {{ book.description }}

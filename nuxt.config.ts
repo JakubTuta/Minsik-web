@@ -82,9 +82,9 @@ export default defineNuxtConfig({
   // Route rules for SEO and caching
   routeRules: {
     '/': { prerender: true },
-    '/books/**': { swr: 3600 },
-    '/authors/**': { swr: 3600 },
-    '/series/**': { swr: 3600 },
+    '/books/**': { ssr: true }, // SSR enabled, no caching to avoid hydration mismatches
+    '/authors/**': { ssr: true },
+    '/series/**': { ssr: true },
     '/search': { ssr: true },
   },
 })

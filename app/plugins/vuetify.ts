@@ -28,12 +28,12 @@ export default defineNuxtPlugin((app) => {
             'primary-lighten-1': '#FFC5AD',
             'primary-lighten-2': '#FFDAC6',
 
-            // Secondary colors - lighter secondary coral
-            'secondary': '#FF9B77',
-            'secondary-darken-1': '#E8805C',
-            'secondary-darken-2': '#D46942',
-            'secondary-lighten-1': '#FFB08C',
-            'secondary-lighten-2': '#FFC5A7',
+            // Secondary colors - peachy-pink (between primary coral and pink)
+            'secondary': '#FF9BA8',
+            'secondary-darken-1': '#FF8694',
+            'secondary-darken-2': '#FF7080',
+            'secondary-lighten-1': '#FFB0BC',
+            'secondary-lighten-2': '#FFC5D0',
 
             // Status colors
             'success': '#7BA882',
@@ -85,12 +85,12 @@ export default defineNuxtPlugin((app) => {
             'primary-lighten-1': '#FFAA71',
             'primary-lighten-2': '#FFBF8C',
 
-            // Secondary colors - secondary orange
-            'secondary': '#CC6F3A',
-            'secondary-darken-1': '#B35F2E',
-            'secondary-darken-2': '#994F22',
-            'secondary-lighten-1': '#E08554',
-            'secondary-lighten-2': '#F39B6E',
+            // Secondary colors - peachy-pink (between primary coral and pink)
+            'secondary': '#FF7A8A',
+            'secondary-darken-1': '#E66676',
+            'secondary-darken-2': '#CC5262',
+            'secondary-lighten-1': '#FF8E9E',
+            'secondary-lighten-2': '#FFA2B2',
 
             // Accent
             'accent': '#5B8AAF',
