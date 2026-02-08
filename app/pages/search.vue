@@ -83,19 +83,19 @@ useSeo({
 // Transform search result to card-compatible format
 function transformToBook(result: any) {
   return {
-    id: result.id.toString(),
     slug: result.slug,
     title: result.title,
-    cover_url: result.cover_url,
+    primary_cover_url: result.cover_url,
     authors: result.authors.map((name: string, index: number) => ({
       name,
       slug: result.author_slugs[index] || '',
     })),
     view_count: result.view_count,
-    rating: 0,
+    series: result.series_slug ? { name: result.title, slug: result.series_slug } : null,
+    series_position: null,
+    avg_rating: 0,
     rating_count: 0,
     genres: [],
-    formats: [],
   }
 }
 

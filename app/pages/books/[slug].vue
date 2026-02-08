@@ -25,7 +25,7 @@ const canonicalUrl = `${config.public.siteUrl}/books/${slug}`
 useSeo({
   title: book.value.title,
   description: book.value.description || `${book.value.title} by ${book.value.authors.map(a => a.name).join(', ')}`,
-  image: book.value.cover_url,
+  image: book.value.primary_cover_url || undefined,
   type: 'book',
   url: canonicalUrl,
   author: book.value.authors[0]?.name,
@@ -35,15 +35,15 @@ useSeo({
 useBookStructuredData({
   name: book.value.title,
   author: book.value.authors.map(a => a.name),
-  isbn: book.value.isbn,
-  description: book.value.description,
-  image: book.value.cover_url,
+  isbn: undefined,
+  description: book.value.description || undefined,
+  image: book.value.primary_cover_url || undefined,
   url: canonicalUrl,
-  datePublished: book.value.publication_year?.toString(),
+  datePublished: book.value.original_publication_year?.toString(),
   inLanguage: book.value.language,
 })
 
-const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg')
+const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-book.jpg')
 </script>
 
 <template>
@@ -92,14 +92,14 @@ const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg'
                   v-if="book.authors.length > 0"
                   class="mb-3"
                 >
-                  <span class="text-body-2 text-secondary">by </span>
+                  <span class="font-weight-bold text-h6 text-secondary">by </span>
 
                   <template
                     v-for="(author, index) in book.authors"
-                    :key="author.id"
+                    :key="author.author_id"
                   >
                     <NuxtLink
-                      class="text-body-2 text-primary text-decoration-none cursor-pointer"
+                      class="font-weight-bold text-h6 text-primary text-decoration-none cursor-pointer"
                       :to="`/authors/${author.slug}`"
                     >
                       {{ author.name }}
@@ -107,7 +107,7 @@ const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg'
 
                     <span
                       v-if="index < book.authors.length - 1"
-                      class="text-body-2 text-secondary"
+                      class="font-weight-bold text-h6 text-secondary"
                     >, </span>
                   </template>
                 </div>
@@ -117,19 +117,20 @@ const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg'
                   v-if="book.series"
                   class="mb-3"
                 >
-                  <v-chip
-                    color="info"
-                    variant="tonal"
+                  <span class="font-weight-bold text-body-1 text-secondary">series: </span>
+
+                  <NuxtLink
+                    class="font-weight-bold text-body-1 text-primary text-decoration-none"
                     :to="`/series/${book.series.slug}`"
                   >
                     {{ book.series.name }}
                     <span v-if="book.series_position"> #{{ book.series_position }}</span>
-                  </v-chip>
+                  </NuxtLink>
                 </div>
 
                 <!-- Rating -->
                 <div
-                  v-if="book.rating"
+                  v-if="book.avg_rating > 0"
                   class="d-flex align-center mb-4 gap-2"
                 >
                   <v-icon
@@ -137,11 +138,11 @@ const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg'
                     color="warning"
                   />
 
-                  <span class="text-h6">{{ book.rating.toFixed(1) }}</span>
+                  <span class="text-h6">{{ book.avg_rating.toFixed(1) }}</span>
 
                   <span
                     v-if="book.rating_count"
-                    class="text-body-2 text-secondary"
+                    class="text-body-2 text-primary"
                   >
                     ({{ book.rating_count }} {{ book.rating_count === 1
                       ? 'rating'
@@ -154,20 +155,12 @@ const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg'
                   density="compact"
                   class="bg-transparent"
                 >
-                  <v-list-item v-if="book.publication_year">
+                  <v-list-item v-if="book.original_publication_year">
                     <template #prepend>
                       <v-icon icon="mdi-calendar" />
                     </template>
 
-                    <v-list-item-title>Published {{ book.publication_year }}</v-list-item-title>
-                  </v-list-item>
-
-                  <v-list-item v-if="book.language">
-                    <template #prepend>
-                      <v-icon icon="mdi-translate" />
-                    </template>
-
-                    <v-list-item-title>{{ book.language.toUpperCase() }}</v-list-item-title>
+                    <v-list-item-title>Published {{ book.original_publication_year }}</v-list-item-title>
                   </v-list-item>
 
                   <v-list-item v-if="book.view_count">
@@ -179,26 +172,34 @@ const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg'
                   </v-list-item>
                 </v-list>
 
-                <!-- Genres -->
+                <!-- Categories -->
                 <div
                   v-if="book.genres && book.genres.length > 0"
                   class="mt-4"
                 >
+                  <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
+                    Categories
+                  </h3>
+
                   <v-chip
                     v-for="genre in book.genres"
-                    :key="genre"
+                    :key="genre.genre_id"
                     size="small"
                     class="mb-2 mr-2"
                   >
-                    {{ genre }}
+                    {{ genre.name }}
                   </v-chip>
                 </div>
 
-                <!-- Formats -->
+                <!-- Editions -->
                 <div
                   v-if="book.formats && book.formats.length > 0"
-                  class="mt-2"
+                  class="mt-4"
                 >
+                  <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
+                    Editions
+                  </h3>
+
                   <v-chip
                     v-for="format in book.formats"
                     :key="format"
@@ -228,6 +229,44 @@ const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg'
               {{ book.description }}
             </p>
           </v-card-text>
+
+          <!-- Cover History -->
+          <template v-if="book.cover_history && book.cover_history.length > 1">
+            <v-divider />
+
+            <v-card-text>
+              <h2 class="text-h6 font-weight-bold mb-3">
+                Cover History
+              </h2>
+
+              <div class="cover-history-list">
+                <div
+                  v-for="(cover, index) in book.cover_history"
+                  :key="index"
+                  class="cover-history-item"
+                >
+                  <v-card
+                    elevation="2"
+                    rounded="lg"
+                  >
+                    <v-img
+                      :src="cover.url"
+                      :alt="`Cover ${index + 1}`"
+                      :aspect-ratio="0.67"
+                      cover
+                      class="bg-surface-variant"
+                    />
+
+                    <v-card-text class="pa-2 text-center">
+                      <div class="text-caption text-secondary">
+                        {{ cover.size }} ({{ cover.width }}px)
+                      </div>
+                    </v-card-text>
+                  </v-card>
+                </div>
+              </div>
+            </v-card-text>
+          </template>
         </v-card>
       </v-col>
     </v-row>
@@ -238,3 +277,35 @@ const coverUrl = computed(() => book.value?.cover_url || '/placeholder-book.jpg'
     <LoadingState type="detail" />
   </v-container>
 </template>
+
+<style scoped>
+.cover-history-list {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.cover-history-item {
+  flex: 0 0 auto;
+  width: 200px;
+}
+
+.cover-history-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.cover-history-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.cover-history-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.cover-history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+</style>

@@ -14,19 +14,8 @@ const appBarSearchQuery = ref('')
   <v-app-bar
     elevation="3"
     color="primary"
+    class="app-bar-container"
   >
-    <!-- Mobile: Logo Icon Only -->
-    <v-btn
-      v-if="mobile"
-      icon
-      to="/"
-    >
-      <v-icon
-        icon="mdi-snowflake"
-        size="large"
-      />
-    </v-btn>
-
     <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title
       v-if="!mobile"
@@ -44,11 +33,19 @@ const appBarSearchQuery = ref('')
       </div>
     </v-app-bar-title>
 
-    <v-spacer v-if="!mobile" />
+    <!-- Mobile: Logo Icon Only -->
+    <v-btn
+      v-if="mobile"
+      icon
+      to="/"
+    >
+      <v-icon
+        icon="mdi-snowflake"
+        size="large"
+      />
+    </v-btn>
 
-    <v-spacer v-if="!mobile" />
-
-    <!-- Search Bar (responsive) -->
+    <!-- Search Bar (absolutely centered) -->
     <div class="search-container">
       <SearchBar
         v-model="appBarSearchQuery"
@@ -56,9 +53,7 @@ const appBarSearchQuery = ref('')
       />
     </div>
 
-    <v-spacer v-if="!mobile" />
-
-    <v-spacer v-if="!mobile" />
+    <v-spacer />
 
     <!-- Desktop: Theme Toggle & User Menu -->
     <ThemeToggle
@@ -125,6 +120,10 @@ const appBarSearchQuery = ref('')
 </template>
 
 <style scoped>
+.app-bar-container {
+  position: relative;
+}
+
 .logo-container {
   cursor: pointer;
   display: inline-block;
@@ -193,18 +192,24 @@ const appBarSearchQuery = ref('')
   transition: transform 0.1s ease;
 }
 
-/* Search container */
+/* Search container - absolutely centered */
 .search-container {
-  flex: 1 1 auto;
-  max-width: 600px;
-  min-width: 400px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  min-width: 300px;
+  max-width: 500px;
+  z-index: 10;
 }
 
 @media (max-width: 959px) {
   .search-container {
+    position: static;
+    transform: none;
     flex: 1 1 auto;
+    width: auto;
     max-width: 100%;
-    min-width: 0;
     margin: 0 8px;
   }
 }

@@ -43,8 +43,8 @@ export const useBooksStore = defineStore('books', () => {
     isLoading.value = true
 
     try {
-      const response = await apiStore.client.get<Book>(`/api/v1/books/${slug}`)
-      const book = response.data
+      const response = await apiStore.client.get<{ success: boolean, data: Book }>(`/api/v1/books/${slug}`)
+      const book = response.data.data
 
       // Cache the book
       books.value.set(slug, book)

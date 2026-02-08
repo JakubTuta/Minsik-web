@@ -17,17 +17,13 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const searchStore = useSearchStore()
+const quickSearchStore = useQuickSearchStore()
 
 const localQuery = ref(props.modelValue)
 const showResults = ref(false)
 const searchFieldRef = ref()
 const resultsCardRef = ref()
 const dropdownStyle = ref({ top: '0px', left: '0px', width: '0px' })
-
-// For appbar variant: use separate local search results (not the store)
-const localResults = ref<any[]>([])
-const localIsLoading = ref(false)
-const localIsEmpty = ref(false)
 
 // Update dropdown position when it shows (centered below search field)
 function updateDropdownPosition() {
@@ -88,41 +84,9 @@ watch(() => props.modelValue, (newVal) => {
 
 // Auto-search with debounce
 const debouncedSearch = useDebounceFn(async (query: string) => {
-  if (!query.trim()) {
-    localResults.value = []
-    localIsEmpty.value = false
-    localIsLoading.value = false
-
-    return
-  }
-
   if (props.variant === 'appbar') {
-    // AppBar: fetch results independently
-    localIsLoading.value = true
-    localIsEmpty.value = false
-
-    try {
-      const apiStore = useApiStore()
-      const response = await apiStore.client.get('/api/v1/search', {
-        params: {
-          q: query,
-          type: 'all',
-          limit: 20,
-          offset: 0,
-        },
-      })
-
-      localResults.value = response.data.data.results || []
-      localIsEmpty.value = localResults.value.length === 0
-    }
-    catch (error) {
-      console.error('Search error:', error)
-      localResults.value = []
-      localIsEmpty.value = true
-    }
-    finally {
-      localIsLoading.value = false
-    }
+    // AppBar: use quick search store
+    await quickSearchStore.search(query)
   }
   else {
     // Full mode: use the search store (for search page)
@@ -136,19 +100,21 @@ watch(localQuery, (newQuery) => {
   // Show results dropdown in appbar mode when there's a query
   if (props.variant === 'appbar' && newQuery.trim()) {
     showResults.value = true
-    localIsLoading.value = true // Show loading immediately
-    localIsEmpty.value = false // Don't show empty until search completes
-    localResults.value = [] // Clear previous results
+    quickSearchStore.isLoading = true // Show loading immediately
     debouncedSearch(newQuery)
   }
   else if (props.variant === 'appbar') {
     showResults.value = false
-    localResults.value = []
-    localIsLoading.value = false
-    localIsEmpty.value = false
+    quickSearchStore.clear()
   }
   else {
     // Full mode
+    if (newQuery.trim()) {
+      searchStore.isLoading = true
+    }
+    else {
+      searchStore.isLoading = false
+    }
     debouncedSearch(newQuery)
   }
 })
@@ -171,16 +137,17 @@ function clearSearch() {
   localQuery.value = ''
   emit('update:modelValue', '')
   showResults.value = false
-  localResults.value = []
-  localIsEmpty.value = false
 
-  if (props.variant === 'full') {
+  if (props.variant === 'appbar') {
+    quickSearchStore.clear()
+  }
+  else {
     searchStore.clear()
   }
 }
 
 const isLoading = computed(() => (props.variant === 'appbar'
-  ? localIsLoading.value
+  ? quickSearchStore.isLoading
   : searchStore.isLoading))
 
 // Group results by type for appbar dropdown (limit to 10 per category for scrolling)
@@ -188,9 +155,7 @@ const groupedResults = computed(() => {
   if (props.variant !== 'appbar')
     return null
 
-  const results = props.variant === 'appbar'
-    ? localResults.value
-    : searchStore.results
+  const results = quickSearchStore.results
 
   const books = results.filter(r => r.type === 'book').slice(0, 10)
   const series = results.filter(r => r.type === 'series').slice(0, 10)
@@ -219,18 +184,34 @@ const columnWidth = computed(() => {
   return 4
 })
 
+// Calculate dropdown width based on number of active categories
+const dropdownWidth = computed(() => {
+  if (props.variant !== 'appbar' || !groupedResults.value)
+    return '400px'
+
+  const activeCategories = [
+    groupedResults.value.books.length > 0,
+    groupedResults.value.series.length > 0,
+    groupedResults.value.authors.length > 0,
+  ].filter(Boolean).length
+
+  // Always at least 400px (1 column), even for loading/empty states
+  // 1 column: 400px, 2 columns: 800px, 3 columns: 1200px
+  return `${Math.max(1, activeCategories) * 400}px`
+})
+
 const hasResults = computed(() => {
   if (props.variant !== 'appbar')
     return false
 
-  return localResults.value.length > 0
+  return quickSearchStore.hasResults
 })
 
 const isEmpty = computed(() => {
   if (props.variant !== 'appbar')
     return false
 
-  return localIsEmpty.value
+  return quickSearchStore.isEmpty
 })
 </script>
 
@@ -264,7 +245,8 @@ const isEmpty = computed(() => {
         ref="resultsCardRef"
         class="search-results-dropdown"
         elevation="8"
-        :style="dropdownStyle"
+        :style="{...dropdownStyle,
+                 'min-width': dropdownWidth}"
       >
         <!-- Loading State -->
         <v-card-text v-if="isLoading">
@@ -433,7 +415,6 @@ const isEmpty = computed(() => {
 .search-results-dropdown {
   position: fixed;
   transform: translateX(-50%);
-  min-width: 350px;
   z-index: 2000;
 }
 

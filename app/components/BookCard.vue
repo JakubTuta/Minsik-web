@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Book } from '~/types/api'
+import type { BookCardData } from '~/types/api'
 
 interface Props {
-  book?: Book
+  book?: BookCardData
   loading?: boolean
   variant?: 'default' | 'compact'
 }
@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 const bookLink = computed(() => (props.book
   ? `/books/${props.book.slug}`
   : ''))
-const coverUrl = computed(() => props.book?.cover_url || '/placeholder-book.jpg')
+const coverUrl = computed(() => props.book?.primary_cover_url || '/placeholder-book.jpg')
 const title = computed(() => props.book?.title || '')
 
 const seriesText = computed(() => {
@@ -93,7 +93,7 @@ const seriesText = computed(() => {
         </div>
 
         <div
-          v-if="book.rating"
+          v-if="book.avg_rating && book.avg_rating > 0"
           class="d-flex align-center gap-1"
         >
           <v-icon
@@ -102,7 +102,7 @@ const seriesText = computed(() => {
             color="warning"
           />
 
-          <span class="text-body-2">{{ book.rating.toFixed(1) }}</span>
+          <span class="text-body-2">{{ book.avg_rating.toFixed(1) }}</span>
 
           <span
             v-if="book.rating_count"

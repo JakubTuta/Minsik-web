@@ -1,0 +1,15 @@
+/* Global font family */
+html,
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Ensure all Vuetify components use Montserrat */
+.v-application {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+/* Apply to all text elements */
+* {
+  font-family: 'Montserrat', sans-serif;
+}

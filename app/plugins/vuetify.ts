@@ -133,6 +133,9 @@ export default defineNuxtPlugin((app) => {
         },
       },
     },
+    typography: {
+      fontFamily: '"Montserrat", sans-serif',
+    },
     defaults: {
       VTextField: {
         variant: 'outlined',

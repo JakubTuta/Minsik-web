@@ -1,13 +1,21 @@
 // API Response Types
 
+export interface ErrorDetail {
+  code: string
+  message: string
+  details?: any
+}
+
 export interface APIResponse<T = any> {
   success: boolean
   data?: T
-  error?: {
-    code: string
-    message: string
-    details?: any
-  }
+  error?: ErrorDetail | null
+}
+
+export interface BookDetailResponse {
+  success: boolean
+  data: Book
+  error?: ErrorDetail | null
 }
 
 export interface PaginatedResponse<T> {
@@ -18,38 +26,33 @@ export interface PaginatedResponse<T> {
   has_more: boolean
 }
 
-// Book Types
+// Genre Types
 
-export interface Book {
-  id: string
+export interface Genre {
+  genre_id: number
+  name: string
   slug: string
-  title: string
-  description?: string
-  cover_url?: string
-  publication_year?: number
-  language?: string
-  rating?: number
-  rating_count?: number
-  view_count: number
-  authors: Author[]
-  series?: Series
-  series_position?: number
-  genres: string[]
-  formats: string[]
-  isbn?: string
-  isbn13?: string
-  open_library_id?: string
-  google_books_id?: string
+}
+
+// Cover Types
+
+export interface CoverHistory {
+  url: string
+  width: number
+  size: string
 }
 
 // Author Types
 
-export interface Author {
-  id: string
-  slug: string
+export interface AuthorMinimal {
+  author_id: number
   name: string
+  slug: string
+  photo_url?: string | null
+}
+
+export interface Author extends AuthorMinimal {
   biography?: string
-  photo_url?: string
   birth_date?: string
   death_date?: string
   book_count: number
@@ -59,14 +62,59 @@ export interface Author {
 
 // Series Types
 
-export interface Series {
-  id: string
-  slug: string
+export interface SeriesMinimal {
+  series_id: number
   name: string
+  slug: string
+  total_books?: number | null
+}
+
+export interface Series extends SeriesMinimal {
   description?: string
   book_count: number
   view_count: number
   author?: Author
+}
+
+// Book Types
+
+export interface Book {
+  book_id: number
+  slug: string
+  title: string
+  description?: string | null
+  language: string
+  original_publication_year?: number | null
+  formats: string[]
+  primary_cover_url?: string | null
+  cover_history: CoverHistory[]
+  rating_count: number
+  avg_rating: number
+  view_count: number
+  last_viewed_at?: string | null
+  authors: AuthorMinimal[]
+  genres: Genre[]
+  series?: SeriesMinimal | null
+  series_position?: string | null
+  open_library_id?: string | null
+  google_books_id?: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Card Display Types (for components)
+
+export interface BookCardData {
+  slug: string
+  title: string
+  primary_cover_url?: string | null
+  authors: Array<{ name: string, slug: string }>
+  series?: { name: string, slug: string } | null
+  series_position?: string | null
+  avg_rating?: number
+  rating_count?: number
+  view_count: number
+  genres?: Array<{ name: string, slug: string }>
 }
 
 // Search Types
