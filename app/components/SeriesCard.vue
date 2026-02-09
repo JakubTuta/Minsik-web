@@ -64,7 +64,7 @@ const description = computed(() => {
             color="primary"
             variant="tonal"
           >
-            {{ series.book_count }} {{ series.book_count === 1
+            {{ series.total_books }} {{ series.total_books === 1
               ? 'book'
               : 'books' }}
           </v-chip>

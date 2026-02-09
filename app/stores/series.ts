@@ -59,7 +59,6 @@ export const useSeriesStore = defineStore('series', () => {
       return seriesData
     }
     catch (error) {
-      console.error('Error fetching series:', error)
       currentSeries.value = null
       throw error
     }
@@ -79,10 +78,10 @@ export const useSeriesStore = defineStore('series', () => {
     isLoadingBooks.value = true
 
     try {
-      // Fetch with large limit to get all books at once
+      // Fetch with max allowed limit
       const response = await apiStore.client.get<PaginatedResponse<Book>>(`/api/v1/series/${slug}/books`, {
         params: {
-          limit: 1000, // Large enough to get all books
+          limit: 100, // API maximum limit
           offset: 0,
         },
       })
@@ -95,9 +94,7 @@ export const useSeriesStore = defineStore('series', () => {
 
       return books
     }
-    catch (error) {
-      console.error('Error fetching series books:', error)
-
+    catch {
       return []
     }
     finally {

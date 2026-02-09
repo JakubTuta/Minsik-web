@@ -106,7 +106,7 @@ function transformToAuthor(result: any) {
     name: result.title,
     photo_url: result.cover_url,
     view_count: result.view_count,
-    book_count: 0,
+    books_count: 0,
   }
 }
 
@@ -116,7 +116,7 @@ function transformToSeries(result: any) {
     slug: result.slug,
     name: result.title,
     view_count: result.view_count,
-    book_count: 0,
+    books_count: 0,
   }
 }
 </script>

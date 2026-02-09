@@ -1,4 +1,4 @@
-import type { Author, Book, PaginatedResponse } from '~/types/api'
+import type { APIResponse, Author, AuthorBooksResponse, Book } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useAuthorsStore = defineStore('authors', () => {
@@ -61,8 +61,8 @@ export const useAuthorsStore = defineStore('authors', () => {
     isLoading.value = true
 
     try {
-      const response = await apiStore.client.get<Author>(`/api/v1/authors/${slug}`)
-      const author = response.data
+      const response = await apiStore.client.get<APIResponse<Author>>(`/api/v1/authors/${slug}`)
+      const author = response.data.data!
 
       // Compute display dates
       computeDisplayDates(author)
@@ -85,35 +85,40 @@ export const useAuthorsStore = defineStore('authors', () => {
   }
 
   // Fetch ALL author's books (load all at once)
-  const fetchAuthorBooks = async (slug: string, force = false) => {
-    const cacheKey = `${slug}_books`
+  const fetchAuthorBooks = async (
+    slug: string,
+    sortBy: 'publication_year' | 'avg_rating' | 'view_count' = 'view_count',
+    order: 'asc' | 'desc' = 'desc',
+    force = false,
+  ) => {
+    const cacheKey = `${slug}_books_${sortBy}_${order}`
 
-    if (!force && authorBooks.value.has(slug) && isCacheFresh(cacheKey)) {
-      return authorBooks.value.get(slug)!
+    if (!force && authorBooks.value.has(cacheKey) && isCacheFresh(cacheKey)) {
+      return authorBooks.value.get(cacheKey)!
     }
 
     isLoadingBooks.value = true
 
     try {
-      // Fetch with large limit to get all books at once
-      const response = await apiStore.client.get<PaginatedResponse<Book>>(`/api/v1/authors/${slug}/books`, {
+      // Fetch with max allowed limit
+      const response = await apiStore.client.get<APIResponse<AuthorBooksResponse>>(`/api/v1/authors/${slug}/books`, {
         params: {
-          limit: 1000, // Large enough to get all books
+          limit: 100, // API maximum limit
           offset: 0,
+          sort_by: sortBy,
+          order,
         },
       })
 
-      const books = response.data.items || []
+      const books = response.data.data?.books || []
 
       // Cache the books
-      authorBooks.value.set(slug, books)
+      authorBooks.value.set(cacheKey, books)
       lastFetchTime.value.set(cacheKey, Date.now())
 
       return books
     }
-    catch (error) {
-      console.error('Error fetching author books:', error)
-
+    catch {
       return []
     }
     finally {
@@ -138,7 +143,7 @@ export const useAuthorsStore = defineStore('authors', () => {
     if (!currentAuthor.value)
       return
     await fetchAuthor(currentAuthor.value.slug, true)
-    await fetchAuthorBooks(currentAuthor.value.slug, true)
+    await fetchAuthorBooks(currentAuthor.value.slug, 'view_count', 'desc', true)
   }
 
   // Clear cache

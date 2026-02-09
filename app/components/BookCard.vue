@@ -44,19 +44,11 @@ const seriesText = computed(() => {
       <v-img
         :src="coverUrl"
         :alt="title"
+        lazy-src="/placeholder-book-lazy.jpg"
         height="320"
         cover
         class="bg-surface-variant"
-      >
-        <template #placeholder>
-          <div class="d-flex align-center fill-height justify-center">
-            <v-progress-circular
-              indeterminate
-              color="primary"
-            />
-          </div>
-        </template>
-      </v-img>
+      />
 
       <v-card-text class="pa-4">
         <div class="text-h6 font-weight-bold line-clamp-2 mb-2">

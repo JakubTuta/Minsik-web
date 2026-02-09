@@ -314,6 +314,7 @@ const isEmpty = computed(() => {
                           v-if="result.cover_url"
                           :src="result.cover_url"
                           :alt="result.title"
+                          lazy-src="/placeholder-book-lazy.jpg"
                         />
 
                         <v-icon
@@ -387,6 +388,7 @@ const isEmpty = computed(() => {
                           v-if="result.cover_url"
                           :src="result.cover_url"
                           :alt="result.title"
+                          lazy-src="/placeholder-avatar-lazy.jpg"
                         />
 
                         <v-icon

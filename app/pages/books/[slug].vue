@@ -62,14 +62,26 @@ const roundedRating = computed(() => {
   return Math.floor(book.value.avg_rating * 2) / 2
 })
 
+// Truncate author bio
+const truncatedAuthorBio = computed(() => {
+  if (!primaryAuthor.value?.bio)
+    return ''
+
+  const maxLength = 190
+  if (primaryAuthor.value.bio.length <= maxLength)
+    return primaryAuthor.value.bio
+
+  return `${primaryAuthor.value.bio.substring(0, maxLength)}...`
+})
+
 onMounted(async () => {
   // Fetch author data
   if (book.value?.authors[0]?.slug) {
     try {
       primaryAuthor.value = await authorsStore.fetchAuthor(book.value.authors[0].slug)
     }
-    catch (error) {
-      console.error('Error fetching author data:', error)
+    catch {
+      // Silently fail
     }
   }
 
@@ -78,8 +90,8 @@ onMounted(async () => {
     try {
       seriesBooks.value = await seriesStore.fetchSeriesBooks(book.value.series.slug)
     }
-    catch (error) {
-      console.error('Error fetching series books:', error)
+    catch {
+      // Silently fail
     }
   }
 })
@@ -101,19 +113,11 @@ onMounted(async () => {
               <v-img
                 :src="coverUrl"
                 :alt="book.title"
+                lazy-src="/placeholder-book-lazy.jpg"
                 aspect-ratio="0.67"
                 cover
                 class="bg-surface-variant"
-              >
-                <template #placeholder>
-                  <div class="d-flex align-center fill-height justify-center">
-                    <v-progress-circular
-                      indeterminate
-                      color="primary"
-                    />
-                  </div>
-                </template>
-              </v-img>
+              />
             </v-col>
 
             <!-- Book Info -->
@@ -160,16 +164,13 @@ onMounted(async () => {
                           <v-img
                             :src="seriesBook.primary_cover_url || '/placeholder-book.jpg'"
                             :alt="seriesBook.title"
+                            lazy-src="/placeholder-book-lazy.jpg"
                             aspect-ratio="0.67"
                             width="80"
                             cover
                             class="rounded"
                             :class="{'opacity-50': seriesBook.book_id === book.book_id}"
-                          >
-                            <template #placeholder>
-                              <v-skeleton-loader type="image" />
-                            </template>
-                          </v-img>
+                          />
 
                           <!-- Series Position Badge -->
                           <v-badge
@@ -336,6 +337,7 @@ onMounted(async () => {
                       <v-img
                         :src="book.authors[0]?.photo_url"
                         :alt="book.authors[0]?.name"
+                        lazy-src="/placeholder-avatar-lazy.jpg"
                       />
                     </v-avatar>
 
@@ -361,11 +363,11 @@ onMounted(async () => {
 
                     <!-- Author Biography -->
                     <p
-                      v-if="primaryAuthor?.biography"
+                      v-if="truncatedAuthorBio"
                       class="text-body-2 text-secondary mt-2"
                       style="white-space: pre-line; text-align: left;"
                     >
-                      {{ primaryAuthor.biography }}
+                      {{ truncatedAuthorBio }}
                     </p>
                   </div>
                 </v-card-text>
@@ -411,6 +413,7 @@ onMounted(async () => {
                     <v-img
                       :src="cover.url"
                       :alt="`Cover ${index + 1}`"
+                      lazy-src="/placeholder-book-lazy.jpg"
                       :aspect-ratio="0.67"
                       cover
                       class="bg-surface-variant"

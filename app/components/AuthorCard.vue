@@ -19,12 +19,12 @@ const authorLink = computed(() => (props.author
 const photoUrl = computed(() => props.author?.photo_url || '/placeholder-avatar.jpg')
 const name = computed(() => props.author?.name || '')
 const biography = computed(() => {
-  if (!props.author?.biography)
+  if (!props.author?.bio)
     return ''
 
-  return props.author.biography.length > 100
-    ? `${props.author.biography.substring(0, 100)}...`
-    : props.author.biography
+  return props.author.bio.length > 100
+    ? `${props.author.bio.substring(0, 100)}...`
+    : props.author.bio
 })
 </script>
 
@@ -49,14 +49,8 @@ const biography = computed(() => {
           <v-img
             :src="photoUrl"
             :alt="name"
-          >
-            <template #placeholder>
-              <v-icon
-                icon="mdi-account"
-                size="x-large"
-              />
-            </template>
-          </v-img>
+            lazy-src="/placeholder-avatar-lazy.jpg"
+          />
         </v-avatar>
 
         <div class="text-h6 font-weight-bold mb-2">
@@ -76,7 +70,7 @@ const biography = computed(() => {
           variant="tonal"
           class="mb-3"
         >
-          {{ author.book_count }} {{ author.book_count === 1
+          {{ author.books_count }} {{ author.books_count === 1
             ? 'book'
             : 'books' }}
         </v-chip>

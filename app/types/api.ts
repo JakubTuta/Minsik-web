@@ -26,6 +26,13 @@ export interface PaginatedResponse<T> {
   has_more: boolean
 }
 
+export interface AuthorBooksResponse {
+  books: Book[]
+  total_count: number
+  limit: number
+  offset: number
+}
+
 // Genre Types
 
 export interface Genre {
@@ -52,11 +59,22 @@ export interface AuthorMinimal {
 }
 
 export interface Author extends AuthorMinimal {
-  biography?: string
+  bio?: string
   birth_date?: string
   death_date?: string
-  book_count: number
+  birth_place?: string | null
+  nationality?: string | null
+  books_count: number
+  book_categories: string[]
+  books_avg_rating: number
+  books_total_ratings: number
+  books_total_views: number
   view_count: number
+  last_viewed_at?: string
+  open_library_id?: string
+  created_at: string
+  updated_at: string
+  // Computed client-side
   display_dates?: string
 }
 
@@ -71,8 +89,10 @@ export interface SeriesMinimal {
 
 export interface Series extends SeriesMinimal {
   description?: string
-  book_count: number
   view_count: number
+  last_viewed_at?: string
+  created_at: string
+  updated_at: string
   author?: Author
 }
 

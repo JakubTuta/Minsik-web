@@ -16,10 +16,10 @@ export default defineNuxtPlugin((app) => {
           dark: false,
           colors: {
             // Base colors - cream/peachy tones
-            'background': '#FFF5ED',
-            'surface': '#FFF9F5',
-            'surface-bright': '#FFFCFA',
-            'surface-variant': '#FFEEE0',
+            'background': '#FAEBD7',
+            'surface': '#FFF3E6',
+            'surface-bright': '#FFF8F0',
+            'surface-variant': '#F5E6D3',
 
             // Primary colors - lighter warm coral/peach
             'primary': '#FFB094',
@@ -28,12 +28,12 @@ export default defineNuxtPlugin((app) => {
             'primary-lighten-1': '#FFC5AD',
             'primary-lighten-2': '#FFDAC6',
 
-            // Secondary colors - peachy-pink (between primary coral and pink)
-            'secondary': '#FF9BA8',
-            'secondary-darken-1': '#FF8694',
-            'secondary-darken-2': '#FF7080',
-            'secondary-lighten-1': '#FFB0BC',
-            'secondary-lighten-2': '#FFC5D0',
+            // Secondary colors - light cyan/sky blue
+            'secondary': '#70CDEB',
+            'secondary-darken-1': '#5BC0E0',
+            'secondary-darken-2': '#45B3D5',
+            'secondary-lighten-1': '#8DD8F0',
+            'secondary-lighten-2': '#AAE3F5',
 
             // Status colors
             'success': '#7BA882',
@@ -60,8 +60,8 @@ export default defineNuxtPlugin((app) => {
             'on-surface-variant': '#6B5D56',
 
             // Borders and dividers
-            'border': '#FFE5D6',
-            'divider': '#FFEEE0',
+            'border': '#F0DCC8',
+            'divider': '#F5E6D3',
 
             // Custom named colors
             'text-primary': '#2C2420',
@@ -85,12 +85,12 @@ export default defineNuxtPlugin((app) => {
             'primary-lighten-1': '#FFAA71',
             'primary-lighten-2': '#FFBF8C',
 
-            // Secondary colors - peachy-pink (between primary coral and pink)
-            'secondary': '#FF7A8A',
-            'secondary-darken-1': '#E66676',
-            'secondary-darken-2': '#CC5262',
-            'secondary-lighten-1': '#FF8E9E',
-            'secondary-lighten-2': '#FFA2B2',
+            // Secondary colors - light cyan/sky blue
+            'secondary': '#ACEAFF',
+            'secondary-darken-1': '#94E3FF',
+            'secondary-darken-2': '#7CD9FF',
+            'secondary-lighten-1': '#C4F1FF',
+            'secondary-lighten-2': '#DCF7FF',
 
             // Accent
             'accent': '#5B8AAF',
@@ -132,9 +132,6 @@ export default defineNuxtPlugin((app) => {
           },
         },
       },
-    },
-    typography: {
-      fontFamily: '"Montserrat", sans-serif',
     },
     defaults: {
       VTextField: {
