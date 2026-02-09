@@ -54,26 +54,6 @@ const primaryAuthor = ref<any>(null)
 const seriesBooks = ref<Book[]>([])
 const detailsExpanded = ref(false)
 
-// Round rating down to nearest 0.5
-const roundedRating = computed(() => {
-  if (!book.value?.avg_rating)
-    return 0
-
-  return Math.floor(book.value.avg_rating * 2) / 2
-})
-
-// Truncate author bio
-const truncatedAuthorBio = computed(() => {
-  if (!primaryAuthor.value?.bio)
-    return ''
-
-  const maxLength = 190
-  if (primaryAuthor.value.bio.length <= maxLength)
-    return primaryAuthor.value.bio
-
-  return `${primaryAuthor.value.bio.substring(0, maxLength)}...`
-})
-
 onMounted(async () => {
   // Fetch author data
   if (book.value?.authors[0]?.slug) {
@@ -199,27 +179,10 @@ onMounted(async () => {
                   </div>
 
                   <!-- Rating -->
-                  <div class="d-flex align-center gap-3">
-                    <v-rating
-                      :model-value="roundedRating"
-                      readonly
-                      half-increments
-                      color="warning"
-                      active-color="warning"
-                    />
-
-                    <div class="d-flex align-center mt-1 gap-2">
-                      <span class="text-body-1 font-weight-medium">
-                        {{ book.avg_rating
-                          ? book.avg_rating.toFixed(1)
-                          : '0.0' }}
-                      </span>
-
-                      <span class="text-body-2">
-                        ({{ book.rating_count || 0 }})
-                      </span>
-                    </div>
-                  </div>
+                  <RatingDisplay
+                    :rating="book.avg_rating || 0"
+                    :rating-count="book.rating_count || 0"
+                  />
                 </div>
 
                 <!-- Details Toggle Button -->
@@ -309,69 +272,12 @@ onMounted(async () => {
 
             <!-- About Author -->
             <v-col
-              v-if="book.authors.length > 0"
+              v-if="book.authors.length > 0 && primaryAuthor"
               cols="12"
               md="3"
               lg="3"
             >
-              <v-card
-                variant="outlined"
-                class="h-100"
-              >
-                <v-card-text class="pa-4">
-                  <h3 class="text-h6 font-weight-bold mb-4">
-                    About Author
-                  </h3>
-
-                  <v-divider
-                    class="mb-4"
-                  />
-
-                  <div class="d-flex flex-column align-center text-center">
-                    <!-- Author Photo -->
-                    <v-avatar
-                      v-if="book.authors[0]?.photo_url"
-                      size="120"
-                      class="mb-3"
-                    >
-                      <v-img
-                        :src="book.authors[0]?.photo_url"
-                        :alt="book.authors[0]?.name"
-                        lazy-src="/placeholder-avatar-lazy.jpg"
-                      />
-                    </v-avatar>
-
-                    <!-- Author Name -->
-                    <NuxtLink
-                      class="text-h5 font-weight-medium text-primary text-decoration-none mb-2"
-                      :to="`/authors/${book.authors[0]?.slug}`"
-                    >
-                      {{ book.authors[0]?.name }}
-                    </NuxtLink>
-
-                    <!-- Multiple authors indicator -->
-                    <div
-                      v-if="book.authors.length > 1"
-                      class="text-caption text-secondary mb-3"
-                    >
-                      +{{ book.authors.length - 1 }} more author{{
-                        book.authors.length > 2
-                          ? 's'
-                          : ''
-                      }}
-                    </div>
-
-                    <!-- Author Biography -->
-                    <p
-                      v-if="truncatedAuthorBio"
-                      class="text-body-2 text-secondary mt-2"
-                      style="white-space: pre-line; text-align: left;"
-                    >
-                      {{ truncatedAuthorBio }}
-                    </p>
-                  </div>
-                </v-card-text>
-              </v-card>
+              <AuthorShortCard :author="primaryAuthor" />
             </v-col>
           </v-row>
 

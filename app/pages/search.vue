@@ -91,7 +91,9 @@ function transformToBook(result: any) {
       slug: result.author_slugs[index] || '',
     })),
     view_count: result.view_count,
-    series: result.series_slug ? { name: result.title, slug: result.series_slug } : null,
+    series: result.series_slug
+      ? { name: result.title, slug: result.series_slug }
+      : null,
     series_position: null,
     avg_rating: 0,
     rating_count: 0,
@@ -139,7 +141,7 @@ function transformToSeries(result: any) {
 
         <div
           v-if="searchStore.query && searchStore.hasData"
-          class="text-subtitle-2 text-secondary mb-4"
+          class="text-h6 text-secondary mb-2"
         >
           {{ searchStore.total }} {{ searchStore.total === 1
             ? 'result'

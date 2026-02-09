@@ -20,9 +20,11 @@ const appBarSearchQuery = ref('')
     <v-app-bar-title
       v-if="!mobile"
       class="logo-container"
-      to="/"
     >
-      <div class="logo-wrapper">
+      <NuxtLink
+        to="/"
+        class="logo-wrapper"
+      >
         <v-icon
           icon="mdi-snowflake"
           size="x-large"
@@ -30,7 +32,7 @@ const appBarSearchQuery = ref('')
         />
 
         <span class="logo-text">Minsik</span>
-      </div>
+      </NuxtLink>
     </v-app-bar-title>
 
     <!-- Mobile: Logo Icon Only -->
@@ -136,6 +138,7 @@ const appBarSearchQuery = ref('')
   padding: 4px 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  text-decoration: none;
 }
 
 .logo-icon {

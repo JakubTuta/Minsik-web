@@ -33,6 +33,13 @@ export interface AuthorBooksResponse {
   offset: number
 }
 
+export interface SeriesBooksResponse {
+  books: Book[]
+  total_count: number
+  limit: number
+  offset: number
+}
+
 // Genre Types
 
 export interface Genre {

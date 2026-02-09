@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Book } from '~/types/api'
-
 const route = useRoute()
 const authorsStore = useAuthorsStore()
 
@@ -98,20 +96,6 @@ const sortOptions = [
   { value: 'views-desc', title: 'Most Viewed' },
   { value: 'views-asc', title: 'Least Viewed' },
 ]
-
-// Categories expansion
-const categoriesExpanded = ref(false)
-const visibleCategories = computed(() => {
-  if (!author.value?.book_categories)
-    return []
-  if (categoriesExpanded.value || author.value.book_categories.length <= 5)
-    return author.value.book_categories
-
-  return author.value.book_categories.slice(0, 5)
-})
-const hasMoreCategories = computed(() => {
-  return (author.value?.book_categories?.length || 0) > 5
-})
 </script>
 
 <template>
@@ -266,31 +250,7 @@ const hasMoreCategories = computed(() => {
             >
               <v-divider class="mb-3" />
 
-              <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
-                Categories
-              </h3>
-
-              <div class="d-flex flex-wrap gap-2">
-                <v-chip
-                  v-for="category in visibleCategories"
-                  :key="category"
-                  size="small"
-                  variant="tonal"
-                >
-                  {{ toTitleCase(category) }}
-                </v-chip>
-
-                <v-chip
-                  v-if="hasMoreCategories"
-                  size="small"
-                  variant="tonal"
-                  @click="categoriesExpanded = !categoriesExpanded"
-                >
-                  {{ categoriesExpanded
-                    ? '-'
-                    : `+${author.book_categories.length - 5}` }}
-                </v-chip>
-              </div>
+              <CategoriesChips :categories="author.book_categories" />
             </div>
           </v-card-text>
         </v-card>
@@ -302,28 +262,10 @@ const hasMoreCategories = computed(() => {
         md="9"
       >
         <!-- Description Section -->
-        <v-card class="mb-6">
-          <v-card-text>
-            <h2 class="text-h5 font-weight-bold mb-4">
-              Description
-            </h2>
-
-            <p
-              v-if="author.bio"
-              class="text-body-1"
-              style="white-space: pre-line;"
-            >
-              {{ author.bio }}
-            </p>
-
-            <p
-              v-else
-              class="text-body-1 text-secondary font-italic"
-            >
-              There is no description yet, we will add it soon.
-            </p>
-          </v-card-text>
-        </v-card>
+        <DescriptionCard
+          :description="author.bio"
+          class="mb-6"
+        />
 
         <!-- Books Section -->
         <v-card>
@@ -343,111 +285,11 @@ const hasMoreCategories = computed(() => {
               />
             </div>
 
-            <!-- Books List -->
-            <div
-              v-if="books && books.length > 0"
-              class="books-list"
-            >
-              <NuxtLink
-                v-for="book in books"
-                :key="book.book_id"
-                :to="`/books/${book.slug}`"
-                class="book-item text-decoration-none"
-              >
-                <v-card
-                  hover
-                  class="d-flex h-100 flex-row"
-                >
-                  <div
-                    class="flex-shrink-0"
-                    style="width: 120px; height: 180px;"
-                  >
-                    <v-img
-                      :src="book.primary_cover_url || '/placeholder-book.jpg'"
-                      :alt="book.title"
-                      lazy-src="/placeholder-book-lazy.jpg"
-                      width="120"
-                      height="180"
-                      cover
-                    />
-                  </div>
-
-                  <v-card-text class="flex-grow-1">
-                    <h3 class="text-h6 font-weight-bold mb-2">
-                      {{ book.title }}
-                    </h3>
-
-                    <div class="d-flex mb-3 flex-wrap gap-3">
-                      <div
-                        v-if="book.original_publication_year"
-                        class="d-flex align-center gap-1"
-                      >
-                        <v-icon
-                          icon="mdi-calendar"
-                          size="small"
-                          color="secondary"
-                        />
-
-                        <span class="text-body-2">{{ book.original_publication_year }}</span>
-                      </div>
-
-                      <div class="d-flex align-center gap-1">
-                        <v-icon
-                          icon="mdi-star"
-                          size="small"
-                          color="warning"
-                        />
-
-                        <span class="text-body-2">{{ book.avg_rating
-                          ? book.avg_rating.toFixed(1)
-                          : '0.0' }}</span>
-                      </div>
-
-                      <div class="d-flex align-center gap-1">
-                        <v-icon
-                          icon="mdi-eye"
-                          size="small"
-                          color="info"
-                        />
-
-                        <span class="text-body-2">{{ book.view_count
-                          ? book.view_count.toLocaleString()
-                          : '0' }}</span>
-                      </div>
-                    </div>
-
-                    <p
-                      v-if="book.description"
-                      class="text-body-2 text-secondary line-clamp-3"
-                      style="white-space: pre-line;"
-                    >
-                      {{ book.description }}
-                    </p>
-                  </v-card-text>
-                </v-card>
-              </NuxtLink>
-            </div>
-
-            <!-- No Books State -->
-            <v-alert
-              v-else-if="!authorsStore.isLoadingBooks"
-              type="info"
-              variant="tonal"
-            >
-              No books found for this author.
-            </v-alert>
-
-            <!-- Loading Books -->
-            <div
-              v-if="authorsStore.isLoadingBooks"
-              class="py-8"
-            >
-              <v-progress-circular
-                indeterminate
-                color="primary"
-                class="d-block mx-auto"
-              />
-            </div>
+            <BooksList
+              :books="books || []"
+              :loading="authorsStore.isLoadingBooks"
+              empty-message="No books found for this author."
+            />
           </v-card-text>
         </v-card>
       </v-col>
@@ -459,22 +301,3 @@ const hasMoreCategories = computed(() => {
     <LoadingState type="detail" />
   </v-container>
 </template>
-
-<style scoped>
-.books-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.book-item {
-  display: block;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

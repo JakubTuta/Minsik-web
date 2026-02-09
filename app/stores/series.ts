@@ -1,4 +1,4 @@
-import type { Book, PaginatedResponse, Series } from '~/types/api'
+import type { APIResponse, Book, Series, SeriesBooksResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useSeriesStore = defineStore('series', () => {
@@ -48,8 +48,8 @@ export const useSeriesStore = defineStore('series', () => {
     isLoading.value = true
 
     try {
-      const response = await apiStore.client.get<Series>(`/api/v1/series/${slug}`)
-      const seriesData = response.data
+      const response = await apiStore.client.get<APIResponse<Series>>(`/api/v1/series/${slug}`)
+      const seriesData = response.data.data!
 
       // Cache the series
       series.value.set(slug, seriesData)
@@ -79,14 +79,14 @@ export const useSeriesStore = defineStore('series', () => {
 
     try {
       // Fetch with max allowed limit
-      const response = await apiStore.client.get<PaginatedResponse<Book>>(`/api/v1/series/${slug}/books`, {
+      const response = await apiStore.client.get<APIResponse<SeriesBooksResponse>>(`/api/v1/series/${slug}/books`, {
         params: {
           limit: 100, // API maximum limit
           offset: 0,
         },
       })
 
-      const books = response.data.items || []
+      const books = response.data.data?.books || []
 
       // Cache the books
       seriesBooks.value.set(slug, books)
