@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import type { Book } from '~/types/api'
+
 const route = useRoute()
 const booksStore = useBooksStore()
 const authorsStore = useAuthorsStore()
+const seriesStore = useSeriesStore()
 
 const slug = route.params.slug as string
 
@@ -48,15 +51,35 @@ const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-b
 
 // Fetch full author data (non-blocking, for caching)
 const primaryAuthor = ref<any>(null)
+const seriesBooks = ref<Book[]>([])
+const detailsExpanded = ref(false)
+
+// Round rating down to nearest 0.5
+const roundedRating = computed(() => {
+  if (!book.value?.avg_rating)
+    return 0
+
+  return Math.floor(book.value.avg_rating * 2) / 2
+})
 
 onMounted(async () => {
+  // Fetch author data
   if (book.value?.authors[0]?.slug) {
     try {
-      // Fetch full author data to cache it for when user navigates to author page
       primaryAuthor.value = await authorsStore.fetchAuthor(book.value.authors[0].slug)
     }
     catch (error) {
       console.error('Error fetching author data:', error)
+    }
+  }
+
+  // Fetch series books
+  if (book.value?.series?.slug) {
+    try {
+      seriesBooks.value = await seriesStore.fetchSeriesBooks(book.value.series.slug)
+    }
+    catch (error) {
+      console.error('Error fetching series books:', error)
     }
   }
 })
@@ -99,108 +122,186 @@ onMounted(async () => {
               md="5"
               lg="6"
             >
-              <v-card-text>
-                <h1 class="text-h4 font-weight-bold mb-3">
-                  {{ book.title }}
-                </h1>
+              <v-card-text class="d-flex flex-column h-100">
+                <div>
+                  <h1 class="text-h4 font-weight-bold mb-3">
+                    {{ book.title }}
+                  </h1>
 
-                <!-- Series -->
-                <div
-                  v-if="book.series"
-                  class="mb-3"
-                >
-                  <span class="font-weight-bold text-body-1 text-secondary">series: </span>
-
-                  <NuxtLink
-                    class="font-weight-bold text-body-1 text-primary text-decoration-none"
-                    :to="`/series/${book.series.slug}`"
+                  <!-- Series -->
+                  <div
+                    v-if="book.series"
+                    class="mb-4"
                   >
-                    {{ book.series.name }}
-                    <span v-if="book.series_position"> #{{ book.series_position }}</span>
-                  </NuxtLink>
+                    <div class="mb-2">
+                      <span class="font-weight-bold text-body-1 text-secondary">Series: </span>
+
+                      <NuxtLink
+                        class="font-weight-bold text-body-1 text-primary text-decoration-none"
+                        :to="`/series/${book.series.slug}`"
+                      >
+                        {{ book.series.name }}
+                      </NuxtLink>
+                    </div>
+
+                    <!-- Series Books Horizontal Scroll -->
+                    <div
+                      v-if="seriesBooks.length > 0"
+                      class="d-flex gap-2"
+                      style="overflow-x: auto; overflow-y: hidden;"
+                    >
+                      <NuxtLink
+                        v-for="seriesBook in seriesBooks"
+                        :key="seriesBook.book_id"
+                        :to="`/books/${seriesBook.slug}`"
+                        class="text-decoration-none flex-shrink-0"
+                      >
+                        <div class="position-relative">
+                          <v-img
+                            :src="seriesBook.primary_cover_url || '/placeholder-book.jpg'"
+                            :alt="seriesBook.title"
+                            aspect-ratio="0.67"
+                            width="80"
+                            cover
+                            class="rounded"
+                            :class="{'opacity-50': seriesBook.book_id === book.book_id}"
+                          >
+                            <template #placeholder>
+                              <v-skeleton-loader type="image" />
+                            </template>
+                          </v-img>
+
+                          <!-- Series Position Badge -->
+                          <v-badge
+                            v-if="seriesBook.series_position"
+                            :content="`#${seriesBook.series_position}`"
+                            color="primary"
+                            class="position-absolute"
+                            style="top: 4px; left: 4px;"
+                          />
+
+                          <!-- Current Book Indicator -->
+                          <div
+                            v-if="seriesBook.book_id === book.book_id"
+                            class="d-flex align-center position-absolute h-100 w-100 justify-center"
+                            style="top: 0; left: 0; background-color: rgba(0, 0, 0, 0.3);"
+                          >
+                            <v-icon
+                              icon="mdi-eye"
+                              color="white"
+                              size="large"
+                            />
+                          </div>
+                        </div>
+                      </NuxtLink>
+                    </div>
+                  </div>
+
+                  <!-- Rating -->
+                  <div class="d-flex align-center gap-3">
+                    <v-rating
+                      :model-value="roundedRating"
+                      readonly
+                      half-increments
+                      color="warning"
+                      active-color="warning"
+                    />
+
+                    <div class="d-flex align-center mt-1 gap-2">
+                      <span class="text-body-1 font-weight-medium">
+                        {{ book.avg_rating
+                          ? book.avg_rating.toFixed(1)
+                          : '0.0' }}
+                      </span>
+
+                      <span class="text-body-2">
+                        ({{ book.rating_count || 0 }})
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Rating -->
-                <div
-                  v-if="book.avg_rating > 0"
-                  class="d-flex align-center mb-4 gap-2"
-                >
-                  <v-icon
-                    icon="mdi-star"
-                    color="warning"
-                  />
-
-                  <span class="text-h6">{{ book.avg_rating.toFixed(1) }}</span>
-
-                  <span
-                    v-if="book.rating_count"
-                    class="text-body-2 text-primary"
+                <!-- Details Toggle Button -->
+                <div class="mt-auto pt-4">
+                  <v-btn
+                    variant="text"
+                    color="primary"
+                    class="px-4"
+                    @click="detailsExpanded = !detailsExpanded"
                   >
-                    ({{ book.rating_count }} {{ book.rating_count === 1
-                      ? 'rating'
-                      : 'ratings' }})
-                  </span>
-                </div>
+                    Details
+                    <v-icon
+                      :icon="detailsExpanded
+                        ? 'mdi-chevron-up'
+                        : 'mdi-chevron-down'"
+                    />
+                  </v-btn>
 
-                <!-- Metadata -->
-                <v-list
-                  density="compact"
-                  class="bg-transparent"
-                >
-                  <v-list-item v-if="book.original_publication_year">
-                    <template #prepend>
-                      <v-icon icon="mdi-calendar" />
-                    </template>
+                  <!-- Expandable Details Section -->
+                  <v-expand-transition>
+                    <div v-show="detailsExpanded">
+                      <!-- Metadata -->
+                      <v-list
+                        density="compact"
+                        class="bg-transparent"
+                      >
+                        <v-list-item v-if="book.original_publication_year">
+                          <template #prepend>
+                            <v-icon icon="mdi-calendar" />
+                          </template>
 
-                    <v-list-item-title>Published {{ book.original_publication_year }}</v-list-item-title>
-                  </v-list-item>
+                          <v-list-item-title>Published {{ book.original_publication_year }}</v-list-item-title>
+                        </v-list-item>
 
-                  <v-list-item v-if="book.view_count">
-                    <template #prepend>
-                      <v-icon icon="mdi-eye" />
-                    </template>
+                        <v-list-item v-if="book.view_count">
+                          <template #prepend>
+                            <v-icon icon="mdi-eye" />
+                          </template>
 
-                    <v-list-item-title>{{ book.view_count }} views</v-list-item-title>
-                  </v-list-item>
-                </v-list>
+                          <v-list-item-title>{{ book.view_count }} views</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
 
-                <!-- Categories -->
-                <div
-                  v-if="book.genres && book.genres.length > 0"
-                  class="mt-4"
-                >
-                  <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
-                    Categories
-                  </h3>
+                      <!-- Categories -->
+                      <div
+                        v-if="book.genres && book.genres.length > 0"
+                        class="mt-4"
+                      >
+                        <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
+                          Categories
+                        </h3>
 
-                  <v-chip
-                    v-for="genre in book.genres"
-                    :key="genre.genre_id"
-                    size="small"
-                    class="mb-2 mr-2"
-                  >
-                    {{ toTitleCase(genre.name) }}
-                  </v-chip>
-                </div>
+                        <v-chip
+                          v-for="genre in book.genres"
+                          :key="genre.genre_id"
+                          size="small"
+                          class="mb-2 mr-2"
+                        >
+                          {{ toTitleCase(genre.name) }}
+                        </v-chip>
+                      </div>
 
-                <!-- Editions -->
-                <div
-                  v-if="book.formats && book.formats.length > 0"
-                  class="mt-4"
-                >
-                  <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
-                    Editions
-                  </h3>
+                      <!-- Editions -->
+                      <div
+                        v-if="book.formats && book.formats.length > 0"
+                        class="mt-4"
+                      >
+                        <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
+                          Editions
+                        </h3>
 
-                  <v-chip
-                    v-for="format in book.formats"
-                    :key="format"
-                    size="small"
-                    variant="outlined"
-                    class="mb-2 mr-2"
-                  >
-                    {{ toTitleCase(format) }}
-                  </v-chip>
+                        <v-chip
+                          v-for="format in book.formats"
+                          :key="format"
+                          size="small"
+                          variant="outlined"
+                          class="mb-2 mr-2"
+                        >
+                          {{ toTitleCase(format) }}
+                        </v-chip>
+                      </div>
+                    </div>
+                  </v-expand-transition>
                 </div>
               </v-card-text>
             </v-col>
