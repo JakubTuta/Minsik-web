@@ -62,9 +62,17 @@ const appBarSearchQuery = ref('')
       v-if="!mobile"
     />
 
-    <UserMenu
-      v-if="!mobile"
-    />
+    <ClientOnly v-if="!mobile">
+      <UserMenu />
+      <template #fallback>
+        <v-btn
+          icon
+          variant="text"
+        >
+          <v-icon icon="mdi-account-circle" />
+        </v-btn>
+      </template>
+    </ClientOnly>
 
     <!-- Mobile: Menu Button -->
     <v-btn
@@ -116,7 +124,9 @@ const appBarSearchQuery = ref('')
       <v-divider class="my-2" />
 
       <!-- User Menu Items (expanded) -->
-      <UserMenu drawer-mode />
+      <ClientOnly>
+        <UserMenu drawer-mode />
+      </ClientOnly>
     </v-list>
   </v-navigation-drawer>
 </template>
