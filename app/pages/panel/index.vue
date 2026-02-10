@@ -1,6 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: 'auth',
+  ssr: false,
 })
 
 useSeoMeta({
@@ -9,13 +10,35 @@ useSeoMeta({
 })
 
 const authStore = useAuthStore()
-const { user } = storeToRefs(authStore)
+const { user, authInitialized, isAuthenticated } = storeToRefs(authStore)
 
 const displayName = computed(() => user.value?.display_name || user.value?.username || 'User')
 </script>
 
 <template>
-  <v-container class="py-8">
+  <!-- Auth loading state — shown during SSR and client-side auth check -->
+  <v-container
+    v-if="!authInitialized || !isAuthenticated"
+    class="fill-height d-flex align-center justify-center"
+  >
+    <div class="text-center">
+      <v-progress-circular
+        color="primary"
+        indeterminate
+        size="52"
+      />
+
+      <p class="text-h6 mt-4">
+        Verifying your session...
+      </p>
+    </div>
+  </v-container>
+
+  <!-- Dashboard content -->
+  <v-container
+    v-else
+    class="py-8"
+  >
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-center mb-6">

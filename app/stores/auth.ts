@@ -60,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = async (retryOnUnauthorized = true): Promise<boolean> => {
     if (!token.value)
       return false
 
@@ -70,7 +70,13 @@ export const useAuthStore = defineStore('auth', () => {
 
       return true
     }
-    catch (error) {
+    catch (error: any) {
+      if (error.response?.status === 401 && retryOnUnauthorized && refreshToken.value) {
+        const refreshed = await refreshAccessToken()
+        if (refreshed)
+          return await fetchCurrentUser(false)
+      }
+
       console.error('Failed to fetch current user:', error)
       clearToken()
       user.value = null
@@ -172,7 +178,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
     catch (error) {
       console.error('Token refresh failed:', error)
-      await logout()
+      clearToken()
+      user.value = null
 
       return false
     }
@@ -182,23 +189,20 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const autoLogin = async () => {
+    // autoLogin requires localStorage — client only
+    if (!import.meta.client)
+      return
+
     if (authInitialized.value)
       return
 
     loadToken()
-    if (token.value) {
-      if (shouldRefreshToken()) {
-        const refreshed = await refreshAccessToken()
-        if (!refreshed) {
-          authInitialized.value = true
 
-          return
-        }
-      }
-
-      await fetchCurrentUser()
-
-      if (import.meta.client) {
+    // Always refresh on page load if we have a refresh token.
+    // The refresh endpoint returns user data — no separate /users/me call needed.
+    if (refreshToken.value) {
+      const refreshed = await refreshAccessToken()
+      if (refreshed) {
         setInterval(async () => {
           if (shouldRefreshToken() && refreshToken.value) {
             await refreshAccessToken()
@@ -234,6 +238,7 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     refreshToken,
     isAuthenticated,
+    authInitialized,
     isRefreshing,
     login,
     register,

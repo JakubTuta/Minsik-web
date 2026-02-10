@@ -1,6 +1,6 @@
 import type { AxiosError, AxiosInstance } from 'axios'
 import axios from 'axios'
-import { defineStore } from 'pinia'
+import { defineStore, getActivePinia } from 'pinia'
 
 export const useApiStore = defineStore('api', () => {
   const config = useRuntimeConfig()
@@ -23,11 +23,17 @@ export const useApiStore = defineStore('api', () => {
       // Request interceptor
       client.interceptors.request.use(
         (config) => {
-          // Future: Add auth token when authentication is implemented
-          // const token = localStorage.getItem('auth_token')
-          // if (token) {
-          //   config.headers.Authorization = `Bearer ${token}`
-          // }
+          const authEndpoints = ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/refresh']
+          const isAuthEndpoint = authEndpoints.some(ep => config.url?.endsWith(ep))
+
+          if (!isAuthEndpoint && import.meta.client) {
+            // Prefer Pinia state (always in sync) over localStorage
+            const authState = getActivePinia()?.state?.value?.auth as { token?: string | null } | undefined
+            const token = authState?.token ?? localStorage.getItem('minsik_auth_token')
+            if (token) {
+              config.headers.Authorization = `Bearer ${token}`
+            }
+          }
           return config
         },
         error => Promise.reject(error),
@@ -37,12 +43,7 @@ export const useApiStore = defineStore('api', () => {
       client.interceptors.response.use(
         response => response,
         (error: AxiosError) => {
-          // Handle errors globally
-          if (error.response?.status === 401) {
-            // Future: Redirect to login when auth is implemented
-            console.warn('Unauthorized access')
-          }
-          else if (error.response?.status === 404) {
+          if (error.response?.status === 404) {
             console.warn('Resource not found:', error.config?.url)
           }
           else if (error.response?.status && error.response.status >= 500) {
