@@ -10,8 +10,8 @@ const ACCESS_TOKEN_EXPIRY_SECONDS = 900 // 15 minutes
 export const useAuthStore = defineStore('auth', () => {
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
-
   const router = useRouter()
+  const route = useRoute()
 
   const user = ref<User | null>(null)
   const token = ref<string | null>(null)
@@ -93,7 +93,6 @@ export const useAuthStore = defineStore('auth', () => {
       saveToken(data.access_token, data.refresh_token)
       user.value = data.user
       authInitialized.value = true
-      await router.push('/panel')
 
       return { success: true }
     }
@@ -117,7 +116,6 @@ export const useAuthStore = defineStore('auth', () => {
       saveToken(responseData.access_token, responseData.refresh_token)
       user.value = responseData.user
       authInitialized.value = true
-      await router.push('/panel')
 
       return { success: true }
     }
@@ -139,14 +137,17 @@ export const useAuthStore = defineStore('auth', () => {
         await client.value.post('/api/v1/auth/logout', { refresh_token: refreshToken.value } as LogoutRequest)
       }
     }
-    catch (error) {
-      console.error('Logout API call failed:', error)
-    }
+    catch { /* silently ignore — clearing state regardless */ }
     finally {
       clearToken()
       user.value = null
       authInitialized.value = false
-      await router.push('/')
+
+      const middleware = route.meta.middleware
+      const isProtected = middleware === 'auth' || (Array.isArray(middleware) && middleware.includes('auth'))
+      if (isProtected) {
+        await router.push('/')
+      }
     }
   }
 

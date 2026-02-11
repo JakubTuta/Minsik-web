@@ -87,6 +87,5 @@ export default defineNuxtConfig({
     '/series/**': { ssr: true },
     '/search': { ssr: true },
     '/panel/**': { ssr: false },
-    '/auth/**': { ssr: false },
   },
 })

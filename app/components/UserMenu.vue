@@ -6,6 +6,7 @@ interface Props {
 defineProps<Props>()
 
 const authStore = useAuthStore()
+const authDialogStore = useAuthDialogStore()
 const { isAuthenticated, user } = storeToRefs(authStore)
 
 const userDisplayName = computed(() => user.value?.display_name || user.value?.username || 'User')
@@ -59,13 +60,13 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       <v-list-item
         prepend-icon="mdi-login"
         title="Sign In"
-        to="/auth/login"
+        @click="authDialogStore.openLogin()"
       />
 
       <v-list-item
         prepend-icon="mdi-account-plus"
         title="Sign Up"
-        to="/auth/register"
+        @click="authDialogStore.openRegister()"
       />
     </template>
 
@@ -154,13 +155,13 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         <v-list-item
           prepend-icon="mdi-login"
           title="Sign In"
-          to="/auth/login"
+          @click="authDialogStore.openLogin()"
         />
 
         <v-list-item
           prepend-icon="mdi-account-plus"
           title="Sign Up"
-          to="/auth/register"
+          @click="authDialogStore.openRegister()"
         />
 
         <v-divider />

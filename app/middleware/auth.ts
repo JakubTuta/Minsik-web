@@ -10,6 +10,8 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
   }
 
   if (!authStore.isAuthenticated) {
-    return navigateTo('/auth/login')
+    const authDialogStore = useAuthDialogStore()
+    authDialogStore.openLogin(_to.fullPath)
+    return false
   }
 })

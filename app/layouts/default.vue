@@ -5,6 +5,7 @@
 <template>
   <v-app>
     <AppBar />
+    <AuthDialog />
 
     <v-main>
       <slot />
