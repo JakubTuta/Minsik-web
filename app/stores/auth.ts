@@ -19,7 +19,8 @@ export const useAuthStore = defineStore('auth', () => {
   const tokenExpiryTime = ref<number | null>(null)
   const isAuthenticated = computed(() => !!user.value && !!token.value)
   const authInitialized = ref(false)
-  const isRefreshing = ref(false)
+
+  let _refreshPromise: Promise<boolean> | null = null
 
   const saveToken = (newToken: string, newRefreshToken: string) => {
     token.value = newToken
@@ -57,31 +58,6 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem(TOKEN_KEY)
       localStorage.removeItem(REFRESH_TOKEN_KEY)
       localStorage.removeItem(TOKEN_EXPIRY_KEY)
-    }
-  }
-
-  const fetchCurrentUser = async (retryOnUnauthorized = true): Promise<boolean> => {
-    if (!token.value)
-      return false
-
-    try {
-      const response = await client.value.get<APIResponse<{ user: User }>>('/api/v1/users/me')
-      user.value = response.data.data!.user
-
-      return true
-    }
-    catch (error: any) {
-      if (error.response?.status === 401 && retryOnUnauthorized && refreshToken.value) {
-        const refreshed = await refreshAccessToken()
-        if (refreshed)
-          return await fetchCurrentUser(false)
-      }
-
-      console.error('Failed to fetch current user:', error)
-      clearToken()
-      user.value = null
-
-      return false
     }
   }
 
@@ -160,11 +136,9 @@ export const useAuthStore = defineStore('auth', () => {
     return Date.now() + refreshThreshold >= tokenExpiryTime.value
   }
 
-  const refreshAccessToken = async () => {
-    if (!refreshToken.value || isRefreshing.value)
+  const _doRefresh = async (): Promise<boolean> => {
+    if (!refreshToken.value)
       return false
-
-    isRefreshing.value = true
 
     try {
       const response = await client.value.post<APIResponse<AuthTokensData>>('/api/v1/auth/refresh', {
@@ -184,9 +158,20 @@ export const useAuthStore = defineStore('auth', () => {
 
       return false
     }
-    finally {
-      isRefreshing.value = false
-    }
+  }
+
+  const refreshAccessToken = (): Promise<boolean> => {
+    if (!refreshToken.value)
+      return Promise.resolve(false)
+
+    if (_refreshPromise)
+      return _refreshPromise
+
+    _refreshPromise = _doRefresh().finally(() => {
+      _refreshPromise = null
+    })
+
+    return _refreshPromise
   }
 
   const autoLogin = async () => {
@@ -240,7 +225,6 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken,
     isAuthenticated,
     authInitialized,
-    isRefreshing,
     login,
     register,
     logout,

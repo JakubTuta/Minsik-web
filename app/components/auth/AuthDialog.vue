@@ -15,7 +15,9 @@ const isFormValid = ref(false)
 const usernameFocused = ref(false)
 
 const isLoginMode = computed(() => authDialogStore.mode === 'login')
-const title = computed(() => isLoginMode.value ? 'Login' : 'Create Account')
+const title = computed(() => (isLoginMode.value
+  ? 'Login'
+  : 'Create Account'))
 
 const isUsernameValid = computed(() => username.value && usernameRules.every((rule: (v: string) => boolean | string) => rule(username.value) === true))
 const isUsernameInvalid = computed(() => username.value && usernameRules.some((rule: (v: string) => boolean | string) => rule(username.value) !== true))
@@ -64,7 +66,9 @@ async function handleSubmit() {
       await handleSuccess()
     }
     else {
-      const action = isLoginMode.value ? 'Login' : 'Registration'
+      const action = isLoginMode.value
+        ? 'Login'
+        : 'Registration'
       error.value = result.error || `${action} failed. Please try again.`
     }
   }
@@ -81,23 +85,27 @@ async function handleSubmit() {
     persistent
     @update:model-value="closeDialog"
   >
-    <v-card rounded="xl" class="pa-2">
+    <v-card
+      rounded="xl"
+      class="pa-2"
+    >
       <v-btn
         icon
         variant="text"
         size="small"
-        class="position-absolute top-2 right-2"
+        class="position-absolute right-2 top-2"
         @click="closeDialog"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
-      <v-card-title class="d-flex align-center flex-column pt-6 pb-2 gap-2">
+      <v-card-title class="d-flex align-center flex-column gap-2 pb-2 pt-6">
         <v-icon
           icon="mdi-snowflake"
           size="36"
           color="primary"
         />
+
         <span class="text-h5 font-weight-bold">{{ title }}</span>
       </v-card-title>
 
@@ -117,7 +125,11 @@ async function handleSubmit() {
             class="mb-2"
             :disabled="loading"
             :rules="usernameRules"
-            :color="isUsernameValid ? 'success' : isUsernameInvalid ? 'error' : undefined"
+            :color="isUsernameValid
+              ? 'success'
+              : isUsernameInvalid
+                ? 'error'
+                : undefined"
             validate-on="input"
             @focus="usernameFocused = true"
             @blur="usernameFocused = false"
@@ -129,6 +141,7 @@ async function handleSubmit() {
               >
                 mdi-check-circle
               </v-icon>
+
               <v-icon
                 v-else-if="isUsernameInvalid"
                 color="error"
@@ -150,19 +163,29 @@ async function handleSubmit() {
                 <div class="text-caption font-weight-medium mb-2">
                   Username requirements:
                 </div>
+
                 <div
                   v-for="(req, index) in usernameRequirements"
                   :key="index"
                   class="d-flex align-center text-caption mb-1"
                 >
                   <v-icon
-                    :color="req.test(username) ? 'success' : 'error'"
+                    :color="req.test(username)
+                      ? 'success'
+                      : 'error'"
                     size="small"
                     class="me-2"
                   >
-                    {{ req.test(username) ? 'mdi-check' : 'mdi-close' }}
+                    {{ req.test(username)
+                      ? 'mdi-check'
+                      : 'mdi-close' }}
                   </v-icon>
-                  <span :class="req.test(username) ? 'text-success' : 'text-error'">
+
+                  <span
+                    :class="req.test(username)
+                      ? 'text-success'
+                      : 'text-error'"
+                  >
                     {{ req.text }}
                   </span>
                 </div>
@@ -189,7 +212,9 @@ async function handleSubmit() {
             :loading="loading"
             :disabled="!isFormValid"
           >
-            {{ isLoginMode ? 'Login' : 'Create Account' }}
+            {{ isLoginMode
+              ? 'Login'
+              : 'Create Account' }}
           </v-btn>
 
           <v-alert
@@ -204,13 +229,16 @@ async function handleSubmit() {
           <div class="d-flex mt-4 justify-center">
             <template v-if="isLoginMode">
               <span class="text-body-2 text-medium-emphasis me-1">Don't have an account?</span>
+
               <span
                 class="text-body-2 text-primary font-weight-medium cursor-pointer"
                 @click="switchMode"
               >Sign up</span>
             </template>
+
             <template v-else>
               <span class="text-body-2 text-medium-emphasis me-1">Already have an account?</span>
+
               <span
                 class="text-body-2 text-primary font-weight-medium cursor-pointer"
                 @click="switchMode"

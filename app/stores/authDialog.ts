@@ -22,7 +22,9 @@ export const useAuthDialogStore = defineStore('authDialog', () => {
   }
 
   const switchMode = () => {
-    mode.value = mode.value === 'login' ? 'register' : 'login'
+    mode.value = mode.value === 'login'
+      ? 'register'
+      : 'login'
   }
 
   return { show, mode, redirectTo, openLogin, openRegister, close, switchMode }

@@ -44,10 +44,30 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       <v-divider class="my-1" />
 
       <v-list-item
-        prepend-icon="mdi-view-dashboard"
-        title="Dashboard"
-        to="/panel"
+        prepend-icon="mdi-bookshelf"
+        title="My Bookshelf"
+        to="/bookshelf"
       />
+
+      <v-list-item
+        prepend-icon="mdi-heart"
+        title="Favourites"
+        to="/favourites"
+      />
+
+      <v-list-item
+        prepend-icon="mdi-star"
+        title="Ratings"
+        to="/ratings"
+      />
+
+      <v-list-item
+        prepend-icon="mdi-comment-text"
+        title="Comments"
+        to="/comments"
+      />
+
+      <v-divider class="my-1" />
 
       <v-list-item
         prepend-icon="mdi-logout"
@@ -137,9 +157,27 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         <v-divider />
 
         <v-list-item
-          prepend-icon="mdi-view-dashboard"
-          title="Dashboard"
-          to="/panel"
+          prepend-icon="mdi-bookshelf"
+          title="My Bookshelf"
+          to="/bookshelf"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-heart"
+          title="Favourites"
+          to="/favourites"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-star"
+          title="Ratings"
+          to="/ratings"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-comment-text"
+          title="Comments"
+          to="/comments"
         />
 
         <v-divider />

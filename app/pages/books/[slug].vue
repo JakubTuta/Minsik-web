@@ -5,6 +5,8 @@ const route = useRoute()
 const booksStore = useBooksStore()
 const authorsStore = useAuthorsStore()
 const seriesStore = useSeriesStore()
+const bookPageStore = useBookPageStore()
+const authStore = useAuthStore()
 
 const slug = route.params.slug as string
 
@@ -49,31 +51,82 @@ useBookStructuredData({
 
 const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-book.jpg')
 
-// Fetch full author data (non-blocking, for caching)
+// Non-blocking data fetches
 const primaryAuthor = ref<any>(null)
 const seriesBooks = ref<Book[]>([])
 const detailsExpanded = ref(false)
+const descriptionExpanded = ref(false)
+const descriptionRef = ref<HTMLElement>()
+const expandedHeight = ref(0)
+
+// Description truncation
+const DESCRIPTION_MAX_LENGTH = 500
+const TRUNCATION_WINDOW = 20
+
+const truncatedDescription = computed(() => {
+  const desc = book.value?.description
+  if (!desc || desc.length <= DESCRIPTION_MAX_LENGTH + TRUNCATION_WINDOW)
+    return null
+
+  const windowStart = DESCRIPTION_MAX_LENGTH - TRUNCATION_WINDOW
+  const windowEnd = DESCRIPTION_MAX_LENGTH + TRUNCATION_WINDOW
+  const window = desc.slice(windowStart, windowEnd)
+
+  // Try to cut at paragraph boundary within window
+  const paragraphIdx = window.indexOf('\n\n')
+  if (paragraphIdx >= 0)
+    return desc.slice(0, windowStart + paragraphIdx).trim()
+
+  // Try to cut at sentence boundary within window
+  const sentenceMatch = window.match(/[.!?](?:\s|$)/)
+  if (sentenceMatch?.index != null)
+    return desc.slice(0, windowStart + sentenceMatch.index + 1).trim()
+
+  // Try to cut at word boundary within window
+  const wordIdx = window.indexOf(' ')
+  if (wordIdx >= 0)
+    return `${desc.slice(0, windowStart + wordIdx).trim()}...`
+
+  return `${desc.slice(0, DESCRIPTION_MAX_LENGTH).trim()}...`
+})
+
+const descriptionNeedsTruncation = computed(() => !!truncatedDescription.value)
+
+function toggleDescription() {
+  if (descriptionRef.value)
+    expandedHeight.value = descriptionRef.value.scrollHeight
+  descriptionExpanded.value = !descriptionExpanded.value
+}
 
 onMounted(async () => {
-  // Fetch author data
   if (book.value?.authors[0]?.slug) {
     try {
       primaryAuthor.value = await authorsStore.fetchAuthor(book.value.authors[0].slug)
     }
-    catch {
-      // Silently fail
-    }
+    catch { /* Silently fail */ }
   }
 
-  // Fetch series books
   if (book.value?.series?.slug) {
     try {
       seriesBooks.value = await seriesStore.fetchSeriesBooks(book.value.series.slug)
     }
-    catch {
-      // Silently fail
-    }
+    catch { /* Silently fail */ }
   }
+})
+
+// Fetch user data client-side only — refetches on login/logout
+if (import.meta.client) {
+  watch(() => authStore.isAuthenticated, (isAuth) => {
+    bookPageStore.resetState()
+    bookPageStore.currentSlug = slug
+    if (isAuth) {
+      bookPageStore.fetchBookUserData(slug)
+    }
+  }, { immediate: true })
+}
+
+onUnmounted(() => {
+  bookPageStore.resetState()
 })
 </script>
 
@@ -81,6 +134,7 @@ onMounted(async () => {
   <v-container v-if="book">
     <v-row>
       <v-col cols="12">
+        <!-- Book Header -->
         <v-card>
           <v-row no-gutters>
             <!-- Book Cover -->
@@ -88,7 +142,8 @@ onMounted(async () => {
               cols="12"
               md="4"
               lg="3"
-              class="pa-0"
+              class="pa-6"
+              align-self="start"
             >
               <v-img
                 :src="coverUrl"
@@ -96,7 +151,7 @@ onMounted(async () => {
                 lazy-src="/placeholder-book-lazy.jpg"
                 aspect-ratio="0.67"
                 cover
-                class="bg-surface-variant"
+                class="book-cover-shadow rounded"
               />
             </v-col>
 
@@ -118,7 +173,7 @@ onMounted(async () => {
                     class="mb-4"
                   >
                     <div class="mb-2">
-                      <span class="font-weight-bold text-body-1 text-secondary">Series: </span>
+                      <span class="text-body-1">More from </span>
 
                       <NuxtLink
                         class="font-weight-bold text-body-1 text-primary text-decoration-none"
@@ -131,14 +186,15 @@ onMounted(async () => {
                     <!-- Series Books Horizontal Scroll -->
                     <div
                       v-if="seriesBooks.length > 0"
-                      class="d-flex gap-2"
-                      style="overflow-x: auto; overflow-y: hidden;"
+                      class="d-flex gap-3"
+                      style="overflow-x: auto; overflow-y: hidden; padding-bottom: 4px;"
                     >
                       <NuxtLink
                         v-for="seriesBook in seriesBooks"
                         :key="seriesBook.book_id"
                         :to="`/books/${seriesBook.slug}`"
                         class="text-decoration-none flex-shrink-0"
+                        style="width: 80px;"
                       >
                         <div class="position-relative">
                           <v-img
@@ -174,6 +230,10 @@ onMounted(async () => {
                             />
                           </div>
                         </div>
+
+                        <div class="text-caption mt-1 text-truncate">
+                          {{ seriesBook.title }}
+                        </div>
                       </NuxtLink>
                     </div>
                   </div>
@@ -183,14 +243,36 @@ onMounted(async () => {
                     :rating="book.avg_rating || 0"
                     :rating-count="book.rating_count || 0"
                   />
+
+                  <!-- Categories -->
+                  <div
+                    v-if="book.genres && book.genres.length > 0"
+                    class="d-flex mt-3 flex-wrap gap-1"
+                  >
+                    <v-chip
+                      v-for="genre in book.genres"
+                      :key="genre.genre_id"
+                      size="small"
+                    >
+                      {{ toTitleCase(genre.name) }}
+                    </v-chip>
+                  </div>
+
+                  <!-- Actions -->
+                  <ClientOnly>
+                    <BookActions
+                      :slug="slug"
+                      class="mt-4"
+                    />
+                  </ClientOnly>
                 </div>
 
-                <!-- Details Toggle Button -->
-                <div class="mt-auto pt-4">
+                <!-- Details Toggle -->
+                <div class="mt-auto pt-3">
                   <v-btn
                     variant="text"
-                    color="primary"
-                    class="px-4"
+                    color="secondary"
+                    size="small"
                     @click="detailsExpanded = !detailsExpanded"
                   >
                     Details
@@ -204,62 +286,41 @@ onMounted(async () => {
                   <!-- Expandable Details Section -->
                   <v-expand-transition>
                     <div v-show="detailsExpanded">
-                      <!-- Metadata -->
-                      <v-list
-                        density="compact"
-                        class="bg-transparent"
-                      >
-                        <v-list-item v-if="book.original_publication_year">
-                          <template #prepend>
-                            <v-icon icon="mdi-calendar" />
-                          </template>
+                      <div class="d-flex text-body-2 mt-2 flex-wrap gap-x-6 gap-y-1">
+                        <span v-if="book.original_publication_year">
+                          <v-icon
+                            icon="mdi-calendar"
+                            size="small"
+                            class="mr-1"
+                          />
+                          Published {{ book.original_publication_year }}
+                        </span>
 
-                          <v-list-item-title>Published {{ book.original_publication_year }}</v-list-item-title>
-                        </v-list-item>
-
-                        <v-list-item v-if="book.view_count">
-                          <template #prepend>
-                            <v-icon icon="mdi-eye" />
-                          </template>
-
-                          <v-list-item-title>{{ book.view_count }} views</v-list-item-title>
-                        </v-list-item>
-                      </v-list>
-
-                      <!-- Categories -->
-                      <div
-                        v-if="book.genres && book.genres.length > 0"
-                        class="mt-4"
-                      >
-                        <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
-                          Categories
-                        </h3>
-
-                        <v-chip
-                          v-for="genre in book.genres"
-                          :key="genre.genre_id"
-                          size="small"
-                          class="mb-2 mr-2"
-                        >
-                          {{ toTitleCase(genre.name) }}
-                        </v-chip>
+                        <span v-if="book.view_count">
+                          <v-icon
+                            icon="mdi-eye"
+                            size="small"
+                            class="mr-1"
+                          />
+                          {{ book.view_count.toLocaleString() }} views
+                        </span>
                       </div>
 
                       <!-- Editions -->
                       <div
                         v-if="book.formats && book.formats.length > 0"
-                        class="mt-4"
+                        class="mt-3"
                       >
-                        <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
+                        <div class="text-caption text-secondary font-weight-bold mb-1">
                           Editions
-                        </h3>
+                        </div>
 
                         <v-chip
                           v-for="format in book.formats"
                           :key="format"
-                          size="small"
+                          size="x-small"
                           variant="outlined"
-                          class="mb-2 mr-2"
+                          class="mb-1 mr-1"
                         >
                           {{ toTitleCase(format) }}
                         </v-chip>
@@ -276,66 +337,126 @@ onMounted(async () => {
               cols="12"
               md="3"
               lg="3"
+              align-self="start"
             >
               <AuthorShortCard :author="primaryAuthor" />
             </v-col>
           </v-row>
+        </v-card>
 
-          <!-- Description -->
-          <v-divider />
-
-          <v-card-text v-if="book.description">
+        <!-- Description -->
+        <v-card
+          v-if="book.description"
+          class="mt-4"
+        >
+          <v-card-text>
             <h2 class="text-h6 font-weight-bold mb-3">
               Description
             </h2>
 
-            <p
-              class="font-size-4"
-              style="white-space: pre-line;"
+            <div
+              ref="descriptionRef"
+              class="description-content"
+              :class="{'description-collapsed': descriptionNeedsTruncation && !descriptionExpanded}"
+              :style="descriptionNeedsTruncation && descriptionExpanded && expandedHeight
+                ? {'maxHeight': `${expandedHeight}px`}
+                : undefined"
             >
-              {{ book.description }}
-            </p>
+              <p
+                class="text-body-1 mb-0"
+                style="white-space: pre-line;"
+              >
+                {{ book.description }}
+              </p>
+            </div>
+
+            <v-btn
+              v-if="descriptionNeedsTruncation"
+              variant="text"
+              color="secondary"
+              size="small"
+              class="mt-2"
+              @click="toggleDescription"
+            >
+              {{ descriptionExpanded
+                ? 'Read less'
+                : 'Read more' }}
+            </v-btn>
           </v-card-text>
+        </v-card>
 
-          <!-- Cover History -->
-          <template v-if="book.cover_history && book.cover_history.length > 1">
-            <v-divider />
+        <!-- Cover History -->
+        <v-card
+          v-if="book.cover_history && book.cover_history.length > 1"
+          class="mt-4"
+        >
+          <v-card-text>
+            <h2 class="text-h6 font-weight-bold text-primary mb-4">
+              Book Cover History
+            </h2>
 
-            <v-card-text>
-              <h2 class="text-h6 font-weight-bold mb-3">
-                Cover History
-              </h2>
+            <div class="cover-timeline">
+              <div
+                v-for="(cover, index) in book.cover_history"
+                :key="index"
+                class="cover-timeline-item"
+              >
+                <!-- Timeline Marker -->
+                <div class="cover-timeline-marker">
+                  <div class="cover-timeline-dot" />
 
-              <div class="cover-history-list">
-                <div
-                  v-for="(cover, index) in book.cover_history"
-                  :key="index"
-                  class="cover-history-item"
-                >
+                  <div
+                    v-if="index < book.cover_history.length - 1"
+                    class="cover-timeline-line"
+                  />
+                </div>
+
+                <!-- Cover Card -->
+                <div class="cover-timeline-content">
                   <v-card
                     elevation="2"
                     rounded="lg"
+                    class="pa-2"
                   >
                     <v-img
                       :src="cover.url"
                       :alt="`Cover ${index + 1}`"
                       lazy-src="/placeholder-book-lazy.jpg"
                       :aspect-ratio="0.67"
+                      width="140"
                       cover
-                      class="bg-surface-variant"
+                      class="bg-surface-variant rounded"
                     />
 
-                    <v-card-text class="pa-2 text-center">
-                      <div class="text-caption text-secondary">
-                        {{ cover.size }} ({{ cover.width }}px)
-                      </div>
-                    </v-card-text>
+                    <div class="text-caption text-secondary mt-2 text-center">
+                      {{ cover.size }} ({{ cover.width }}px)
+                    </div>
                   </v-card>
                 </div>
               </div>
-            </v-card-text>
-          </template>
+            </div>
+          </v-card-text>
         </v-card>
+
+        <!-- Rating -->
+        <v-card class="mt-4">
+          <v-card-text>
+            <SubRatingSection
+              :stats="book.sub_rating_stats ?? {}"
+              :rating-count="book.rating_count || 0"
+              :slug="slug"
+            />
+          </v-card-text>
+        </v-card>
+
+        <!-- Comments Section -->
+        <ClientOnly>
+          <v-card class="mt-4">
+            <v-card-text>
+              <BookCommentsSection :slug="slug" />
+            </v-card-text>
+          </v-card>
+        </ClientOnly>
       </v-col>
     </v-row>
   </v-container>
@@ -347,33 +468,101 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.cover-history-list {
+.book-cover-shadow {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* Description expand/collapse */
+.description-content {
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.description-collapsed {
+  max-height: 10em;
+  position: relative;
+}
+
+.description-collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3em;
+  background: linear-gradient(transparent, rgb(var(--v-theme-surface)));
+  pointer-events: none;
+}
+
+/* Cover History Timeline */
+.cover-timeline {
   display: flex;
-  gap: 16px;
   overflow-x: auto;
+  gap: 0;
   padding-bottom: 8px;
 }
 
-.cover-history-item {
+.cover-timeline-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex: 0 0 auto;
-  width: 200px;
+  min-width: 160px;
 }
 
-.cover-history-list::-webkit-scrollbar {
+.cover-timeline-marker {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 24px;
+  position: relative;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.cover-timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: rgb(var(--v-theme-primary));
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.cover-timeline-line {
+  position: absolute;
+  left: 50%;
+  right: -50%;
+  top: 50%;
+  height: 2px;
+  background-color: rgb(var(--v-theme-primary));
+  opacity: 0.3;
+  transform: translateX(6px);
+}
+
+.cover-timeline-item:last-child .cover-timeline-line {
+  display: none;
+}
+
+.cover-timeline-content {
+  flex: 1;
+}
+
+.cover-timeline::-webkit-scrollbar {
   height: 8px;
 }
 
-.cover-history-list::-webkit-scrollbar-track {
+.cover-timeline::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
 }
 
-.cover-history-list::-webkit-scrollbar-thumb {
+.cover-timeline::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }
 
-.cover-history-list::-webkit-scrollbar-thumb:hover {
+.cover-timeline::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
 }
 </style>

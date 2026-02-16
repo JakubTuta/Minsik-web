@@ -1,6 +1,6 @@
 import type { AxiosError, AxiosInstance } from 'axios'
 import axios from 'axios'
-import { defineStore, getActivePinia } from 'pinia'
+import { defineStore } from 'pinia'
 
 export const useApiStore = defineStore('api', () => {
   const config = useRuntimeConfig()
@@ -27,13 +27,13 @@ export const useApiStore = defineStore('api', () => {
           const isAuthEndpoint = authEndpoints.some(ep => config.url?.endsWith(ep))
 
           if (!isAuthEndpoint && import.meta.client) {
-            // Prefer Pinia state (always in sync) over localStorage
-            const authState = getActivePinia()?.state?.value?.auth as { token?: string | null } | undefined
-            const token = authState?.token ?? localStorage.getItem('minsik_auth_token')
+            const authStore = useAuthStore()
+            const token = authStore.token || localStorage.getItem('minsik_auth_token')
             if (token) {
               config.headers.Authorization = `Bearer ${token}`
             }
           }
+
           return config
         },
         error => Promise.reject(error),
@@ -42,7 +42,21 @@ export const useApiStore = defineStore('api', () => {
       // Response interceptor
       client.interceptors.response.use(
         response => response,
-        (error: AxiosError) => {
+        async (error: AxiosError) => {
+          const originalRequest = error.config as any
+          const isRefreshEndpoint = originalRequest?.url?.endsWith('/api/v1/auth/refresh')
+
+          if (error.response?.status === 401 && !originalRequest?._retry && !isRefreshEndpoint && import.meta.client) {
+            originalRequest._retry = true
+            const authStore = useAuthStore()
+            const refreshed = await authStore.refreshAccessToken()
+            if (refreshed && authStore.token) {
+              originalRequest.headers.Authorization = `Bearer ${authStore.token}`
+
+              return client(originalRequest)
+            }
+          }
+
           if (error.response?.status === 404) {
             console.warn('Resource not found:', error.config?.url)
           }

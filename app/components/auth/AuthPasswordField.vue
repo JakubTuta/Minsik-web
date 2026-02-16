@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { passwordRequirements, passwordRules } from '~/utils/validation'
 
-const model = defineModel<string>({ default: '' })
-
 defineProps<{
   disabled?: boolean
 }>()
+
+const model = defineModel<string>({ default: '' })
 
 const showPassword = ref(false)
 const passwordFocused = ref(false)
@@ -18,12 +18,18 @@ const isInvalid = computed(() => model.value && passwordRules.some(rule => rule(
   <v-text-field
     v-model="model"
     label="Password"
-    :type="showPassword ? 'text' : 'password'"
+    :type="showPassword
+      ? 'text'
+      : 'password'"
     variant="outlined"
     class="mb-2"
     :disabled="disabled"
     :rules="passwordRules"
-    :color="isValid ? 'success' : isInvalid ? 'error' : undefined"
+    :color="isValid
+      ? 'success'
+      : isInvalid
+        ? 'error'
+        : undefined"
     validate-on="input"
     @focus="passwordFocused = true"
     @blur="passwordFocused = false"
@@ -49,7 +55,9 @@ const isInvalid = computed(() => model.value && passwordRules.some(rule => rule(
         class="cursor-pointer"
         @click="showPassword = !showPassword"
       >
-        {{ showPassword ? 'mdi-eye-off' : 'mdi-eye' }}
+        {{ showPassword
+          ? 'mdi-eye-off'
+          : 'mdi-eye' }}
       </v-icon>
     </template>
   </v-text-field>
@@ -73,14 +81,22 @@ const isInvalid = computed(() => model.value && passwordRules.some(rule => rule(
           class="d-flex align-center text-caption mb-1"
         >
           <v-icon
-            :color="req.test(model) ? 'success' : 'error'"
+            :color="req.test(model)
+              ? 'success'
+              : 'error'"
             size="small"
             class="me-2"
           >
-            {{ req.test(model) ? 'mdi-check' : 'mdi-close' }}
+            {{ req.test(model)
+              ? 'mdi-check'
+              : 'mdi-close' }}
           </v-icon>
 
-          <span :class="req.test(model) ? 'text-success' : 'text-error'">
+          <span
+            :class="req.test(model)
+              ? 'text-success'
+              : 'text-error'"
+          >
             {{ req.text }}
           </span>
         </div>

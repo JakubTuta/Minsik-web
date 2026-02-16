@@ -3,41 +3,30 @@ import type { Author } from '~/types/api'
 
 interface Props {
   author: Author
-  maxBioLength?: number
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  maxBioLength: 190,
-})
-
-const truncatedBio = computed(() => {
-  if (!props.author?.bio)
-    return ''
-
-  if (props.author.bio.length <= props.maxBioLength)
-    return props.author.bio
-
-  return `${props.author.bio.substring(0, props.maxBioLength)}...`
-})
+defineProps<Props>()
 </script>
 
 <template>
   <v-card
-    variant="outlined"
-    class="h-100"
+    class="author-short-card"
+    color="surface-bright"
+    flat
+    rounded="lg"
   >
-    <v-card-text class="pa-4">
-      <h3 class="text-h6 font-weight-bold mb-4">
+    <v-card-text class="d-flex flex-column overflow-hidden pa-4">
+      <h3 class="text-h6 font-weight-bold mb-4 flex-shrink-0">
         About Author
       </h3>
 
-      <v-divider class="mb-4" />
+      <v-divider class="mb-4 flex-shrink-0" />
 
-      <div class="d-flex flex-column align-center text-center">
+      <div class="d-flex flex-column align-center min-h-0 overflow-hidden text-center">
         <v-avatar
           v-if="author.photo_url"
           size="120"
-          class="mb-3"
+          class="author-avatar-shadow mb-3 flex-shrink-0"
         >
           <v-img
             :src="author.photo_url"
@@ -47,20 +36,37 @@ const truncatedBio = computed(() => {
         </v-avatar>
 
         <NuxtLink
-          class="text-h5 font-weight-medium text-primary text-decoration-none mb-2"
+          class="text-h5 font-weight-bold text-primary text-decoration-none mb-2 flex-shrink-0"
           :to="`/authors/${author.slug}`"
         >
           {{ author.name }}
         </NuxtLink>
 
         <p
-          v-if="truncatedBio"
-          class="text-body-2 mt-2"
+          v-if="author.bio"
+          class="text-body-2 author-bio mt-2"
           style="white-space: pre-line; text-align: left;"
         >
-          {{ truncatedBio }}
+          {{ author.bio }}
         </p>
       </div>
     </v-card-text>
   </v-card>
 </template>
+
+<style scoped>
+.author-short-card {
+  max-height: 500px;
+}
+
+.author-avatar-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.author-bio {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+}
+</style>

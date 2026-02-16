@@ -48,6 +48,13 @@ export interface Genre {
   slug: string
 }
 
+// Sub-Rating Types
+
+export interface SubRatingStat {
+  avg: string | null
+  count: number
+}
+
 // Cover Types
 
 export interface CoverHistory {
@@ -125,6 +132,7 @@ export interface Book {
   series_position?: string | null
   open_library_id?: string | null
   google_books_id?: string | null
+  sub_rating_stats?: Record<string, SubRatingStat>
   created_at: string
   updated_at: string
 }

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { emailRules } from '~/utils/validation'
 
-const model = defineModel<string>({ default: '' })
-
 defineProps<{
   disabled?: boolean
 }>()
+
+const model = defineModel<string>({ default: '' })
 
 const isValid = computed(() => model.value && emailRules.every(rule => rule(model.value) === true))
 const isInvalid = computed(() => model.value && emailRules.some(rule => rule(model.value) !== true))
@@ -20,7 +20,11 @@ const isInvalid = computed(() => model.value && emailRules.some(rule => rule(mod
     class="mb-2"
     :disabled="disabled"
     :rules="emailRules"
-    :color="isValid ? 'success' : isInvalid ? 'error' : undefined"
+    :color="isValid
+      ? 'success'
+      : isInvalid
+        ? 'error'
+        : undefined"
     validate-on="input"
   >
     <template #append-inner>

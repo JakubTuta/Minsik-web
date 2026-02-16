@@ -64,6 +64,7 @@ const appBarSearchQuery = ref('')
 
     <ClientOnly v-if="!mobile">
       <UserMenu />
+
       <template #fallback>
         <v-btn
           icon

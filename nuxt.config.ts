@@ -86,6 +86,9 @@ export default defineNuxtConfig({
     '/authors/**': { ssr: true },
     '/series/**': { ssr: true },
     '/search': { ssr: true },
-    '/panel/**': { ssr: false },
+    '/bookshelf': { ssr: false },
+    '/favourites': { ssr: false },
+    '/ratings': { ssr: false },
+    '/comments': { ssr: false },
   },
 })
