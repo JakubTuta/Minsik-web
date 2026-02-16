@@ -155,3 +155,13 @@ export interface UserBookInfoData {
   rating: UserBookRating | null
   comment: UserBookComment | null
 }
+
+export interface UserStats {
+  want_to_read_count: number
+  reading_count: number
+  read_count: number
+  abandoned_count: number
+  favourites_count: number
+  ratings_count: number
+  comments_count: number
+}

@@ -61,7 +61,7 @@ function formatDate(dateStr: string): DateInfo {
     relative = 'less than an hour ago'
   }
   else if (diffHours < 24) {
-    relative = 'less than a day ago'
+    relative = 'today'
   }
   else if (diffDays < 7) {
     relative = `${diffDays} day${diffDays !== 1
@@ -102,7 +102,8 @@ function getSubRatings(comment: BookComment) {
 }
 
 function userInitial(comment: BookComment): string {
-  return comment.username.charAt(0).toUpperCase()
+  const username = comment.username || comment.user?.username || '?'
+  return username.charAt(0).toUpperCase()
 }
 
 const spoilerRevealed = ref(false)
@@ -124,7 +125,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
     <div class="d-flex gap-3">
       <!-- User Avatar -->
       <NuxtLink
-        :to="`/bookshelf/${comment.username}`"
+        :to="`/bookshelf/${comment.username || comment.user?.username}`"
         class="text-decoration-none flex-shrink-0"
       >
         <v-avatar
@@ -142,10 +143,10 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
         <div class="d-flex align-center justify-space-between mb-1">
           <div class="d-flex align-center gap-2">
             <NuxtLink
-              :to="`/bookshelf/${comment.username}`"
+              :to="`/bookshelf/${comment.username || comment.user?.username}`"
               class="text-body-2 font-weight-bold text-decoration-none text-primary"
             >
-              {{ comment.username }}
+              {{ comment.username || comment.user?.username }}
             </NuxtLink>
 
             <v-chip

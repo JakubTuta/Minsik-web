@@ -44,6 +44,20 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       <v-divider class="my-1" />
 
       <v-list-item
+        prepend-icon="mdi-view-dashboard"
+        title="Dashboard"
+        to="/dashboard"
+      />
+
+      <v-list-item
+        prepend-icon="mdi-account"
+        title="Public Profile"
+        :to="`/bookshelf/${user?.username}`"
+      />
+
+      <v-divider class="my-1" />
+
+      <v-list-item
         prepend-icon="mdi-bookshelf"
         title="My Bookshelf"
         to="/bookshelf"
@@ -153,6 +167,20 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
             </v-avatar>
           </template>
         </v-list-item>
+
+        <v-divider />
+
+        <v-list-item
+          prepend-icon="mdi-view-dashboard"
+          title="Dashboard"
+          to="/dashboard"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-account"
+          title="Public Profile"
+          :to="`/bookshelf/${user?.username}`"
+        />
 
         <v-divider />
 

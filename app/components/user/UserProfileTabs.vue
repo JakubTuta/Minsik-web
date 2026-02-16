@@ -2,6 +2,7 @@
 const route = useRoute()
 
 const tabs = [
+  { label: 'Dashboard', to: '/dashboard', icon: 'mdi-view-dashboard' },
   { label: 'My Bookshelf', to: '/bookshelf', icon: 'mdi-bookshelf' },
   { label: 'Favourites', to: '/favourites', icon: 'mdi-heart' },
   { label: 'Ratings', to: '/ratings', icon: 'mdi-star' },

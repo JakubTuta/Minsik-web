@@ -67,10 +67,9 @@ watch(selectedSort, () => fetchComments())
 
 watch(() => authStore.isAuthenticated, () => fetchComments())
 
-async function handleCommentSaved() {
+function handleCommentSaved() {
   editingOwnComment.value = false
   showSnackbar('Comment saved')
-  // myComment is already set from createComment, so it displays immediately
   // Refresh the list of other comments in background
   fetchComments()
 }

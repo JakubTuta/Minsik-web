@@ -205,11 +205,22 @@ export const useBookPageStore = defineStore('bookPage', () => {
   // Create comment
   const createComment = async (slug: string, body: string, isSpoiler = false) => {
     try {
-      const response = await client.value.post<APIResponse<BookComment>>(
+      const response = await client.value.post<APIResponse<any>>(
         `/api/v1/books/${slug}/comments`,
         { body, is_spoiler: isSpoiler },
       )
-      myComment.value = response.data.data!
+      const responseData = response.data.data!
+      // API returns nested structure: { comment: {...}, ... }
+      const data = responseData.comment || responseData
+
+      // Map API response to BookComment interface
+      myComment.value = {
+        ...data,
+        comment_created_at: data.created_at,
+        comment_updated_at: data.updated_at,
+        user_id: data.user_id,
+        username: data.username,
+      }
       commentsTotal.value++
     }
     catch (error) {
@@ -221,11 +232,22 @@ export const useBookPageStore = defineStore('bookPage', () => {
   // Update comment
   const updateComment = async (slug: string, commentId: number, body: string, isSpoiler = false) => {
     try {
-      const response = await client.value.put<APIResponse<BookComment>>(
+      const response = await client.value.put<APIResponse<any>>(
         `/api/v1/books/${slug}/comments/${commentId}`,
         { body, is_spoiler: isSpoiler },
       )
-      myComment.value = response.data.data!
+      const responseData = response.data.data!
+      // API returns nested structure: { comment: {...}, ... }
+      const data = responseData.comment || responseData
+
+      // Map API response to BookComment interface
+      myComment.value = {
+        ...data,
+        comment_created_at: data.created_at,
+        comment_updated_at: data.updated_at,
+        user_id: data.user_id,
+        username: data.username,
+      }
     }
     catch (error) {
       console.error('Failed to update comment:', error)

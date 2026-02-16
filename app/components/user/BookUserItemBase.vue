@@ -13,7 +13,10 @@ defineProps<Props>()
 </script>
 
 <template>
-  <v-card variant="elevated">
+  <v-card
+    variant="elevated"
+    color="surface"
+  >
     <div class="d-flex flex-row gap-3 pa-3">
       <!-- Cover Image -->
       <div
