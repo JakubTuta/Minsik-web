@@ -54,6 +54,20 @@ export const useFavouritesStore = defineStore('favourites', () => {
     await fetch(false)
   }
 
+  const removeFavourite = async (slug: string) => {
+    try {
+      await client.value.delete(`/api/v1/books/${slug}/favourite`)
+      const idx = items.value.findIndex(item => item.book_slug === slug)
+      if (idx !== -1) {
+        items.value.splice(idx, 1)
+        total.value--
+      }
+    }
+    catch (error) {
+      console.error('Failed to remove favourite:', error)
+    }
+  }
+
   return {
     items,
     total,
@@ -63,5 +77,6 @@ export const useFavouritesStore = defineStore('favourites', () => {
     isEmpty,
     fetch,
     loadMore,
+    removeFavourite,
   }
 })

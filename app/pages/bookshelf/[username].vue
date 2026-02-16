@@ -13,7 +13,7 @@ const filteredItems = computed(() => {
     return bookshelfStore.publicItems
   const q = titleFilter.value.toLowerCase()
 
-  return bookshelfStore.publicItems.filter(e => e.book.title.toLowerCase().includes(q))
+  return bookshelfStore.publicItems.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
 const sortOptions = [
@@ -102,7 +102,7 @@ useInfiniteScroll(
         <div class="d-flex flex-column gap-2">
           <BookshelfItem
             v-for="entry in filteredItems"
-            :key="entry.book.book_id"
+            :key="entry.book_id"
             :entry="entry"
           />
         </div>

@@ -1,9 +1,14 @@
-import type { Book } from '~/types/api'
-
 export type BookshelfStatus = 'want_to_read' | 'reading' | 'read' | 'abandoned'
 
 export interface BookshelfEntry {
-  book: Book
+  book_id: number
+  book_slug: string
+  book_title: string
+  book_cover_url?: string | null
+  book_author_names: string[]
+  book_author_slugs: string[]
+  book_series_name: string | null
+  book_series_slug: string | null
   status: BookshelfStatus
   is_favourite: boolean
   created_at: string
@@ -11,12 +16,24 @@ export interface BookshelfEntry {
 }
 
 export interface FavouriteEntry {
-  book: Book
+  book_id: number
+  book_slug: string
+  book_title: string
+  book_cover_url?: string | null
+  book_author_names: string[]
+  book_author_slugs: string[]
+  book_series_name: string | null
+  book_series_slug: string | null
   created_at: string
 }
 
 export interface RatingEntry {
-  book: Book
+  book_id: number
+  book_slug: string
+  book_title: string
+  book_cover_url?: string | null
+  book_author_names: string[]
+  book_author_slugs: string[]
   overall_rating: number
   review_text?: string | null
   pacing?: number | null
@@ -33,7 +50,14 @@ export interface RatingEntry {
 
 export interface CommentEntry {
   comment_id: number
-  book: Book
+  book_id: number
+  book_slug: string
+  book_title: string
+  book_cover_url?: string | null
+  book_author_names: string[]
+  book_author_slugs: string[]
+  book_series_name: string | null
+  book_series_slug: string | null
   body: string
   is_spoiler: boolean
   created_at: string

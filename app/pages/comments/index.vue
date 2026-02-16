@@ -60,15 +60,6 @@ useInfiniteScroll(
         cols="12"
         md="9"
       >
-        <div
-          v-if="commentsStore.hasData"
-          class="text-caption text-medium-emphasis mb-3"
-        >
-          {{ commentsStore.total }} {{ commentsStore.total === 1
-            ? 'comment'
-            : 'comments' }}
-        </div>
-
         <div class="d-flex flex-column gap-2">
           <CommentItem
             v-for="entry in filteredItems"

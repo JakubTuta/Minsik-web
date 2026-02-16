@@ -25,7 +25,7 @@ const filteredItems = computed(() => {
   let items = ratingsStore.items
   if (titleFilter.value) {
     const q = titleFilter.value.toLowerCase()
-    items = items.filter(e => e.book.title.toLowerCase().includes(q))
+    items = items.filter(e => e.book_title.toLowerCase().includes(q))
   }
   if (selectedRatings.value.length > 0) {
     items = items.filter(e => selectedRatings.value.includes(Math.round(e.overall_rating)))
@@ -80,19 +80,10 @@ useInfiniteScroll(
         cols="12"
         md="9"
       >
-        <div
-          v-if="ratingsStore.hasData"
-          class="text-caption text-medium-emphasis mb-3"
-        >
-          {{ ratingsStore.total }} {{ ratingsStore.total === 1
-            ? 'rating'
-            : 'ratings' }}
-        </div>
-
         <div class="d-flex flex-column gap-2">
           <RatingItem
             v-for="entry in filteredItems"
-            :key="entry.book.book_id"
+            :key="entry.book_id"
             :entry="entry"
           />
         </div>

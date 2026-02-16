@@ -17,7 +17,7 @@ const filteredItems = computed(() => {
     return bookshelfStore.myItems
   const q = titleFilter.value.toLowerCase()
 
-  return bookshelfStore.myItems.filter(e => e.book.title.toLowerCase().includes(q))
+  return bookshelfStore.myItems.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
 const sortOptions = [
@@ -69,21 +69,11 @@ useInfiniteScroll(
         cols="12"
         md="9"
       >
-        <!-- Results count -->
-        <div
-          v-if="bookshelfStore.myHasData"
-          class="text-caption text-medium-emphasis mb-3"
-        >
-          {{ bookshelfStore.myTotal }} {{ bookshelfStore.myTotal === 1
-            ? 'book'
-            : 'books' }}
-        </div>
-
         <!-- Book list -->
         <div class="d-flex flex-column gap-2">
           <BookshelfItem
             v-for="entry in filteredItems"
-            :key="entry.book.book_id"
+            :key="entry.book_id"
             :entry="entry"
           />
         </div>

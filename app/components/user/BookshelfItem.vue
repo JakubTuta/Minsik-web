@@ -5,6 +5,10 @@ const props = defineProps<{
   entry: BookshelfEntry
 }>()
 
+const bookshelfStore = useBookshelfStore()
+
+const dialogOpen = ref(false)
+
 const statusConfig: Record<BookshelfStatus, { label: string, color: string, icon: string }> = {
   want_to_read: { label: 'Want to Read', color: 'orange', icon: 'mdi-bookmark-outline' },
   reading: { label: 'Reading', color: 'blue', icon: 'mdi-book-open-page-variant' },
@@ -13,68 +17,44 @@ const statusConfig: Record<BookshelfStatus, { label: string, color: string, icon
 }
 
 const status = computed(() => statusConfig[props.entry.status])
-const authors = computed(() => props.entry.book.authors.map(a => a.name).join(', '))
-const addedDate = computed(() => new Date(props.entry.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }))
+
+async function handleSave(newStatus: BookshelfStatus) {
+  await bookshelfStore.upsertStatus(props.entry.book_slug, newStatus)
+}
+
+async function handleRemove() {
+  bookshelfStore.removeItem(props.entry.book_slug)
+}
 </script>
 
 <template>
-  <NuxtLink
-    :to="`/books/${entry.book.slug}`"
-    class="text-decoration-none"
+  <BookUserItemBase
+    :slug="entry.book_slug"
+    :title="entry.book_title"
+    :cover-url="entry.book_cover_url"
+    :author-names="entry.book_author_names"
+    :author-slugs="entry.book_author_slugs"
+    :series-name="entry.book_series_name"
+    :series-slug="entry.book_series_slug"
   >
-    <v-card
-      variant="outlined"
-      class="d-flex flex-row gap-3 pa-3"
-      hover
-    >
-      <v-img
-        :src="entry.book.primary_cover_url || undefined"
-        lazy-src="/placeholder-book-lazy.jpg"
-        :alt="entry.book.title"
-        width="60"
-        height="90"
-        cover
-        rounded="sm"
-        class="flex-shrink-0"
+    <template #topRight>
+      <v-btn
+        :color="status.color"
+        :prepend-icon="status.icon"
+        size="small"
+        variant="elevated"
+        @click="dialogOpen = true"
+      >
+        {{ status.label }}
+      </v-btn>
+
+      <BookshelfStatusDialog
+        v-model="dialogOpen"
+        :current-status="entry.status"
+        :slug="entry.book_slug"
+        :on-save="handleSave"
+        :on-remove="handleRemove"
       />
-
-      <div class="min-w-0 flex-grow-1">
-        <div class="d-flex justify-space-between flex-wrap gap-2 align-start">
-          <div class="min-w-0">
-            <div class="text-body-1 font-weight-medium text-truncate">
-              {{ entry.book.title }}
-            </div>
-
-            <div class="text-caption text-medium-emphasis text-truncate">
-              {{ authors }}
-            </div>
-          </div>
-
-          <v-chip
-            :color="status.color"
-            :prepend-icon="status.icon"
-            size="x-small"
-            variant="tonal"
-            class="flex-shrink-0"
-          >
-            {{ status.label }}
-          </v-chip>
-        </div>
-
-        <div class="d-flex align-center mt-2 flex-wrap gap-3">
-          <div
-            v-if="entry.book.series"
-            class="text-caption text-medium-emphasis"
-          >
-            {{ entry.book.series.name }}
-            <span v-if="entry.book.series_position">#{{ entry.book.series_position }}</span>
-          </div>
-
-          <div class="text-caption text-disabled ml-auto">
-            Added {{ addedDate }}
-          </div>
-        </div>
-      </div>
-    </v-card>
-  </NuxtLink>
+    </template>
+  </BookUserItemBase>
 </template>

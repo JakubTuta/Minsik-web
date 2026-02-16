@@ -318,7 +318,7 @@ onUnmounted(() => {
                         <v-chip
                           v-for="format in book.formats"
                           :key="format"
-                          size="x-small"
+                          size="small"
                           variant="outlined"
                           class="mb-1 mr-1"
                         >

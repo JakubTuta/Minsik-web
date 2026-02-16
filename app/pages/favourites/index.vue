@@ -17,7 +17,7 @@ const filteredItems = computed(() => {
     return favouritesStore.items
   const q = titleFilter.value.toLowerCase()
 
-  return favouritesStore.items.filter(e => e.book.title.toLowerCase().includes(q))
+  return favouritesStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
 watch(order, () => favouritesStore.fetch(true))
@@ -54,19 +54,10 @@ useInfiniteScroll(
         cols="12"
         md="9"
       >
-        <div
-          v-if="favouritesStore.hasData"
-          class="text-caption text-medium-emphasis mb-3"
-        >
-          {{ favouritesStore.total }} {{ favouritesStore.total === 1
-            ? 'book'
-            : 'books' }}
-        </div>
-
         <div class="d-flex flex-column gap-2">
           <FavouriteItem
             v-for="entry in filteredItems"
-            :key="entry.book.book_id"
+            :key="entry.book_id"
             :entry="entry"
           />
         </div>

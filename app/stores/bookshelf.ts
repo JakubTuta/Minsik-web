@@ -116,6 +116,29 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     await fetchByUsername(username, publicCurrentParams.value, false)
   }
 
+  const upsertStatus = async (slug: string, status: BookshelfStatus) => {
+    await client.value.put(`/api/v1/users/me/bookshelves/${slug}`, { status })
+    const item = myItems.value.find(i => i.book_slug === slug)
+    if (item)
+      item.status = status
+    const pubItem = publicItems.value.find(i => i.book_slug === slug)
+    if (pubItem)
+      pubItem.status = status
+  }
+
+  const removeItem = (slug: string) => {
+    const idx = myItems.value.findIndex(i => i.book_slug === slug)
+    if (idx !== -1) {
+      myItems.value.splice(idx, 1)
+      myTotal.value--
+    }
+    const pubIdx = publicItems.value.findIndex(i => i.book_slug === slug)
+    if (pubIdx !== -1) {
+      publicItems.value.splice(pubIdx, 1)
+      publicTotal.value--
+    }
+  }
+
   return {
     // My bookshelf
     myItems,
@@ -136,5 +159,8 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     publicIsEmpty,
     fetchByUsername,
     loadMoreByUsername,
+    // Actions
+    upsertStatus,
+    removeItem,
   }
 })

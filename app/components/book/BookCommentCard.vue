@@ -150,7 +150,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
 
             <v-chip
               v-if="isOwn"
-              size="x-small"
+              size="small"
               color="primary"
               variant="tonal"
             >
@@ -159,7 +159,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
 
             <v-chip
               v-if="comment.is_spoiler"
-              size="x-small"
+              size="small"
               color="warning"
               variant="tonal"
               prepend-icon="mdi-alert"
@@ -175,14 +175,14 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
           >
             <v-btn
               icon="mdi-pencil"
-              size="x-small"
+              size="small"
               variant="text"
               @click="emit('edit')"
             />
 
             <v-btn
               icon="mdi-delete"
-              size="x-small"
+              size="small"
               variant="text"
               color="error"
               @click="emit('delete')"

@@ -5,6 +5,8 @@ interface Props {
   modelValue: boolean
   currentStatus: BookshelfStatus | null
   slug: string
+  onSave?: (status: BookshelfStatus) => Promise<void>
+  onRemove?: () => Promise<void>
 }
 
 const props = defineProps<Props>()
@@ -36,7 +38,12 @@ async function save() {
 
   saving.value = true
   try {
-    await bookPageStore.upsertBookshelf(props.slug, selectedStatus.value)
+    if (props.onSave) {
+      await props.onSave(selectedStatus.value)
+    }
+    else {
+      await bookPageStore.upsertBookshelf(props.slug, selectedStatus.value)
+    }
     emit('update:modelValue', false)
     emit('saved')
   }
@@ -51,7 +58,12 @@ async function save() {
 async function remove() {
   removing.value = true
   try {
-    await bookPageStore.removeFromBookshelf(props.slug)
+    if (props.onRemove) {
+      await props.onRemove()
+    }
+    else {
+      await bookPageStore.removeFromBookshelf(props.slug)
+    }
     emit('update:modelValue', false)
     emit('saved')
   }

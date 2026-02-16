@@ -157,7 +157,7 @@ async function handleDelete() {
               <v-btn
                 v-if="isEditing"
                 icon="mdi-close-circle"
-                size="x-small"
+                size="small"
                 variant="text"
                 color="error"
                 :loading="deleting"
@@ -213,7 +213,7 @@ async function handleDelete() {
 
               <v-btn
                 icon="mdi-close-circle"
-                size="x-small"
+                size="small"
                 variant="text"
                 :color="dim.color"
                 @click="clearSubRating(dim.key)"
