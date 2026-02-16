@@ -43,12 +43,7 @@ COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./.output
 USER nuxtjs
 
 # Expose port
-EXPOSE 3000
-
-# Set environment variables
-ENV NODE_ENV=production
-ENV HOST=0.0.0.0
-ENV PORT=3000
+EXPOSE 3040
 
 # Start the application
 CMD ["node", ".output/server/index.mjs"]

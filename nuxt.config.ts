@@ -14,8 +14,8 @@ export default defineNuxtConfig({
   // Runtime configuration
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE_URL || 'http://localhost:8040',
-      siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8040',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3040',
       siteName: 'Minsik',
       siteDescription: 'Discover your next favorite book through emotional reading profiles and book influence networks.',
     },
