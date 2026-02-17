@@ -58,6 +58,13 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       <v-divider class="my-1" />
 
       <v-list-item
+        v-if="user?.role === 'admin'"
+        prepend-icon="mdi-shield-crown"
+        title="Admin Panel"
+        to="/admin"
+      />
+
+      <v-list-item
         prepend-icon="mdi-bookshelf"
         title="My Bookshelf"
         to="/bookshelf"
@@ -183,6 +190,13 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         />
 
         <v-divider />
+
+        <v-list-item
+          v-if="user?.role === 'admin'"
+          prepend-icon="mdi-shield-crown"
+          title="Admin Panel"
+          to="/admin"
+        />
 
         <v-list-item
           prepend-icon="mdi-bookshelf"
