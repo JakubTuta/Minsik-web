@@ -48,7 +48,7 @@ const dimensions: DimensionConfig[] = [
 ]
 
 const isEditing = computed(() => !!bookPageStore.userRating)
-const canSave = computed(() => overallRating.value > 0)
+const canSave = computed(() => overallRating.value >= 0.5)
 
 function populateFromExisting() {
   const existing = bookPageStore.userRating

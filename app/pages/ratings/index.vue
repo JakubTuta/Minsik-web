@@ -11,10 +11,10 @@ const titleFilter = ref('')
 const selectedRatings = ref<number[]>([])
 
 const ratingCounts = computed(() => {
-  const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+  const counts: Record<number, number> = { 0.5: 0, 1: 0, 1.5: 0, 2: 0, 2.5: 0, 3: 0, 3.5: 0, 4: 0, 4.5: 0, 5: 0 }
   ratingsStore.items.forEach((e) => {
-    const rounded = Math.round(e.overall_rating)
-    if (rounded >= 1 && rounded <= 5)
+    const rounded = Math.round(e.overall_rating * 2) / 2
+    if (rounded >= 0.5 && rounded <= 5)
       counts[rounded]++
   })
 

@@ -41,7 +41,7 @@ const statusOptions: { label: string, value: BookshelfStatus, color: string }[] 
   { label: 'Abandoned', value: 'abandoned', color: 'grey' },
 ]
 
-const starLevels = [5, 4, 3, 2, 1]
+const starLevels = [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5]
 
 function toggleRating(star: number) {
   const current = [...props.selectedRatings!]
@@ -58,7 +58,7 @@ function starLabel(star: number): string {
     : 'stars'
   const count = props.ratingCounts![star] ?? 0
 
-  return `${star} ${unit} (${count})`
+  return `${star.toFixed(1)} ${unit} (${count})`
 }
 </script>
 
