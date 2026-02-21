@@ -85,9 +85,13 @@ export interface Author extends AuthorMinimal {
   books_total_views: number
   view_count: number
   last_viewed_at?: string
-  open_library_id?: string
+  open_library_id?: string | null
   created_at: string
   updated_at: string
+  wikidata_id?: string | null
+  wikipedia_url?: string | null
+  remote_ids: Record<string, string>
+  alternate_names: string[]
   // Computed client-side
   display_dates?: string
 }
@@ -102,11 +106,16 @@ export interface SeriesMinimal {
 }
 
 export interface Series extends SeriesMinimal {
-  description?: string
+  description?: string | null
   view_count: number
-  last_viewed_at?: string
+  last_viewed_at?: string | null
   created_at: string
   updated_at: string
+  avg_rating?: string | null
+  rating_count: number
+  ol_avg_rating?: string | null
+  ol_rating_count: number
+  total_views: number
   author?: Author
 }
 
@@ -132,9 +141,18 @@ export interface Book {
   series_position?: string | null
   open_library_id?: string | null
   google_books_id?: string | null
-  sub_rating_stats?: Record<string, SubRatingStat>
+  sub_rating_stats: Record<string, SubRatingStat>
   created_at: string
   updated_at: string
+  isbn: string[]
+  publisher?: string | null
+  number_of_pages: number
+  external_ids: Record<string, string>
+  ol_rating_count: number
+  ol_avg_rating?: string | null
+  ol_want_to_read_count: number
+  ol_currently_reading_count: number
+  ol_already_read_count: number
 }
 
 // Card Display Types (for components)
@@ -163,8 +181,13 @@ export interface SearchResult {
   authors: string[]
   author_slugs: string[]
   series_slug: string | null
+  series_name?: string | null
+  book_covers?: string[]
   relevance_score: number
   view_count: number
+  avg_rating: string | null
+  rating_count: number
+  book_count: number
 }
 
 export interface SearchResultsData {

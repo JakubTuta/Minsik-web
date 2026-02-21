@@ -1,4 +1,4 @@
-import type { SearchResult } from '~/types/api'
+import type { SearchResponse, SearchResult } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useQuickSearchStore = defineStore('quickSearch', () => {
@@ -26,7 +26,7 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
     isEmpty.value = false
 
     try {
-      const response = await apiStore.client.get('/api/v1/search', {
+      const response = await apiStore.client.get<SearchResponse>('/api/v1/search', {
         params: {
           q: query,
           type: 'all',

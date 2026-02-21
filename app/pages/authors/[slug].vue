@@ -187,8 +187,39 @@ const sortOptions = [
                 </v-list-item-title>
               </v-list-item>
 
+              <v-list-item v-if="author.alternate_names && author.alternate_names.length > 0">
+                <template #prepend>
+                  <v-icon icon="mdi-account-convert" />
+                </template>
+
+                <v-list-item-title class="text-wrap">
+                  Also known as: {{ author.alternate_names.slice(0, 2).join(', ') }}
+                </v-list-item-title>
+              </v-list-item>
+
+              <v-list-item v-if="author.wikipedia_url">
+                <template #prepend>
+                  <v-icon icon="mdi-wikipedia" />
+                </template>
+
+                <v-list-item-title>
+                  <a
+                    :href="author.wikipedia_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-primary text-decoration-none"
+                  >
+                    Wikipedia
+                    <v-icon
+                      icon="mdi-open-in-new"
+                      size="x-small"
+                    />
+                  </a>
+                </v-list-item-title>
+              </v-list-item>
+
               <v-divider
-                v-if="author.birth_date || author.death_date || author.birth_place || author.nationality"
+                v-if="author.birth_date || author.death_date || author.birth_place || author.nationality || author.alternate_names && author.alternate_names.length > 0 || author.wikipedia_url"
                 class="my-3"
               />
 
@@ -212,7 +243,7 @@ const sortOptions = [
                 <v-list-item-title>
                   {{ author.books_avg_rating
                     ? author.books_avg_rating.toFixed(1)
-                    : '0.0' }} rating ({{ author.books_total_ratings
+                    : '0.0' }} avg rating ({{ author.books_total_ratings
                     ? author.books_total_ratings.toLocaleString()
                     : '0' }} ratings)
                 </v-list-item-title>
@@ -250,7 +281,10 @@ const sortOptions = [
             >
               <v-divider class="mb-3" />
 
-              <CategoriesChips :categories="author.book_categories" />
+              <CategoriesChips
+                :categories="author.book_categories"
+                :max-visible="3"
+              />
             </div>
           </v-card-text>
         </v-card>

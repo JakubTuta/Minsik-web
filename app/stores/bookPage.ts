@@ -1,5 +1,5 @@
 import type { APIResponse } from '~/types/api'
-import type { BookComment, BookCommentRating, BookshelfStatus, UserBookInfoData } from '~/types/user'
+import type { BookComment, BookCommentRating, BookCommentsListData, BookshelfStatus, UserBookInfoData } from '~/types/user'
 import { defineStore } from 'pinia'
 
 export const useBookPageStore = defineStore('bookPage', () => {
@@ -168,7 +168,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
       const offset = reset
         ? 0
         : comments.value.length
-      const response = await client.value.get<APIResponse<any>>(
+      const response = await client.value.get<APIResponse<BookCommentsListData>>(
         `/api/v1/books/${slug}/comments`,
         { params: { ...params, limit: COMMENTS_LIMIT, offset } },
       )

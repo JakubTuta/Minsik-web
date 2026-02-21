@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { SearchResult } from '~/types/api'
+
 interface Props {
   variant?: 'appbar' | 'full'
   modelValue?: string
@@ -213,6 +215,78 @@ const isEmpty = computed(() => {
 
   return quickSearchStore.isEmpty
 })
+
+// Format subtitle parts for each result type
+interface SubtitlePart {
+  text: string
+  type: 'authors' | 'rating' | 'rating_count' | 'books' | 'separator'
+}
+
+function getSubtitleParts(result: SearchResult): SubtitlePart[] {
+  const parts: SubtitlePart[] = []
+
+  if (result.type === 'book') {
+    // Book: author name · average rating (amount of ratings)
+    if (result.authors && result.authors.length > 0) {
+      parts.push({ text: result.authors.join(', '), type: 'authors' })
+    }
+    if (result.avg_rating != null && result.rating_count != null) {
+      if (parts.length > 0)
+        parts.push({ text: '·', type: 'separator' })
+      parts.push({ text: result.avg_rating.toString(), type: 'rating' })
+      parts.push({ text: ` (${result.rating_count})`, type: 'rating_count' })
+    }
+  }
+  else if (result.type === 'series') {
+    // Series: author name · average rating (amount of ratings) · amount of books
+    if (result.authors && result.authors.length > 0) {
+      parts.push({ text: result.authors.join(', '), type: 'authors' })
+    }
+    if (result.avg_rating != null && result.rating_count != null) {
+      if (parts.length > 0)
+        parts.push({ text: '·', type: 'separator' })
+      parts.push({ text: result.avg_rating.toString(), type: 'rating' })
+      parts.push({ text: ` (${result.rating_count})`, type: 'rating_count' })
+    }
+    if (result.book_count != null) {
+      if (parts.length > 0)
+        parts.push({ text: '·', type: 'separator' })
+      parts.push({
+        text: `${result.book_count} ${result.book_count === 1
+          ? 'book'
+          : 'books'}`,
+        type: 'books',
+      })
+    }
+  }
+  else if (result.type === 'author') {
+    // Author: average rating (amount of ratings) · amount of books
+    if (result.avg_rating != null && result.rating_count != null) {
+      parts.push({ text: result.avg_rating.toString(), type: 'rating' })
+      parts.push({ text: ` (${result.rating_count})`, type: 'rating_count' })
+    }
+    if (result.book_count != null) {
+      if (parts.length > 0)
+        parts.push({ text: '·', type: 'separator' })
+      parts.push({
+        text: `${result.book_count} ${result.book_count === 1
+          ? 'book'
+          : 'books'}`,
+        type: 'books',
+      })
+    }
+  }
+
+  return parts
+}
+
+function getPartStyle(partType: SubtitlePart['type']) {
+  if (partType === 'rating') {
+    return { 'font-size': '1.1em' }
+  }
+
+  return {}
+}
 </script>
 
 <template>
@@ -301,7 +375,6 @@ const isEmpty = computed(() => {
                     v-for="result in groupedResults.books"
                     :key="result.id"
                     :title="result.title"
-                    :subtitle="result.authors.join(', ')"
                     :to="`/books/${result.slug}`"
                     @click="showResults = false"
                   >
@@ -322,6 +395,20 @@ const isEmpty = computed(() => {
                           icon="mdi-book"
                         />
                       </v-avatar>
+                    </template>
+
+                    <template #subtitle>
+                      <span
+                        v-for="(part, index) in getSubtitleParts(result)"
+                        :key="index"
+                        :class="{
+                          'text-primary font-weight-bold': part.type === 'rating',
+                          'text-secondary text-h6': part.type === 'separator',
+                        }"
+                        :style="getPartStyle(part.type)"
+                      >
+                        {{ part.text }}
+                      </span>
                     </template>
                   </v-list-item>
                 </v-list>
@@ -347,12 +434,25 @@ const isEmpty = computed(() => {
                     v-for="result in groupedResults.series"
                     :key="result.id"
                     :title="result.title"
-                    :subtitle="`${result.view_count} views`"
                     :to="`/series/${result.slug}`"
                     @click="showResults = false"
                   >
                     <template #prepend>
                       <v-icon icon="mdi-book-multiple" />
+                    </template>
+
+                    <template #subtitle>
+                      <span
+                        v-for="(part, index) in getSubtitleParts(result)"
+                        :key="index"
+                        :class="{
+                          'text-primary font-weight-bold': part.type === 'rating',
+                          'text-secondary text-h6': part.type === 'separator',
+                        }"
+                        :style="getPartStyle(part.type)"
+                      >
+                        {{ part.text }}
+                      </span>
                     </template>
                   </v-list-item>
                 </v-list>
@@ -378,7 +478,6 @@ const isEmpty = computed(() => {
                     v-for="result in groupedResults.authors"
                     :key="result.id"
                     :title="result.title"
-                    :subtitle="`${result.view_count} views`"
                     :to="`/authors/${result.slug}`"
                     @click="showResults = false"
                   >
@@ -396,6 +495,20 @@ const isEmpty = computed(() => {
                           icon="mdi-account"
                         />
                       </v-avatar>
+                    </template>
+
+                    <template #subtitle>
+                      <span
+                        v-for="(part, index) in getSubtitleParts(result)"
+                        :key="index"
+                        :class="{
+                          'text-primary font-weight-bold': part.type === 'rating',
+                          'text-secondary text-h6': part.type === 'separator',
+                        }"
+                        :style="getPartStyle(part.type)"
+                      >
+                        {{ part.text }}
+                      </span>
                     </template>
                   </v-list-item>
                 </v-list>

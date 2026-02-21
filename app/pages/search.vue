@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { SearchResult } from '~/types/api'
+
 const route = useRoute()
 const router = useRouter()
 const searchStore = useSearchStore()
@@ -80,46 +82,55 @@ useSeo({
   description: 'Search for books, authors, and series on Minsik.',
 })
 
-// Transform search result to card-compatible format
-function transformToBook(result: any) {
-  return {
-    slug: result.slug,
-    title: result.title,
-    primary_cover_url: result.cover_url,
-    authors: result.authors.map((name: string, index: number) => ({
-      name,
-      slug: result.author_slugs[index] || '',
-    })),
-    view_count: result.view_count,
-    series: result.series_slug
-      ? { name: result.title, slug: result.series_slug }
-      : null,
-    series_position: null,
-    avg_rating: 0,
-    rating_count: 0,
-    genres: [],
+// Get chip color for each type
+function getTypeChipColor(type: SearchResult['type']) {
+  switch (type) {
+    case 'book':
+      return 'primary'
+    case 'author':
+      return 'success'
+    case 'series':
+      return 'info'
+    default:
+      return 'secondary'
   }
 }
 
-function transformToAuthor(result: any) {
-  return {
-    id: result.id.toString(),
-    slug: result.slug,
-    name: result.title,
-    photo_url: result.cover_url,
-    view_count: result.view_count,
-    books_count: 0,
+// Get collage covers for series (max 4)
+function getSeriesCollageCovers(result: SearchResult) {
+  if (!result.book_covers || result.book_covers.length === 0) {
+    return [result.cover_url || '/placeholder-book-lazy.jpg']
   }
+
+  return result.book_covers.slice(0, 4)
 }
 
-function transformToSeries(result: any) {
-  return {
-    id: result.id.toString(),
-    slug: result.slug,
-    name: result.title,
-    view_count: result.view_count,
-    books_count: 0,
-  }
+// Format rating display
+function formatRating(result: SearchResult) {
+  const avg = Number(result.avg_rating) || 0
+  const count = result.rating_count || 0
+
+  return { avg: avg.toFixed(1), count }
+}
+
+function getTypeLabel(type: SearchResult['type']) {
+  if (type === 'book')
+    return 'Book'
+
+  if (type === 'author')
+    return 'Author'
+
+  return 'Series'
+}
+
+function getResultPath(result: SearchResult) {
+  if (result.type === 'book')
+    return `/books/${result.slug}`
+
+  if (result.type === 'author')
+    return `/authors/${result.slug}`
+
+  return `/series/${result.slug}`
 }
 </script>
 
@@ -160,20 +171,110 @@ function transformToSeries(result: any) {
         md="4"
         lg="3"
       >
-        <BookCard
-          v-if="result.type === 'book'"
-          :book="transformToBook(result)"
-        />
+        <v-card class="result-card">
+          <!-- Type chip -->
+          <v-chip
+            :color="getTypeChipColor(result.type)"
+            size="small"
+            class="position-absolute right-0 top-0 ma-2"
+            variant="elevated"
+            style="z-index: 1"
+          >
+            {{ getTypeLabel(result.type) }}
+          </v-chip>
 
-        <AuthorCard
-          v-else-if="result.type === 'author'"
-          :author="transformToAuthor(result)"
-        />
+          <!-- Image zone (top 50%) -->
+          <div class="result-image-zone bg-surface-variant d-flex align-center justify-center">
+            <!-- Book: cover -->
+            <v-img
+              v-if="result.type === 'book'"
+              :src="result.cover_url || '/placeholder-book-lazy.jpg'"
+              :alt="result.title"
+              lazy-src="/placeholder-book-lazy.jpg"
+              aspect-ratio="0.67"
+              class="rounded"
+              width="110"
+              height="164"
+            />
 
-        <SeriesCard
-          v-else-if="result.type === 'series'"
-          :series="transformToSeries(result)"
-        />
+            <!-- Author: avatar -->
+            <v-avatar
+              v-else-if="result.type === 'author'"
+              size="130"
+            >
+              <v-img
+                :src="result.cover_url || '/placeholder-avatar-lazy.jpg'"
+                :alt="result.title"
+                lazy-src="/placeholder-avatar-lazy.jpg"
+              />
+            </v-avatar>
+
+            <!-- Series: collage -->
+            <CoversCollage
+              v-else
+              :covers="getSeriesCollageCovers(result)"
+              width="110px"
+              height="164px"
+            />
+          </div>
+
+          <!-- Info zone (bottom 50%) -->
+          <div class="result-info-zone d-flex flex-column pa-3">
+            <!-- Title row -->
+            <div class="result-row-title">
+              <NuxtLink
+                :to="getResultPath(result)"
+                class="result-link"
+              >
+                <span class="text-subtitle-1 font-weight-bold line-clamp-2">
+                  {{ result.title }}
+                </span>
+              </NuxtLink>
+            </div>
+
+            <!-- Author row: shown for book/series, empty for author -->
+            <div class="result-row-secondary text-body-2 text-truncate">
+              <template v-if="result.type !== 'author'">
+                <template
+                  v-for="(author, index) in result.authors"
+                  :key="index"
+                >
+                  <NuxtLink
+                    :to="`/authors/${result.author_slugs[index]}`"
+                    class="result-link"
+                  >
+                    {{ author }}
+                  </NuxtLink>
+
+                  <span v-if="index < result.authors.length - 1">, </span>
+                </template>
+              </template>
+            </div>
+
+            <!-- Books count row: shown for author/series, empty for book -->
+            <div class="result-row-secondary text-caption text-secondary">
+              <template v-if="result.type !== 'book'">
+                {{ result.book_count }} {{ result.book_count === 1
+                  ? 'book'
+                  : 'books' }}
+              </template>
+            </div>
+
+            <!-- Spacer -->
+            <div class="flex-grow-1" />
+
+            <!-- Rating row -->
+            <div class="result-row-rating d-flex align-center">
+              <span class="text-primary font-weight-bold text-h6 mr-1">
+                {{ formatRating(result).avg }}
+              </span>
+
+              <span class="text-body-2">
+                ({{ formatRating(result).count }})
+              </span>
+            </div>
+          </div>
+        </v-card>
       </v-col>
     </v-row>
 
@@ -240,3 +341,56 @@ function transformToSeries(result: any) {
     </v-row>
   </v-container>
 </template>
+
+<style scoped>
+.result-card {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+}
+
+.result-image-zone {
+  height: 190px;
+  overflow: hidden;
+}
+
+.result-info-zone {
+  height: 190px;
+  overflow: hidden;
+}
+
+.result-row-title {
+  height: 48px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.result-row-secondary {
+  height: 22px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.result-row-rating {
+  flex-shrink: 0;
+}
+
+.result-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.result-link:hover {
+  text-decoration: underline;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

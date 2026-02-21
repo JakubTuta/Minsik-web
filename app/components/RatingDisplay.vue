@@ -2,12 +2,15 @@
 interface Props {
   rating: number
   ratingCount: number
+  size?: 'default' | 'small'
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { size: 'default' })
 
 // Round rating down to nearest 0.5
 const roundedRating = computed(() => Math.floor(props.rating * 2) / 2)
+
+const isSmall = computed(() => props.size === 'small')
 </script>
 
 <template>
@@ -18,15 +21,25 @@ const roundedRating = computed(() => Math.floor(props.rating * 2) / 2)
       half-increments
       color="warning"
       active-color="warning"
-      size="x-large"
+      :size="isSmall
+        ? 'small'
+        : 'x-large'"
       density="compact"
     />
 
-    <span class="text-h4 font-weight-bold text-primary">
+    <span
+      :class="isSmall
+        ? 'text-body-1 font-weight-bold text-primary'
+        : 'text-h4 font-weight-bold text-primary'"
+    >
       {{ rating.toFixed(1) }}
     </span>
 
-    <span class="text-body-1 text-secondary">
+    <span
+      :class="isSmall
+        ? 'text-caption text-secondary'
+        : 'text-body-1 text-secondary'"
+    >
       ({{ ratingCount.toLocaleString() }} ratings)
     </span>
   </div>

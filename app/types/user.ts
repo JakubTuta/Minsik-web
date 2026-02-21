@@ -86,14 +86,17 @@ export interface BookCommentRating {
 
 export interface BookComment {
   comment_id: number
-  user_id?: number
-  user?: BookCommentUser
+  user_id: number
   username: string
+  book_id: number
+  book_slug: string
   body: string
   is_spoiler: boolean
-  rating?: BookCommentRating | null
   comment_created_at: string
   comment_updated_at: string
+  rating?: BookCommentRating | null
+  // Optional extended user info (client-side enrichment)
+  user?: BookCommentUser
 }
 
 export interface UserPublicProfile {
@@ -164,4 +167,12 @@ export interface UserStats {
   favourites_count: number
   ratings_count: number
   comments_count: number
+}
+
+export interface BookCommentsListData {
+  items: BookComment[]
+  total_count: number
+  limit: number
+  offset: number
+  my_entry?: BookComment | null
 }

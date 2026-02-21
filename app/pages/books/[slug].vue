@@ -239,10 +239,27 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Rating -->
+                  <div class="text-caption text-secondary mb-1">
+                    Minsik users reviews
+                  </div>
+
                   <RatingDisplay
                     :rating="book.avg_rating || 0"
                     :rating-count="book.rating_count || 0"
                   />
+
+                  <!-- Other Platform Ratings -->
+                  <div class="mt-3">
+                    <div class="text-caption text-secondary mb-1">
+                      Other platforms reviews
+                    </div>
+
+                    <RatingDisplay
+                      :rating="Number(book.ol_avg_rating) / 2"
+                      :rating-count="book.ol_rating_count"
+                      size="small"
+                    />
+                  </div>
 
                   <!-- Categories -->
                   <div
@@ -296,6 +313,24 @@ onUnmounted(() => {
                           Published {{ book.original_publication_year }}
                         </span>
 
+                        <span v-if="book.publisher">
+                          <v-icon
+                            icon="mdi-domain"
+                            size="small"
+                            class="mr-1"
+                          />
+                          {{ book.publisher }}
+                        </span>
+
+                        <span v-if="book.number_of_pages > 0">
+                          <v-icon
+                            icon="mdi-book-open-page-variant"
+                            size="small"
+                            class="mr-1"
+                          />
+                          {{ book.number_of_pages }} pages
+                        </span>
+
                         <span v-if="book.view_count">
                           <v-icon
                             icon="mdi-eye"
@@ -304,6 +339,20 @@ onUnmounted(() => {
                           />
                           {{ book.view_count.toLocaleString() }} views
                         </span>
+                      </div>
+
+                      <!-- ISBN -->
+                      <div
+                        v-if="book.isbn && book.isbn.length > 0"
+                        class="mt-3"
+                      >
+                        <div class="text-caption text-secondary font-weight-bold mb-1">
+                          ISBN
+                        </div>
+
+                        <div class="text-body-2">
+                          {{ book.isbn.join(', ') }}
+                        </div>
                       </div>
 
                       <!-- Editions -->
