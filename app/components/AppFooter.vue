@@ -134,23 +134,21 @@ const authDialogStore = useAuthDialogStore()
             v-else
             class="d-flex flex-column ga-2"
           >
-            <v-btn
-              variant="text"
-              size="small"
+            <button
+              type="button"
               class="footer-link text-body-2 text-left"
               @click="authDialogStore.openLogin()"
             >
               Sign In
-            </v-btn>
+            </button>
 
-            <v-btn
-              variant="text"
-              size="small"
+            <button
+              type="button"
               class="footer-link text-body-2 text-left"
               @click="authDialogStore.openRegister()"
             >
               Create Account
-            </v-btn>
+            </button>
           </div>
         </v-col>
       </v-row>
