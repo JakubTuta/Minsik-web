@@ -1,4 +1,4 @@
-import type { APIResponse } from '~/types/api'
+import type { APIResponse, SubRatingStat } from '~/types/api'
 import type { BookComment, BookCommentRating, BookCommentsListData, BookshelfStatus, UserBookInfoData } from '~/types/user'
 import { defineStore } from 'pinia'
 
@@ -6,6 +6,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const authStore = useAuthStore()
+  const booksStore = useBooksStore()
 
   // Bookshelf / favourite state
   const currentSlug = ref<string | null>(null)
@@ -15,6 +16,11 @@ export const useBookPageStore = defineStore('bookPage', () => {
 
   // User rating state
   const userRating = ref<BookCommentRating | null>(null)
+
+  // Live rating stats — updated after submit/delete so the page reflects new values without a full refresh
+  const liveAvgRating = ref<number | null>(null)
+  const liveRatingCount = ref<number | null>(null)
+  const liveSubRatingStats = ref<Record<string, SubRatingStat> | null>(null)
 
   // Comments state
   const comments = ref<BookComment[]>([])
@@ -101,7 +107,6 @@ export const useBookPageStore = defineStore('bookPage', () => {
     try {
       await client.value.delete(`/api/v1/users/me/bookshelves/${slug}`)
       bookshelfStatus.value = null
-      isFavourite.value = false
     }
     catch (error) {
       console.error('Failed to remove from bookshelf:', error)
@@ -132,6 +137,12 @@ export const useBookPageStore = defineStore('bookPage', () => {
     try {
       await client.value.post(`/api/v1/books/${slug}/rate`, data)
       userRating.value = data as BookCommentRating
+      const fresh = await booksStore.fetchBook(slug, true)
+      if (fresh) {
+        liveAvgRating.value = fresh.avg_rating
+        liveRatingCount.value = fresh.rating_count
+        liveSubRatingStats.value = fresh.sub_rating_stats ?? null
+      }
     }
     catch (error) {
       console.error('Failed to submit rating:', error)
@@ -144,6 +155,12 @@ export const useBookPageStore = defineStore('bookPage', () => {
     try {
       await client.value.delete(`/api/v1/books/${slug}/rate`)
       userRating.value = null
+      const fresh = await booksStore.fetchBook(slug, true)
+      if (fresh) {
+        liveAvgRating.value = fresh.avg_rating
+        liveRatingCount.value = fresh.rating_count
+        liveSubRatingStats.value = fresh.sub_rating_stats ?? null
+      }
     }
     catch (error) {
       console.error('Failed to delete rating:', error)
@@ -275,6 +292,9 @@ export const useBookPageStore = defineStore('bookPage', () => {
     isFavourite.value = false
     statusLoading.value = false
     userRating.value = null
+    liveAvgRating.value = null
+    liveRatingCount.value = null
+    liveSubRatingStats.value = null
     comments.value = []
     commentsTotal.value = 0
     commentsLoading.value = false
@@ -293,6 +313,9 @@ export const useBookPageStore = defineStore('bookPage', () => {
     myComment,
     commentsHasMore,
     userRating,
+    liveAvgRating,
+    liveRatingCount,
+    liveSubRatingStats,
     fetchBookUserData,
     upsertBookshelf,
     removeFromBookshelf,

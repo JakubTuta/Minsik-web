@@ -241,11 +241,23 @@ const sortOptions = [
                 </template>
 
                 <v-list-item-title>
-                  {{ author.books_avg_rating
-                    ? author.books_avg_rating.toFixed(1)
-                    : '0.0' }} avg rating ({{ author.books_total_ratings
-                    ? author.books_total_ratings.toLocaleString()
-                    : '0' }} ratings)
+                  <span>
+                    {{ author.books_avg_rating
+                      ? author.books_avg_rating.toFixed(1)
+                      : '0.0' }} ({{ author.books_total_ratings
+                      ? author.books_total_ratings.toLocaleString()
+                      : '0' }})
+
+                    <v-tooltip
+                      :text="`${author.books_avg_rating
+                        ? author.books_avg_rating.toFixed(1)
+                        : '0.0'} average rating (${author.books_total_ratings
+                        ? author.books_total_ratings.toLocaleString()
+                        : '0'} ratings)`"
+                      activator="parent"
+                      location="bottom"
+                    />
+                  </span>
                 </v-list-item-title>
               </v-list-item>
 

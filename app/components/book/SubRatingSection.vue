@@ -138,7 +138,7 @@ const chartData = computed(() => ({
     borderColor: chartColors.value.border,
     borderWidth: 2,
     borderJoinStyle: 'round',
-    tension: 0.1,
+    tension: 0.25,
     pointBackgroundColor: dimensions.map(d => `rgb(${d.rgbColor})`),
     pointBorderColor: dimensions.map(d => `rgb(${d.rgbColor})`),
     pointRadius: 5,
@@ -161,6 +161,7 @@ const chartOptions = computed(() => ({
       },
       grid: {
         color: chartColors.value.gridText,
+        circular: true,
       },
       angleLines: {
         color: chartColors.value.gridText,

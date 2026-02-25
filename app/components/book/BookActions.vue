@@ -97,7 +97,7 @@ function handleRatingSaved() {
     >
       {{ bookPageStore.bookshelfStatus
         ? statusLabels[bookPageStore.bookshelfStatus]
-        : 'Want to Read' }}
+        : 'Add to Bookshelf' }}
     </v-btn>
 
     <!-- Favourite Button -->

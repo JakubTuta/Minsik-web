@@ -244,8 +244,8 @@ onUnmounted(() => {
                   </div>
 
                   <RatingDisplay
-                    :rating="book.avg_rating || 0"
-                    :rating-count="book.rating_count || 0"
+                    :rating="bookPageStore.liveAvgRating ?? book.avg_rating ?? 0"
+                    :rating-count="bookPageStore.liveRatingCount ?? book.rating_count ?? 0"
                   />
 
                   <!-- Other Platform Ratings -->
@@ -491,8 +491,8 @@ onUnmounted(() => {
         <v-card class="mt-4">
           <v-card-text>
             <SubRatingSection
-              :stats="book.sub_rating_stats ?? {}"
-              :rating-count="book.rating_count || 0"
+              :stats="bookPageStore.liveSubRatingStats ?? book.sub_rating_stats ?? {}"
+              :rating-count="bookPageStore.liveRatingCount ?? book.rating_count ?? 0"
               :slug="slug"
             />
           </v-card-text>

@@ -97,59 +97,61 @@ const authDialogStore = useAuthDialogStore()
             Account
           </div>
 
-          <div
-            v-if="authStore.isAuthenticated"
-            class="d-flex flex-column ga-2"
-          >
-            <NuxtLink
-              to="/dashboard"
-              class="footer-link text-body-2"
+          <ClientOnly>
+            <div
+              v-if="authStore.isAuthenticated"
+              class="d-flex flex-column ga-2"
             >
-              Dashboard
-            </NuxtLink>
+              <NuxtLink
+                to="/dashboard"
+                class="footer-link text-body-2"
+              >
+                Dashboard
+              </NuxtLink>
 
-            <NuxtLink
-              to="/bookshelf"
-              class="footer-link text-body-2"
-            >
-              My Bookshelf
-            </NuxtLink>
+              <NuxtLink
+                to="/bookshelf"
+                class="footer-link text-body-2"
+              >
+                My Bookshelf
+              </NuxtLink>
 
-            <NuxtLink
-              to="/favourites"
-              class="footer-link text-body-2"
-            >
-              Favourites
-            </NuxtLink>
+              <NuxtLink
+                to="/favourites"
+                class="footer-link text-body-2"
+              >
+                Favourites
+              </NuxtLink>
 
-            <NuxtLink
-              to="/ratings"
-              class="footer-link text-body-2"
-            >
-              Ratings
-            </NuxtLink>
-          </div>
+              <NuxtLink
+                to="/ratings"
+                class="footer-link text-body-2"
+              >
+                Ratings
+              </NuxtLink>
+            </div>
 
-          <div
-            v-else
-            class="d-flex flex-column ga-2"
-          >
-            <button
-              type="button"
-              class="footer-link text-body-2 text-left"
-              @click="authDialogStore.openLogin()"
+            <div
+              v-else
+              class="d-flex flex-column ga-2"
             >
-              Sign In
-            </button>
+              <button
+                type="button"
+                class="footer-link text-body-2 text-left"
+                @click="authDialogStore.openLogin()"
+              >
+                Sign In
+              </button>
 
-            <button
-              type="button"
-              class="footer-link text-body-2 text-left"
-              @click="authDialogStore.openRegister()"
-            >
-              Create Account
-            </button>
-          </div>
+              <button
+                type="button"
+                class="footer-link text-body-2 text-left"
+                @click="authDialogStore.openRegister()"
+              >
+                Create Account
+              </button>
+            </div>
+          </ClientOnly>
         </v-col>
       </v-row>
 
