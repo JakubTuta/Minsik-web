@@ -35,18 +35,6 @@ const appBarSearchQuery = ref('')
       </NuxtLink>
     </v-app-bar-title>
 
-    <!-- Mobile: Logo Icon Only -->
-    <v-btn
-      v-if="mobile"
-      icon
-      to="/"
-    >
-      <v-icon
-        icon="mdi-snowflake"
-        size="large"
-      />
-    </v-btn>
-
     <!-- Search Bar (absolutely centered) -->
     <div class="search-container">
       <SearchBar

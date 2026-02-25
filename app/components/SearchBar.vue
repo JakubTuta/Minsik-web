@@ -533,6 +533,18 @@ function getPartStyle(partType: SubtitlePart['type']) {
   z-index: 2000;
 }
 
+@media (max-width: 599px) {
+  .search-results-dropdown {
+    left: 8px !important;
+    right: 8px !important;
+    transform: none !important;
+    min-width: unset !important;
+    width: calc(100vw - 16px) !important;
+    max-height: 80dvh;
+    overflow-y: auto;
+  }
+}
+
 .scrollable-list {
   max-height: 400px;
   overflow-y: auto;
