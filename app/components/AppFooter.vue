@@ -183,8 +183,22 @@ const authDialogStore = useAuthDialogStore()
 
       <v-divider class="my-6" />
 
-      <div class="text-caption text-secondary text-center">
-        © {{ new Date().getFullYear() }} Minsik. All rights reserved.
+      <div class="d-flex align-center ga-4 text-caption text-secondary flex-wrap justify-center">
+        <span>© {{ new Date().getFullYear() }} Minsik. All rights reserved.</span>
+
+        <NuxtLink
+          to="/privacy-policy"
+          class="footer-link"
+        >
+          Privacy Policy
+        </NuxtLink>
+
+        <NuxtLink
+          to="/terms-of-service"
+          class="footer-link"
+        >
+          Terms of Service
+        </NuxtLink>
       </div>
     </v-container>
   </v-footer>
