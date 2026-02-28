@@ -65,7 +65,7 @@ const authDialogStore = useAuthDialogStore()
         <!-- Discover column -->
         <v-col
           cols="12"
-          sm="4"
+          sm="2"
         >
           <div class="text-subtitle-2 font-weight-bold text-uppercase mb-3">
             Discover
@@ -88,10 +88,36 @@ const authDialogStore = useAuthDialogStore()
           </div>
         </v-col>
 
+        <!-- Legal column -->
+        <v-col
+          cols="12"
+          sm="2"
+        >
+          <div class="text-subtitle-2 font-weight-bold text-uppercase mb-3">
+            Legal
+          </div>
+
+          <div class="d-flex flex-column ga-2">
+            <NuxtLink
+              to="/terms-of-service"
+              class="footer-link text-body-2"
+            >
+              Terms of Service
+            </NuxtLink>
+
+            <NuxtLink
+              to="/privacy-policy"
+              class="footer-link text-body-2"
+            >
+              Privacy Policy
+            </NuxtLink>
+          </div>
+        </v-col>
+
         <!-- Account column -->
         <v-col
           cols="12"
-          sm="4"
+          sm="3"
         >
           <div class="text-subtitle-2 font-weight-bold text-uppercase mb-3">
             Account
