@@ -9,15 +9,12 @@ defineProps<Props>()
 </script>
 
 <template>
-  <v-card
-    :to="`/authors/${author.slug}`"
-    hover
-    class="rec-author-card d-flex flex-column align-center justify-center text-center"
-  >
-    <div class="px-4 pb-5 pt-5">
+  <v-card class="rec-author-card d-flex flex-column">
+    <!-- Avatar zone: 80% -->
+    <div class="avatar-zone bg-surface-variant d-flex align-center justify-center">
       <v-avatar
-        size="150"
-        class="author-avatar mb-4"
+        size="160"
+        class="author-avatar"
       >
         <v-img
           :src="author.photo_url || '/placeholder-avatar.jpg'"
@@ -26,30 +23,52 @@ defineProps<Props>()
           cover
         />
       </v-avatar>
+    </div>
 
-      <div class="text-body-2 font-weight-bold line-clamp-2 mb-2">
-        {{ author.name }}
-      </div>
-
-      <v-chip
-        size="x-small"
-        color="primary"
-        variant="tonal"
-        prepend-icon="mdi-book-open-variant"
+    <!-- Info zone: 20% -->
+    <div class="info-zone px-3 pb-1 pt-2 text-center">
+      <NuxtLink
+        :to="`/authors/${author.slug}`"
+        class="text-body-2 font-weight-bold text-decoration-none author-name-link line-clamp-2"
       >
-        {{ author.book_count }} books
-      </v-chip>
+        {{ author.name }}
+      </NuxtLink>
+
+      <div class="text-caption text-medium-emphasis mt-1">
+        {{ author.book_count }} {{ author.book_count === 1
+          ? 'book'
+          : 'books' }}
+      </div>
     </div>
   </v-card>
 </template>
 
 <style scoped>
 .rec-author-card {
-  min-height: 360px;
+  height: 380px;
+}
+
+.avatar-zone {
+  height: 75%;
+  overflow: hidden;
+}
+
+.info-zone {
+  height: 25%;
+  overflow: hidden;
 }
 
 .author-avatar {
   border: 2px solid rgba(var(--v-theme-primary), 0.2);
+}
+
+.author-name-link {
+  color: inherit;
+  display: block;
+}
+
+.author-name-link:hover {
+  color: rgb(var(--v-theme-primary)) !important;
 }
 
 .line-clamp-2 {

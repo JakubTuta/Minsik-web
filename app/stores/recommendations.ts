@@ -127,7 +127,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
         `/api/v1/recommendations/book/${bookId}`,
         { params: { items_per_category: 15 } },
       )
-      console.log(response.data)
       const categories = response.data.data!.sections
       bookRecommendations.value.set(bookId, categories)
       lastFetchTime.value.set(cacheKey, Date.now())
@@ -157,7 +156,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
         `/api/v1/recommendations/author/${authorId}`,
         { params: { items_per_category: 15 } },
       )
-      console.log(response.data)
       const categories = response.data.data!.sections
       authorRecommendations.value.set(authorId, categories)
       lastFetchTime.value.set(cacheKey, Date.now())
