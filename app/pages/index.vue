@@ -1,47 +1,71 @@
 <script setup lang="ts">
+const recommendationsStore = useRecommendationsStore()
+
 // SEO
 useSeo({
-  title: 'Home',
-  description: 'Discover your next favorite book through emotional reading profiles and book influence networks.',
+  description: 'Discover your next favorite book through curated recommendations, emotional reading profiles, and a passionate reading community.',
 })
+
+// SSR fetch
+const { data: categories, error } = await useAsyncData(
+  'home-recommendations',
+  () => recommendationsStore.fetchHomeRecommendations(),
+)
 </script>
 
 <template>
-  <v-container class="fill-height">
-    <v-row
-      align="center"
-      justify="center"
-    >
-      <v-col
-        cols="12"
-        md="8"
-        lg="6"
-        class="text-center"
+  <div>
+    <HeroBanner />
+
+    <v-container class="py-8">
+      <!-- Error state -->
+      <v-alert
+        v-if="error && !categories?.length"
+        type="warning"
+        variant="tonal"
+        icon="mdi-alert-circle-outline"
+        class="mb-6"
       >
-        <v-icon
-          icon="mdi-snowflake"
-          size="80"
-          color="primary"
-          class="mb-6"
-        />
+        Recommendations are not available right now. Please try again later.
+      </v-alert>
 
-        <h1 class="text-h3 text-md-h2 font-weight-bold mb-4">
-          Discover Your Next Favorite Book
-        </h1>
-
-        <p class="text-h6 text-md-h5 text-secondary mb-8">
-          Recommendations coming soon...
-        </p>
-
-        <v-btn
-          to="/search"
-          color="primary"
-          size="large"
-          prepend-icon="mdi-magnify"
+      <!-- Loading state (SSR fallback) -->
+      <template v-else-if="recommendationsStore.isLoading && !categories?.length">
+        <div
+          v-for="n in 4"
+          :key="n"
+          class="mb-8"
         >
-          Start Searching
-        </v-btn>
-      </v-col>
-    </v-row>
-  </v-container>
+          <v-skeleton-loader
+            type="heading"
+            width="200"
+            class="mb-3"
+          />
+
+          <div class="d-flex gap-3">
+            <v-skeleton-loader
+              v-for="m in 5"
+              :key="m"
+              type="image, article"
+              width="160"
+              class="flex-shrink-0 rounded-lg"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- Recommendation rows -->
+      <template v-else-if="categories?.length">
+        <template
+          v-for="category in categories"
+          :key="category.category"
+        >
+          <RecommendationRow
+            v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+            :category="category"
+          />
+        </template>
+      </template>
+    </v-container>
+  </div>
 </template>

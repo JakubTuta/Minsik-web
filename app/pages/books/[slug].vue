@@ -436,7 +436,7 @@ onUnmounted(() => {
 
         <!-- Cover History -->
         <v-card
-          v-if="book.cover_history && book.cover_history.length > 1"
+          v-if="false && book.cover_history && book.cover_history.length > 1"
           class="mt-4"
         >
           <v-card-text>
