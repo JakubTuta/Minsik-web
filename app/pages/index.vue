@@ -58,7 +58,7 @@ const { data: categories, error } = await useAsyncData(
       <template v-else-if="categories?.length">
         <template
           v-for="category in categories"
-          :key="category.category"
+          :key="category.key"
         >
           <RecommendationRow
             v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"

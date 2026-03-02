@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { RecommendationSection } from '~/types/recommendations'
+
 const route = useRoute()
 const authorsStore = useAuthorsStore()
+const recommendationsStore = useRecommendationsStore()
 
 const slug = route.params.slug as string
 
@@ -96,6 +99,17 @@ const sortOptions = [
   { value: 'views-desc', title: 'Most Viewed' },
   { value: 'views-asc', title: 'Least Viewed' },
 ]
+
+const authorRecommendations = ref<RecommendationSection[]>([])
+
+onMounted(async () => {
+  if (author.value?.author_id) {
+    try {
+      authorRecommendations.value = await recommendationsStore.fetchAuthorRecommendations(author.value.author_id) ?? []
+    }
+    catch { /* Silently fail */ }
+  }
+})
 </script>
 
 <template>
@@ -340,6 +354,51 @@ const sortOptions = [
         </v-card>
       </v-col>
     </v-row>
+
+    <!-- Author Recommendations -->
+    <ClientOnly>
+      <div
+        v-if="authorRecommendations.length > 0 || recommendationsStore.isLoadingAuthorRecs"
+        class="mt-8"
+      >
+        <template v-if="recommendationsStore.isLoadingAuthorRecs">
+          <div
+            v-for="n in 2"
+            :key="n"
+            class="mb-8"
+          >
+            <v-skeleton-loader
+              type="heading"
+              width="200"
+              class="mb-3"
+            />
+
+            <div class="d-flex gap-3">
+              <v-skeleton-loader
+                v-for="m in 5"
+                :key="m"
+                type="image, article"
+                width="160"
+                class="flex-shrink-0 rounded-lg"
+              />
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
+          <template
+            v-for="category in authorRecommendations"
+            :key="category.key"
+          >
+            <RecommendationRow
+              v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+              :category="category"
+              hide-show-more
+            />
+          </template>
+        </template>
+      </div>
+    </ClientOnly>
   </v-container>
 
   <!-- Loading State -->

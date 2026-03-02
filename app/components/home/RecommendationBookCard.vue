@@ -75,8 +75,6 @@ const avgRating = computed(() => {
 </template>
 
 <style scoped>
-.rec-book-card {}
-
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

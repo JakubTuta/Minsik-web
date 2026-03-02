@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { RecommendationCategory } from '~/types/recommendations'
+import type { RecommendationSection } from '~/types/recommendations'
 
 interface Props {
-  category: RecommendationCategory
+  category: RecommendationSection
   loading?: boolean
+  hideShowMore?: boolean
 }
 
 const props = defineProps<Props>()
@@ -59,7 +60,8 @@ onUnmounted(() => {
       </h2>
 
       <NuxtLink
-        :to="`/recommendations/${category.category}`"
+        v-if="!hideShowMore"
+        :to="`/recommendations/${category.key}`"
         class="text-decoration-none"
       >
         <v-btn

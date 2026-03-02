@@ -2,8 +2,8 @@ import type {
   AvailableCategoriesResponse,
   CategoryInfo,
   HomePageResponse,
-  RecommendationCategory,
   RecommendationListResponse,
+  RecommendationSection,
 } from '~/types/recommendations'
 import { defineStore } from 'pinia'
 
@@ -11,12 +11,16 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   const apiStore = useApiStore()
 
   // State
-  const homeCategories = ref<RecommendationCategory[]>([])
-  const categoryData = ref(new Map<string, RecommendationCategory>())
+  const homeCategories = ref<RecommendationSection[]>([])
+  const categoryData = ref(new Map<string, RecommendationSection>())
   const availableCategories = ref<CategoryInfo[]>([])
+  const bookRecommendations = ref(new Map<number, RecommendationSection[]>())
+  const authorRecommendations = ref(new Map<number, RecommendationSection[]>())
   const lastFetchTime = ref(new Map<string, number>())
   const isLoading = ref(false)
   const isLoadingCategory = ref(false)
+  const isLoadingBookRecs = ref(false)
+  const isLoadingAuthorRecs = ref(false)
 
   // Cache TTL — 5 minutes
   const CACHE_TTL = 5 * 60 * 1000
@@ -43,7 +47,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
         '/api/v1/recommendations/home',
         { params: { items_per_category: 10 } },
       )
-      homeCategories.value = response.data.data!.categories
+      homeCategories.value = response.data.data!.sections
       lastFetchTime.value.set('home', Date.now())
 
       return homeCategories.value
@@ -110,9 +114,69 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
+  // Fetch recommendations for a specific book
+  async function fetchBookRecommendations(bookId: number, force = false) {
+    const cacheKey = `book-${bookId}`
+
+    if (!force && bookRecommendations.value.has(bookId) && isCacheFresh(cacheKey))
+      return bookRecommendations.value.get(bookId)!
+
+    isLoadingBookRecs.value = true
+    try {
+      const response = await apiStore.client.get<HomePageResponse>(
+        `/api/v1/recommendations/book/${bookId}`,
+        { params: { items_per_category: 15 } },
+      )
+      console.log(response.data)
+      const categories = response.data.data!.sections
+      bookRecommendations.value.set(bookId, categories)
+      lastFetchTime.value.set(cacheKey, Date.now())
+
+      return categories
+    }
+    catch (error) {
+      console.error(`Error fetching book recommendations for book ${bookId}:`, error)
+
+      return []
+    }
+    finally {
+      isLoadingBookRecs.value = false
+    }
+  }
+
+  // Fetch recommendations for a specific author
+  async function fetchAuthorRecommendations(authorId: number, force = false) {
+    const cacheKey = `author-${authorId}`
+
+    if (!force && authorRecommendations.value.has(authorId) && isCacheFresh(cacheKey))
+      return authorRecommendations.value.get(authorId)!
+
+    isLoadingAuthorRecs.value = true
+    try {
+      const response = await apiStore.client.get<HomePageResponse>(
+        `/api/v1/recommendations/author/${authorId}`,
+        { params: { items_per_category: 15 } },
+      )
+      console.log(response.data)
+      const categories = response.data.data!.sections
+      authorRecommendations.value.set(authorId, categories)
+      lastFetchTime.value.set(cacheKey, Date.now())
+
+      return categories
+    }
+    catch (error) {
+      console.error(`Error fetching author recommendations for author ${authorId}:`, error)
+
+      return []
+    }
+    finally {
+      isLoadingAuthorRecs.value = false
+    }
+  }
+
   // Find display name for a category key (from home data or available categories)
   function getCategoryDisplayName(category: string) {
-    const fromHome = homeCategories.value.find(c => c.category === category)
+    const fromHome = homeCategories.value.find(c => c.key === category)
     if (fromHome)
       return fromHome.display_name
 
@@ -134,8 +198,12 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     homeCategories,
     categoryData,
     availableCategories,
+    bookRecommendations,
+    authorRecommendations,
     isLoading,
     isLoadingCategory,
+    isLoadingBookRecs,
+    isLoadingAuthorRecs,
 
     // Computed
     hasHomeData,
@@ -143,6 +211,8 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     // Actions
     fetchHomeRecommendations,
     fetchCategoryRecommendations,
+    fetchBookRecommendations,
+    fetchAuthorRecommendations,
     fetchAvailableCategories,
     getCategoryDisplayName,
     clearCache,

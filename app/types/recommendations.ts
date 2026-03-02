@@ -1,25 +1,25 @@
 // Recommendation Category Keys
 
-export type RecommendationCategoryKey =
-  | 'most_read'
-  | 'most_wanted'
-  | 'trending_reads'
-  | 'most_viewed'
-  | 'highest_rated'
-  | 'community_top_rated'
-  | 'most_rated'
-  | 'recently_added'
-  | 'classics'
-  | 'user_favorites'
-  | 'recently_finished'
-  | 'currently_reading'
-  | 'best_writing'
-  | 'most_emotional'
-  | 'funniest'
-  | 'most_thought_provoking'
-  | 'most_rereadable'
-  | 'top_authors'
-  | 'popular_authors'
+export type RecommendationSectionKey
+  = | 'most_read'
+    | 'most_wanted'
+    | 'trending_reads'
+    | 'most_viewed'
+    | 'highest_rated'
+    | 'community_top_rated'
+    | 'most_rated'
+    | 'recently_added'
+    | 'classics'
+    | 'user_favorites'
+    | 'recently_finished'
+    | 'currently_reading'
+    | 'best_writing'
+    | 'most_emotional'
+    | 'funniest'
+    | 'most_thought_provoking'
+    | 'most_rereadable'
+    | 'top_authors'
+    | 'popular_authors'
 
 // Item schemas
 
@@ -45,10 +45,8 @@ export interface RecommendationAuthorItem {
   score: number
 }
 
-// Category list (used by /home and /recommendations/{category})
-
-export interface RecommendationCategory {
-  category: string
+export interface RecommendationSection {
+  key: string
   display_name: string
   item_type: 'book' | 'author'
   book_items: RecommendationBookItem[] | null
@@ -59,19 +57,19 @@ export interface RecommendationCategory {
 // Response wrappers
 
 export interface HomePageData {
-  categories: RecommendationCategory[]
+  sections: RecommendationSection[]
 }
 
 export interface HomePageResponse {
   success: boolean
   data: HomePageData
-  error?: { code: string; message: string } | null
+  error?: { code: string, message: string } | null
 }
 
 export interface RecommendationListResponse {
   success: boolean
-  data: RecommendationCategory
-  error?: { code: string; message: string } | null
+  data: RecommendationSection
+  error?: { code: string, message: string } | null
 }
 
 // Category info (from /recommendations/categories)
@@ -89,5 +87,5 @@ export interface AvailableCategoriesData {
 export interface AvailableCategoriesResponse {
   success: boolean
   data: AvailableCategoriesData
-  error?: { code: string; message: string } | null
+  error?: { code: string, message: string } | null
 }

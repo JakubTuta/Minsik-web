@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Book } from '~/types/api'
+import type { RecommendationSection } from '~/types/recommendations'
 
 const route = useRoute()
 const booksStore = useBooksStore()
@@ -7,6 +8,7 @@ const authorsStore = useAuthorsStore()
 const seriesStore = useSeriesStore()
 const bookPageStore = useBookPageStore()
 const authStore = useAuthStore()
+const recommendationsStore = useRecommendationsStore()
 
 const slug = route.params.slug as string
 
@@ -54,6 +56,7 @@ const coverUrl = computed(() => book.value?.primary_cover_url || '/placeholder-b
 // Non-blocking data fetches
 const primaryAuthor = ref<any>(null)
 const seriesBooks = ref<Book[]>([])
+const bookRecommendations = ref<RecommendationSection[]>([])
 const detailsExpanded = ref(false)
 const descriptionExpanded = ref(false)
 const descriptionRef = ref<HTMLElement>()
@@ -109,6 +112,13 @@ onMounted(async () => {
   if (book.value?.series?.slug) {
     try {
       seriesBooks.value = await seriesStore.fetchSeriesBooks(book.value.series.slug)
+    }
+    catch { /* Silently fail */ }
+  }
+
+  if (book.value?.book_id) {
+    try {
+      bookRecommendations.value = await recommendationsStore.fetchBookRecommendations(book.value.book_id) ?? []
     }
     catch { /* Silently fail */ }
   }
@@ -497,6 +507,51 @@ onUnmounted(() => {
             />
           </v-card-text>
         </v-card>
+
+        <!-- Book Recommendations -->
+        <ClientOnly>
+          <div
+            v-if="bookRecommendations.length > 0 || recommendationsStore.isLoadingBookRecs"
+            class="mt-8"
+          >
+            <template v-if="recommendationsStore.isLoadingBookRecs">
+              <div
+                v-for="n in 2"
+                :key="n"
+                class="mb-8"
+              >
+                <v-skeleton-loader
+                  type="heading"
+                  width="200"
+                  class="mb-3"
+                />
+
+                <div class="d-flex gap-3">
+                  <v-skeleton-loader
+                    v-for="m in 5"
+                    :key="m"
+                    type="image, article"
+                    width="160"
+                    class="flex-shrink-0 rounded-lg"
+                  />
+                </div>
+              </div>
+            </template>
+
+            <template v-else>
+              <template
+                v-for="category in bookRecommendations"
+                :key="category.key"
+              >
+                <RecommendationRow
+                  v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+                  :category="category"
+                  hide-show-more
+                />
+              </template>
+            </template>
+          </div>
+        </ClientOnly>
 
         <!-- Comments Section -->
         <ClientOnly>
