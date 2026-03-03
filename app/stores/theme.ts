@@ -4,6 +4,9 @@ export const useThemeStore = defineStore('theme', () => {
   const clientTheme = ref<Themes>('light')
   const isInitialized = ref(false)
 
+  const THEME_KEY = 'minsik-theme'
+  const LEGACY_THEME_KEY = 'tuta-theme'
+
   const setTheme = (theme: Themes) => {
     clientTheme.value = theme
 
@@ -15,7 +18,7 @@ export const useThemeStore = defineStore('theme', () => {
       html.classList.remove('light-mode', 'dark-mode')
       html.classList.add(`${theme}-mode`)
 
-      localStorage.setItem('tuta-theme', theme)
+      localStorage.setItem(THEME_KEY, theme)
     }
   }
 
@@ -30,16 +33,19 @@ export const useThemeStore = defineStore('theme', () => {
 
   const currentTheme = computed(() => clientTheme.value)
 
-  const getTheme = () => {
-    return clientTheme.value
-  }
-
   const initialize = () => {
     if (isInitialized.value)
       return
 
     if (import.meta.client) {
-      const localTheme = localStorage.getItem('tuta-theme')
+      // Migrate from legacy key if present
+      const legacyTheme = localStorage.getItem(LEGACY_THEME_KEY)
+      if (legacyTheme) {
+        localStorage.setItem(THEME_KEY, legacyTheme)
+        localStorage.removeItem(LEGACY_THEME_KEY)
+      }
+
+      const localTheme = localStorage.getItem(THEME_KEY)
       const savedTheme: Themes = (localTheme === 'dark' || localTheme === 'light')
         ? localTheme as Themes
         : 'light'
@@ -54,7 +60,6 @@ export const useThemeStore = defineStore('theme', () => {
     isDark,
     setTheme,
     toggleTheme,
-    getTheme,
     initialize,
     isInitialized,
   }

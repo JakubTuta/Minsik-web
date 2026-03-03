@@ -1,4 +1,4 @@
-import type { Book } from '~/types/api'
+import type { APIResponse, Book } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useBooksStore = defineStore('books', () => {
@@ -43,8 +43,8 @@ export const useBooksStore = defineStore('books', () => {
     isLoading.value = true
 
     try {
-      const response = await apiStore.client.get<{ success: boolean, data: Book }>(`/api/v1/books/${slug}`)
-      const book = response.data.data
+      const response = await apiStore.client.get<APIResponse<Book>>(`/api/v1/books/${slug}`)
+      const book = response.data.data!
 
       // Cache the book
       books.value.set(slug, book)

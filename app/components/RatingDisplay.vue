@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { useDisplay } from 'vuetify'
 
-const props = withDefaults(defineProps<Props>(), { size: 'default' })
-
-const { mobile } = useDisplay()
-
 interface Props {
   rating: number
   ratingCount: number
   size?: 'default' | 'small'
 }
+
+const props = withDefaults(defineProps<Props>(), { size: 'default' })
+
+const { mobile } = useDisplay()
 
 // Round rating down to nearest 0.5
 const roundedRating = computed(() => Math.floor(props.rating * 2) / 2)

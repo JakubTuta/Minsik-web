@@ -1,3 +1,7 @@
+export function formatDisplayDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
 /**
  * Converts text to title case (first letter of each word uppercase, rest lowercase)
  * @param text - The text to convert

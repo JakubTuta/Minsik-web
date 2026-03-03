@@ -28,7 +28,7 @@ export const useApiStore = defineStore('api', () => {
 
           if (!isAuthEndpoint && import.meta.client) {
             const authStore = useAuthStore()
-            const token = authStore.token || localStorage.getItem('minsik_auth_token')
+            const token = authStore.token
             if (token) {
               config.headers.Authorization = `Bearer ${token}`
             }

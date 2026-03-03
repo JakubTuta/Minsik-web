@@ -11,12 +11,11 @@ const props = defineProps<Props>()
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
-const items = computed(() => {
-  if (props.category.item_type === 'author')
-    return props.category.author_items ?? []
-
-  return props.category.book_items ?? []
-})
+const itemCount = computed(() =>
+  props.category.item_type === 'author'
+    ? (props.category.author_items?.length ?? 0)
+    : (props.category.book_items?.length ?? 0),
+)
 
 function scroll(direction: 'left' | 'right') {
   if (!scrollContainer.value)
@@ -129,7 +128,7 @@ onUnmounted(() => {
 
         <!-- Right scroll button -->
         <v-btn
-          v-show="canScrollRight && items.length > 5"
+          v-show="canScrollRight && itemCount > 5"
           icon="mdi-chevron-right"
           size="small"
           variant="elevated"

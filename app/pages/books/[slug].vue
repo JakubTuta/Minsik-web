@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Book } from '~/types/api'
+import type { Author, Book } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 
 const route = useRoute()
@@ -52,7 +52,7 @@ useBookStructuredData({
 })
 
 // Non-blocking data fetches
-const primaryAuthor = ref<any>(null)
+const primaryAuthor = ref<Author | null>(null)
 const seriesBooks = ref<Book[]>([])
 const bookRecommendations = ref<RecommendationSection[]>([])
 const personalizedBookRecs = ref<RecommendationSection[]>([])
@@ -120,22 +120,22 @@ onMounted(async () => {
     }
     catch { /* Silently fail */ }
   }
-
-  watch(() => authStore.isAuthenticated, (isAuth) => {
-    bookPageStore.resetState()
-    bookPageStore.currentSlug = slug
-    if (isAuth) {
-      bookPageStore.fetchBookUserData(slug)
-    }
-  }, { immediate: true })
-
-  watch(() => authStore.isAuthenticated, async (isAuth) => {
-    if (isAuth && book.value?.book_id)
-      personalizedBookRecs.value = await recommendationsStore.fetchPersonalizedBookRecommendations(book.value.book_id) ?? []
-    else
-      personalizedBookRecs.value = []
-  }, { immediate: true })
 })
+
+watch(() => authStore.isAuthenticated, (isAuth) => {
+  bookPageStore.resetState()
+  bookPageStore.currentSlug = slug
+  if (isAuth) {
+    bookPageStore.fetchBookUserData(slug)
+  }
+}, { immediate: true })
+
+watch(() => authStore.isAuthenticated, async (isAuth) => {
+  if (isAuth && book.value?.book_id)
+    personalizedBookRecs.value = await recommendationsStore.fetchPersonalizedBookRecommendations(book.value.book_id) ?? []
+  else
+    personalizedBookRecs.value = []
+}, { immediate: true })
 
 onUnmounted(() => {
   bookPageStore.resetState()
@@ -196,57 +196,57 @@ onUnmounted(() => {
         </v-card>
 
         <!-- Cover History -->
-        <v-card
-          v-if="false && book.cover_history && book.cover_history.length > 1"
+        <!--
+          <v-card
+          v-if="book.cover_history && book.cover_history.length > 1"
           class="mt-4"
-        >
+          >
           <v-card-text>
-            <h2 class="text-h6 font-weight-bold text-primary mb-4">
-              Book Cover History
-            </h2>
+          <h2 class="text-h6 font-weight-bold text-primary mb-4">
+          Book Cover History
+          </h2>
 
-            <div class="cover-timeline">
-              <div
-                v-for="(cover, index) in book.cover_history"
-                :key="index"
-                class="cover-timeline-item"
-              >
-                <!-- Timeline Marker -->
-                <div class="cover-timeline-marker">
-                  <div class="cover-timeline-dot" />
+          <div class="cover-timeline">
+          <div
+          v-for="(cover, index) in book.cover_history"
+          :key="index"
+          class="cover-timeline-item"
+          >
+          <div class="cover-timeline-marker">
+          <div class="cover-timeline-dot" />
 
-                  <div
-                    v-if="index < book.cover_history.length - 1"
-                    class="cover-timeline-line"
-                  />
-                </div>
+          <div
+          v-if="index < book.cover_history.length - 1"
+          class="cover-timeline-line"
+          />
+          </div>
 
-                <!-- Cover Card -->
-                <div class="cover-timeline-content">
-                  <v-card
-                    elevation="2"
-                    rounded="lg"
-                    class="pa-2"
-                  >
-                    <v-img
-                      :src="cover.url"
-                      :alt="`Cover ${index + 1}`"
-                      lazy-src="/placeholder-book-lazy.jpg"
-                      :aspect-ratio="0.67"
-                      width="140"
-                      cover
-                      class="bg-surface-variant rounded"
-                    />
+          <div class="cover-timeline-content">
+          <v-card
+          elevation="2"
+          rounded="lg"
+          class="pa-2"
+          >
+          <v-img
+          :src="cover.url"
+          :alt="`Cover ${index + 1}`"
+          lazy-src="/placeholder-book-lazy.jpg"
+          :aspect-ratio="0.67"
+          width="140"
+          cover
+          class="bg-surface-variant rounded"
+          />
 
-                    <div class="text-caption text-secondary mt-2 text-center">
-                      {{ cover.size }} ({{ cover.width }}px)
-                    </div>
-                  </v-card>
-                </div>
-              </div>
-            </div>
+          <div class="text-caption text-secondary mt-2 text-center">
+          {{ cover.size }} ({{ cover.width }}px)
+          </div>
+          </v-card>
+          </div>
+          </div>
+          </div>
           </v-card-text>
-        </v-card>
+          </v-card>
+        -->
 
         <!-- Rating -->
         <v-card class="mt-4">
@@ -265,29 +265,7 @@ onUnmounted(() => {
             v-if="personalizedBookRecs.length > 0 || recommendationsStore.isLoadingPersonalizedBookRecs"
             class="mt-8"
           >
-            <template v-if="recommendationsStore.isLoadingPersonalizedBookRecs">
-              <div
-                v-for="n in 2"
-                :key="n"
-                class="mb-8"
-              >
-                <v-skeleton-loader
-                  type="heading"
-                  width="200"
-                  class="mb-3"
-                />
-
-                <div class="d-flex gap-3">
-                  <v-skeleton-loader
-                    v-for="m in 5"
-                    :key="m"
-                    type="image, article"
-                    width="160"
-                    class="flex-shrink-0 rounded-lg"
-                  />
-                </div>
-              </div>
-            </template>
+            <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingPersonalizedBookRecs" />
 
             <template v-else>
               <template
@@ -307,29 +285,7 @@ onUnmounted(() => {
             v-if="bookRecommendations.length > 0 || recommendationsStore.isLoadingBookRecs"
             class="mt-8"
           >
-            <template v-if="recommendationsStore.isLoadingBookRecs">
-              <div
-                v-for="n in 2"
-                :key="n"
-                class="mb-8"
-              >
-                <v-skeleton-loader
-                  type="heading"
-                  width="200"
-                  class="mb-3"
-                />
-
-                <div class="d-flex gap-3">
-                  <v-skeleton-loader
-                    v-for="m in 5"
-                    :key="m"
-                    type="image, article"
-                    width="160"
-                    class="flex-shrink-0 rounded-lg"
-                  />
-                </div>
-              </div>
-            </template>
+            <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingBookRecs" />
 
             <template v-else>
               <template
@@ -385,77 +341,5 @@ onUnmounted(() => {
   height: 3em;
   background: linear-gradient(transparent, rgb(var(--v-theme-surface)));
   pointer-events: none;
-}
-
-/* Cover History Timeline */
-.cover-timeline {
-  display: flex;
-  overflow-x: auto;
-  gap: 0;
-  padding-bottom: 8px;
-}
-
-.cover-timeline-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 0 0 auto;
-  min-width: 160px;
-}
-
-.cover-timeline-marker {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 24px;
-  position: relative;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.cover-timeline-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: rgb(var(--v-theme-primary));
-  z-index: 1;
-  flex-shrink: 0;
-}
-
-.cover-timeline-line {
-  position: absolute;
-  left: 50%;
-  right: -50%;
-  top: 50%;
-  height: 2px;
-  background-color: rgb(var(--v-theme-primary));
-  opacity: 0.3;
-  transform: translateX(6px);
-}
-
-.cover-timeline-item:last-child .cover-timeline-line {
-  display: none;
-}
-
-.cover-timeline-content {
-  flex: 1;
-}
-
-.cover-timeline::-webkit-scrollbar {
-  height: 8px;
-}
-
-.cover-timeline::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-
-.cover-timeline::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-}
-
-.cover-timeline::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
 }
 </style>

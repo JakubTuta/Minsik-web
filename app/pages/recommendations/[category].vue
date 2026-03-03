@@ -16,6 +16,7 @@ const { data: categoryData, error } = await useAsyncData(
 useSeo({
   title: categoryData.value?.display_name ?? 'Recommendations',
   description: `Browse the full ${categoryData.value?.display_name ?? 'recommendations'} list on Minsik.`,
+  image: '/og-image.jpg',
 })
 
 if (error.value || !categoryData.value) {

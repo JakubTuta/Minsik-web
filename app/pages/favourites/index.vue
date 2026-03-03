@@ -20,9 +20,9 @@ const filteredItems = computed(() => {
   return favouritesStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
-watch(order, () => favouritesStore.fetch(true))
+watch(order, newOrder => favouritesStore.fetch(true, 'created_at', newOrder))
 
-onMounted(() => favouritesStore.fetch(true))
+onMounted(() => favouritesStore.fetch(true, 'created_at', order.value))
 
 useInfiniteScroll(
   () => favouritesStore.loadMore(),

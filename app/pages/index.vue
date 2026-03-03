@@ -9,10 +9,11 @@ useSeo({
   description: 'Discover your next favorite book through curated recommendations, emotional reading profiles, and a passionate reading community.',
 })
 
-// SSR fetch for guest recommendations
+// Client-side fetch for guest recommendations
 const { data: categories, error } = await useAsyncData(
   'home-recommendations',
   () => recommendationsStore.fetchHomeRecommendations(),
+  { server: false },
 )
 
 const filteredCategories = computed<RecommendationSection[]>(() => (categories.value ?? []).filter(
@@ -24,22 +25,20 @@ const filteredCategories = computed<RecommendationSection[]>(() => (categories.v
 const personalizedCategories = ref<RecommendationSection[]>([])
 const isLoadingPersonalized = ref(false)
 
-onMounted(() => {
-  watch(() => authStore.isAuthenticated, async (isAuth) => {
-    if (isAuth) {
-      isLoadingPersonalized.value = true
-      try {
-        personalizedCategories.value = await recommendationsStore.fetchPersonalizedHomeRecommendations() ?? []
-      }
-      finally {
-        isLoadingPersonalized.value = false
-      }
+watch(() => authStore.isAuthenticated, async (isAuth) => {
+  if (isAuth) {
+    isLoadingPersonalized.value = true
+    try {
+      personalizedCategories.value = await recommendationsStore.fetchPersonalizedHomeRecommendations() ?? []
     }
-    else {
-      personalizedCategories.value = []
+    finally {
+      isLoadingPersonalized.value = false
     }
-  }, { immediate: true })
-})
+  }
+  else {
+    personalizedCategories.value = []
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -49,29 +48,7 @@ onMounted(() => {
     <v-container class="py-8">
       <ClientOnly>
         <div v-if="isLoadingPersonalized || personalizedCategories.length > 0">
-          <div v-if="isLoadingPersonalized">
-            <div
-              v-for="n in 2"
-              :key="`ps-${n}`"
-              class="mb-8"
-            >
-              <v-skeleton-loader
-                type="heading"
-                width="200"
-                class="mb-3"
-              />
-
-              <div class="d-flex gap-3">
-                <v-skeleton-loader
-                  v-for="m in 5"
-                  :key="m"
-                  type="image, article"
-                  width="160"
-                  class="flex-shrink-0 rounded-lg"
-                />
-              </div>
-            </div>
-          </div>
+          <RecommendationRowSkeleton v-if="isLoadingPersonalized" />
 
           <div v-else>
             <RecommendationRow
@@ -94,29 +71,10 @@ onMounted(() => {
         Recommendations are not available right now. Please try again later.
       </v-alert>
 
-      <div v-else-if="recommendationsStore.isLoading && !filteredCategories.length">
-        <div
-          v-for="n in 4"
-          :key="n"
-          class="mb-8"
-        >
-          <v-skeleton-loader
-            type="heading"
-            width="200"
-            class="mb-3"
-          />
-
-          <div class="d-flex gap-3">
-            <v-skeleton-loader
-              v-for="m in 5"
-              :key="m"
-              type="image, article"
-              width="160"
-              class="flex-shrink-0 rounded-lg"
-            />
-          </div>
-        </div>
-      </div>
+      <RecommendationRowSkeleton
+        v-else-if="recommendationsStore.isLoading && !filteredCategories.length"
+        :count="4"
+      />
 
       <div v-else>
         <RecommendationRow

@@ -168,13 +168,21 @@ onMounted(() => {
     <v-dialog
       v-model="confirmDialog"
       max-width="400"
+      aria-labelledby="delete-dialog-title"
+      aria-describedby="delete-dialog-description"
     >
       <v-card>
-        <v-card-title class="text-error">
+        <v-card-title
+          id="delete-dialog-title"
+          class="text-error"
+        >
           Delete Account?
         </v-card-title>
 
-        <v-card-text class="text-body-2">
+        <v-card-text
+          id="delete-dialog-description"
+          class="text-body-2"
+        >
           <div class="mb-2">
             This will permanently delete your account and all associated data.
           </div>

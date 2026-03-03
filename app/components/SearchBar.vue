@@ -102,7 +102,6 @@ watch(localQuery, (newQuery) => {
   // Show results dropdown in appbar mode when there's a query
   if (props.variant === 'appbar' && newQuery.trim()) {
     showResults.value = true
-    quickSearchStore.isLoading = true // Show loading immediately
     debouncedSearch(newQuery)
   }
   else if (props.variant === 'appbar') {
@@ -111,12 +110,6 @@ watch(localQuery, (newQuery) => {
   }
   else {
     // Full mode
-    if (newQuery.trim()) {
-      searchStore.isLoading = true
-    }
-    else {
-      searchStore.isLoading = false
-    }
     debouncedSearch(newQuery)
   }
 })

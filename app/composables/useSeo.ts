@@ -1,6 +1,8 @@
+import type { MaybeRef } from 'vue'
+
 interface SeoOptions {
-  title?: string
-  description?: string
+  title?: MaybeRef<string>
+  description?: MaybeRef<string>
   image?: string
   type?: 'website' | 'article' | 'book' | 'profile'
   url?: string
@@ -14,76 +16,59 @@ export function useSeo(options: SeoOptions = {}) {
   const config = useRuntimeConfig()
   const route = useRoute()
 
-  // Build full title
-  const fullTitle = options.title
-    ? `${options.title} | ${config.public.siteName}`
-    : config.public.siteName as string
+  // Use a getter function so useHead re-evaluates when reactive refs change
+  useHead(() => {
+    const titleStr = unref(options.title)
+    const descStr = unref(options.description)
 
-  // Use provided or default description
-  const description = options.description || config.public.siteDescription as string
+    const fullTitle = titleStr
+      ? `${titleStr} | ${config.public.siteName}`
+      : config.public.siteName as string
 
-  // Build canonical URL
-  const canonicalUrl = options.url || `${config.public.siteUrl}${route.fullPath}`
+    const description = descStr || config.public.siteDescription as string
 
-  // Use provided or default image
-  const imageUrl = options.image || `${config.public.siteUrl}/og-image.jpg`
+    // Use route.path (no query params) for canonical URL
+    const canonicalUrl = options.url || `${config.public.siteUrl}${route.path}`
 
-  // Build meta tags array
-  const metaTags = [
-    // Basic meta tags
-    { name: 'description', content: description },
+    const imageUrl = options.image || `${config.public.siteUrl}/og-image.jpg`
 
-    // Open Graph
-    { property: 'og:title', content: fullTitle },
-    { property: 'og:description', content: description },
-    { property: 'og:type', content: options.type || 'website' },
-    { property: 'og:url', content: canonicalUrl },
-    { property: 'og:image', content: imageUrl },
-    { property: 'og:site_name', content: config.public.siteName },
+    const metaTags: { name?: string, property?: string, content: string }[] = [
+      { name: 'description', content: description },
+      { property: 'og:title', content: fullTitle },
+      { property: 'og:description', content: description },
+      { property: 'og:type', content: options.type || 'website' },
+      { property: 'og:url', content: canonicalUrl },
+      { property: 'og:image', content: imageUrl },
+      { property: 'og:site_name', content: config.public.siteName as string },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: fullTitle },
+      { name: 'twitter:description', content: description },
+      { name: 'twitter:image', content: imageUrl },
+    ]
 
-    // Twitter Card
-    { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: fullTitle },
-    { name: 'twitter:description', content: description },
-    { name: 'twitter:image', content: imageUrl },
-  ]
+    if (options.author) {
+      metaTags.push({ name: 'author', content: options.author })
+      metaTags.push({ property: 'article:author', content: options.author })
+    }
 
-  // Add author if provided
-  if (options.author) {
-    metaTags.push({ name: 'author', content: options.author })
-    metaTags.push({ property: 'article:author', content: options.author })
-  }
+    if (options.publishedTime) {
+      metaTags.push({ property: 'article:published_time', content: options.publishedTime })
+    }
 
-  // Add published time if provided
-  if (options.publishedTime) {
-    metaTags.push({ property: 'article:published_time', content: options.publishedTime })
-  }
+    if (options.modifiedTime) {
+      metaTags.push({ property: 'article:modified_time', content: options.modifiedTime })
+    }
 
-  // Add modified time if provided
-  if (options.modifiedTime) {
-    metaTags.push({ property: 'article:modified_time', content: options.modifiedTime })
-  }
+    if (options.keywords && options.keywords.length > 0) {
+      metaTags.push({ name: 'keywords', content: options.keywords.join(', ') })
+    }
 
-  // Add keywords if provided
-  if (options.keywords && options.keywords.length > 0) {
-    metaTags.push({ name: 'keywords', content: options.keywords.join(', ') })
-  }
-
-  // Set head metadata
-  useHead({
-    title: fullTitle,
-    meta: metaTags,
-    link: [
-      { rel: 'canonical', href: canonicalUrl },
-    ],
+    return {
+      title: fullTitle,
+      meta: metaTags,
+      link: [{ rel: 'canonical', href: canonicalUrl }],
+    }
   })
-
-  return {
-    title: fullTitle,
-    description,
-    canonicalUrl,
-    imageUrl,
-  }
 }
 
 // Helper for structured data (JSON-LD)

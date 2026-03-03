@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Book } from '~/types/api'
+import type { Author, Book } from '~/types/api'
 
 interface Props {
   book: Book
   slug: string
   seriesBooks?: Book[]
-  primaryAuthor?: any
+  primaryAuthor?: Author | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -90,8 +90,7 @@ const readingTime = computed(() => {
               <!-- Series Books Horizontal Scroll -->
               <div
                 v-if="seriesBooks.length > 0"
-                class="d-flex gap-3"
-                style="overflow-x: auto; overflow-y: hidden; padding-bottom: 4px;"
+                class="d-flex gap-3 series-scroll"
               >
                 <NuxtLink
                   v-for="seriesBook in seriesBooks"
@@ -318,5 +317,11 @@ const readingTime = computed(() => {
 <style scoped>
 .book-cover-shadow {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.series-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
 }
 </style>

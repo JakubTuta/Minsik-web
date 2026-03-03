@@ -74,11 +74,12 @@ useInfiniteScroll(
   },
 )
 
-// SEO
+// SEO — use route.query.q so the title is correct on SSR before onMounted runs
 useSeo({
-  title: searchStore.query
-    ? `Search: ${searchStore.query}`
-    : 'Search',
+  title: computed(() => {
+    const q = (route.query.q as string) || searchStore.query
+    return q ? `Search: ${q}` : 'Search'
+  }),
   description: 'Search for books, authors, and series on Minsik.',
 })
 

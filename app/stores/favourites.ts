@@ -9,6 +9,8 @@ export const useFavouritesStore = defineStore('favourites', () => {
   const items = ref<FavouriteEntry[]>([])
   const total = ref(0)
   const isLoading = ref(false)
+  const currentSortBy = ref<string>('created_at')
+  const currentOrder = ref<'asc' | 'desc'>('desc')
 
   const hasMore = computed(() => items.value.length < total.value)
   const hasData = computed(() => items.value.length > 0)
@@ -16,13 +18,15 @@ export const useFavouritesStore = defineStore('favourites', () => {
 
   const LIMIT = 20
 
-  const fetch = async (reset = true) => {
+  const fetch = async (reset = true, sortBy: string = currentSortBy.value, order: 'asc' | 'desc' = currentOrder.value) => {
     if (isLoading.value)
       return
 
     if (reset) {
       items.value = []
       total.value = 0
+      currentSortBy.value = sortBy
+      currentOrder.value = order
     }
 
     isLoading.value = true
@@ -33,7 +37,7 @@ export const useFavouritesStore = defineStore('favourites', () => {
         : items.value.length
       const response = await client.value.get<APIResponse<PaginatedResponse<FavouriteEntry>>>(
         '/api/v1/users/me/favourites',
-        { params: { limit: LIMIT, offset } },
+        { params: { limit: LIMIT, offset, sort_by: currentSortBy.value, order: currentOrder.value } },
       )
 
       const data = response.data.data!

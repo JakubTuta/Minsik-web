@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RecommendationSection } from '~/types/recommendations'
+import { formatDisplayDate } from '~/utils/format'
 
 const route = useRoute()
 const authorsStore = useAuthorsStore()
@@ -111,14 +112,14 @@ onMounted(async () => {
     }
     catch { /* Silently fail */ }
   }
-
-  watch(() => authStore.isAuthenticated, async (isAuth) => {
-    if (isAuth && author.value?.author_id)
-      personalizedAuthorRecs.value = await recommendationsStore.fetchPersonalizedAuthorRecommendations(author.value.author_id) ?? []
-    else
-      personalizedAuthorRecs.value = []
-  }, { immediate: true })
 })
+
+watch(() => authStore.isAuthenticated, async (isAuth) => {
+  if (isAuth && author.value?.author_id)
+    personalizedAuthorRecs.value = await recommendationsStore.fetchPersonalizedAuthorRecommendations(author.value.author_id) ?? []
+  else
+    personalizedAuthorRecs.value = []
+}, { immediate: true })
 </script>
 
 <template>
@@ -170,9 +171,7 @@ onMounted(async () => {
                 </template>
 
                 <v-list-item-title class="text-wrap">
-                  Born {{ new Date(author.birth_date).toLocaleDateString('en-US', {'year': 'numeric',
-                                                                                   'month': 'long',
-                                                                                   'day': 'numeric'}) }}
+                  Born {{ formatDisplayDate(author.birth_date) }}
                   <span v-if="age && !author.death_date"> ({{ age }} years old)</span>
                 </v-list-item-title>
               </v-list-item>
@@ -183,9 +182,7 @@ onMounted(async () => {
                 </template>
 
                 <v-list-item-title class="text-wrap">
-                  Died {{ new Date(author.death_date).toLocaleDateString('en-US', {'year': 'numeric',
-                                                                                   'month': 'long',
-                                                                                   'day': 'numeric'}) }}
+                  Died {{ formatDisplayDate(author.death_date) }}
                   <span v-if="age"> ({{ age }} years old)</span>
                 </v-list-item-title>
               </v-list-item>
@@ -370,29 +367,7 @@ onMounted(async () => {
         v-if="personalizedAuthorRecs.length > 0 || recommendationsStore.isLoadingPersonalizedAuthorRecs"
         class="mt-8"
       >
-        <template v-if="recommendationsStore.isLoadingPersonalizedAuthorRecs">
-          <div
-            v-for="n in 2"
-            :key="n"
-            class="mb-8"
-          >
-            <v-skeleton-loader
-              type="heading"
-              width="200"
-              class="mb-3"
-            />
-
-            <div class="d-flex gap-3">
-              <v-skeleton-loader
-                v-for="m in 5"
-                :key="m"
-                type="image, article"
-                width="160"
-                class="flex-shrink-0 rounded-lg"
-              />
-            </div>
-          </div>
-        </template>
+        <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingPersonalizedAuthorRecs" />
 
         <template v-else>
           <template
@@ -412,29 +387,7 @@ onMounted(async () => {
         v-if="authorRecommendations.length > 0 || recommendationsStore.isLoadingAuthorRecs"
         class="mt-8"
       >
-        <template v-if="recommendationsStore.isLoadingAuthorRecs">
-          <div
-            v-for="n in 2"
-            :key="n"
-            class="mb-8"
-          >
-            <v-skeleton-loader
-              type="heading"
-              width="200"
-              class="mb-3"
-            />
-
-            <div class="d-flex gap-3">
-              <v-skeleton-loader
-                v-for="m in 5"
-                :key="m"
-                type="image, article"
-                width="160"
-                class="flex-shrink-0 rounded-lg"
-              />
-            </div>
-          </div>
-        </template>
+        <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingAuthorRecs" />
 
         <template v-else>
           <template

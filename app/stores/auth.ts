@@ -21,6 +21,14 @@ export const useAuthStore = defineStore('auth', () => {
   const authInitialized = ref(false)
 
   let _refreshPromise: Promise<boolean> | null = null
+  let _refreshInterval: ReturnType<typeof setInterval> | null = null
+
+  const clearRefreshInterval = () => {
+    if (_refreshInterval !== null) {
+      clearInterval(_refreshInterval)
+      _refreshInterval = null
+    }
+  }
 
   const saveToken = (newToken: string, newRefreshToken: string) => {
     token.value = newToken
@@ -116,6 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
     catch { /* silently ignore — clearing state regardless */ }
     finally {
       clearToken()
+      clearRefreshInterval()
       user.value = null
       authInitialized.value = false
 
@@ -189,7 +198,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (refreshToken.value) {
       const refreshed = await refreshAccessToken()
       if (refreshed) {
-        setInterval(async () => {
+        clearRefreshInterval()
+        _refreshInterval = setInterval(async () => {
           if (shouldRefreshToken() && refreshToken.value) {
             await refreshAccessToken()
           }

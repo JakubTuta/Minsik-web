@@ -11,12 +11,6 @@ body {
   line-height: 1.67 !important;
 }
 
-/* Apply to all text elements */
-* {
-  font-family: 'Montserrat', sans-serif;
-  line-height: 1.67;
-}
-
 /* Override Vuetify typography classes to use consistent line height */
 .v-application .text-body-1,
 .v-application .text-body-2,
