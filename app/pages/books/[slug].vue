@@ -55,6 +55,7 @@ useBookStructuredData({
 const primaryAuthor = ref<any>(null)
 const seriesBooks = ref<Book[]>([])
 const bookRecommendations = ref<RecommendationSection[]>([])
+const personalizedBookRecs = ref<RecommendationSection[]>([])
 const descriptionExpanded = ref(false)
 const descriptionRef = ref<HTMLElement>()
 const expandedHeight = ref(0)
@@ -119,10 +120,7 @@ onMounted(async () => {
     }
     catch { /* Silently fail */ }
   }
-})
 
-// Fetch user data client-side only — refetches on login/logout
-if (import.meta.client) {
   watch(() => authStore.isAuthenticated, (isAuth) => {
     bookPageStore.resetState()
     bookPageStore.currentSlug = slug
@@ -130,7 +128,14 @@ if (import.meta.client) {
       bookPageStore.fetchBookUserData(slug)
     }
   }, { immediate: true })
-}
+
+  watch(() => authStore.isAuthenticated, async (isAuth) => {
+    if (isAuth && book.value?.book_id)
+      personalizedBookRecs.value = await recommendationsStore.fetchPersonalizedBookRecommendations(book.value.book_id) ?? []
+    else
+      personalizedBookRecs.value = []
+  }, { immediate: true })
+})
 
 onUnmounted(() => {
   bookPageStore.resetState()
@@ -256,6 +261,48 @@ onUnmounted(() => {
 
         <!-- Book Recommendations -->
         <ClientOnly>
+          <div
+            v-if="personalizedBookRecs.length > 0 || recommendationsStore.isLoadingPersonalizedBookRecs"
+            class="mt-8"
+          >
+            <template v-if="recommendationsStore.isLoadingPersonalizedBookRecs">
+              <div
+                v-for="n in 2"
+                :key="n"
+                class="mb-8"
+              >
+                <v-skeleton-loader
+                  type="heading"
+                  width="200"
+                  class="mb-3"
+                />
+
+                <div class="d-flex gap-3">
+                  <v-skeleton-loader
+                    v-for="m in 5"
+                    :key="m"
+                    type="image, article"
+                    width="160"
+                    class="flex-shrink-0 rounded-lg"
+                  />
+                </div>
+              </div>
+            </template>
+
+            <template v-else>
+              <template
+                v-for="category in personalizedBookRecs"
+                :key="category.key"
+              >
+                <RecommendationRow
+                  v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+                  :category="category"
+                  hide-show-more
+                />
+              </template>
+            </template>
+          </div>
+
           <div
             v-if="bookRecommendations.length > 0 || recommendationsStore.isLoadingBookRecs"
             class="mt-8"

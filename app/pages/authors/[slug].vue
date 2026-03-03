@@ -4,6 +4,7 @@ import type { RecommendationSection } from '~/types/recommendations'
 const route = useRoute()
 const authorsStore = useAuthorsStore()
 const recommendationsStore = useRecommendationsStore()
+const authStore = useAuthStore()
 
 const slug = route.params.slug as string
 
@@ -101,6 +102,7 @@ const sortOptions = [
 ]
 
 const authorRecommendations = ref<RecommendationSection[]>([])
+const personalizedAuthorRecs = ref<RecommendationSection[]>([])
 
 onMounted(async () => {
   if (author.value?.author_id) {
@@ -109,6 +111,13 @@ onMounted(async () => {
     }
     catch { /* Silently fail */ }
   }
+
+  watch(() => authStore.isAuthenticated, async (isAuth) => {
+    if (isAuth && author.value?.author_id)
+      personalizedAuthorRecs.value = await recommendationsStore.fetchPersonalizedAuthorRecommendations(author.value.author_id) ?? []
+    else
+      personalizedAuthorRecs.value = []
+  }, { immediate: true })
 })
 </script>
 
@@ -357,6 +366,48 @@ onMounted(async () => {
 
     <!-- Author Recommendations -->
     <ClientOnly>
+      <div
+        v-if="personalizedAuthorRecs.length > 0 || recommendationsStore.isLoadingPersonalizedAuthorRecs"
+        class="mt-8"
+      >
+        <template v-if="recommendationsStore.isLoadingPersonalizedAuthorRecs">
+          <div
+            v-for="n in 2"
+            :key="n"
+            class="mb-8"
+          >
+            <v-skeleton-loader
+              type="heading"
+              width="200"
+              class="mb-3"
+            />
+
+            <div class="d-flex gap-3">
+              <v-skeleton-loader
+                v-for="m in 5"
+                :key="m"
+                type="image, article"
+                width="160"
+                class="flex-shrink-0 rounded-lg"
+              />
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
+          <template
+            v-for="category in personalizedAuthorRecs"
+            :key="category.key"
+          >
+            <RecommendationRow
+              v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+              :category="category"
+              hide-show-more
+            />
+          </template>
+        </template>
+      </div>
+
       <div
         v-if="authorRecommendations.length > 0 || recommendationsStore.isLoadingAuthorRecs"
         class="mt-8"

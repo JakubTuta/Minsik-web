@@ -16,11 +16,17 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   const availableCategories = ref<CategoryInfo[]>([])
   const bookRecommendations = ref(new Map<number, RecommendationSection[]>())
   const authorRecommendations = ref(new Map<number, RecommendationSection[]>())
+  const personalizedHomeCategories = ref<RecommendationSection[]>([])
+  const personalizedBookRecommendations = ref(new Map<number, RecommendationSection[]>())
+  const personalizedAuthorRecommendations = ref(new Map<number, RecommendationSection[]>())
   const lastFetchTime = ref(new Map<string, number>())
   const isLoading = ref(false)
   const isLoadingCategory = ref(false)
   const isLoadingBookRecs = ref(false)
   const isLoadingAuthorRecs = ref(false)
+  const isLoadingPersonalizedHome = ref(false)
+  const isLoadingPersonalizedBookRecs = ref(false)
+  const isLoadingPersonalizedAuthorRecs = ref(false)
 
   // Cache TTL — 5 minutes
   const CACHE_TTL = 5 * 60 * 1000
@@ -172,6 +178,86 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
+  // Fetch personalized home recommendations (authenticated)
+  async function fetchPersonalizedHomeRecommendations(force = false) {
+    const cacheKey = 'personal-home'
+    if (!force && personalizedHomeCategories.value.length > 0 && isCacheFresh(cacheKey))
+      return personalizedHomeCategories.value
+    isLoadingPersonalizedHome.value = true
+    try {
+      const response = await apiStore.client.get<HomePageResponse>(
+        '/api/v1/users/me/recommendations/home',
+        { params: { items_per_category: 10 } },
+      )
+      personalizedHomeCategories.value = response.data.data!.sections
+      lastFetchTime.value.set(cacheKey, Date.now())
+
+      return personalizedHomeCategories.value
+    }
+    catch (error) {
+      console.error('Error fetching personalized home recommendations:', error)
+
+      return []
+    }
+    finally {
+      isLoadingPersonalizedHome.value = false
+    }
+  }
+
+  // Fetch personalized book recommendations (authenticated)
+  async function fetchPersonalizedBookRecommendations(bookId: number, force = false) {
+    const cacheKey = `personal-book-${bookId}`
+    if (!force && personalizedBookRecommendations.value.has(bookId) && isCacheFresh(cacheKey))
+      return personalizedBookRecommendations.value.get(bookId)!
+    isLoadingPersonalizedBookRecs.value = true
+    try {
+      const response = await apiStore.client.get<HomePageResponse>(
+        `/api/v1/users/me/recommendations/book/${bookId}`,
+        { params: { items_per_category: 15 } },
+      )
+      const categories = response.data.data!.sections
+      personalizedBookRecommendations.value.set(bookId, categories)
+      lastFetchTime.value.set(cacheKey, Date.now())
+
+      return categories
+    }
+    catch (error) {
+      console.error(`Error fetching personalized book recommendations for book ${bookId}:`, error)
+
+      return []
+    }
+    finally {
+      isLoadingPersonalizedBookRecs.value = false
+    }
+  }
+
+  // Fetch personalized author recommendations (authenticated)
+  async function fetchPersonalizedAuthorRecommendations(authorId: number, force = false) {
+    const cacheKey = `personal-author-${authorId}`
+    if (!force && personalizedAuthorRecommendations.value.has(authorId) && isCacheFresh(cacheKey))
+      return personalizedAuthorRecommendations.value.get(authorId)!
+    isLoadingPersonalizedAuthorRecs.value = true
+    try {
+      const response = await apiStore.client.get<HomePageResponse>(
+        `/api/v1/users/me/recommendations/author/${authorId}`,
+        { params: { items_per_category: 15 } },
+      )
+      const categories = response.data.data!.sections
+      personalizedAuthorRecommendations.value.set(authorId, categories)
+      lastFetchTime.value.set(cacheKey, Date.now())
+
+      return categories
+    }
+    catch (error) {
+      console.error(`Error fetching personalized author recommendations for author ${authorId}:`, error)
+
+      return []
+    }
+    finally {
+      isLoadingPersonalizedAuthorRecs.value = false
+    }
+  }
+
   // Find display name for a category key (from home data or available categories)
   function getCategoryDisplayName(category: string) {
     const fromHome = homeCategories.value.find(c => c.key === category)
@@ -188,6 +274,9 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     homeCategories.value = []
     categoryData.value.clear()
     availableCategories.value = []
+    personalizedHomeCategories.value = []
+    personalizedBookRecommendations.value.clear()
+    personalizedAuthorRecommendations.value.clear()
     lastFetchTime.value.clear()
   }
 
@@ -198,10 +287,16 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     availableCategories,
     bookRecommendations,
     authorRecommendations,
+    personalizedHomeCategories,
+    personalizedBookRecommendations,
+    personalizedAuthorRecommendations,
     isLoading,
     isLoadingCategory,
     isLoadingBookRecs,
     isLoadingAuthorRecs,
+    isLoadingPersonalizedHome,
+    isLoadingPersonalizedBookRecs,
+    isLoadingPersonalizedAuthorRecs,
 
     // Computed
     hasHomeData,
@@ -211,6 +306,9 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     fetchCategoryRecommendations,
     fetchBookRecommendations,
     fetchAuthorRecommendations,
+    fetchPersonalizedHomeRecommendations,
+    fetchPersonalizedBookRecommendations,
+    fetchPersonalizedAuthorRecommendations,
     fetchAvailableCategories,
     getCategoryDisplayName,
     clearCache,
