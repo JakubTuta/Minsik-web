@@ -41,3 +41,8 @@ export interface UpdateProfileRequest {
   bio?: string | null
   avatar_url?: string | null
 }
+
+export interface GoogleAuthRequest {
+  code: string
+  redirect_uri: string
+}

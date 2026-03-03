@@ -1,5 +1,5 @@
 import type { APIResponse } from '~/types/api'
-import type { AuthTokensData, LoginRequest, LogoutRequest, RefreshTokenRequest, RegisterRequest, UpdateProfileRequest, User } from '~/types/auth'
+import type { AuthTokensData, GoogleAuthRequest, LoginRequest, LogoutRequest, RefreshTokenRequest, RegisterRequest, UpdateProfileRequest, User } from '~/types/auth'
 import { defineStore } from 'pinia'
 
 const TOKEN_KEY = 'minsik_auth_token'
@@ -200,6 +200,32 @@ export const useAuthStore = defineStore('auth', () => {
     authInitialized.value = true
   }
 
+  const googleAuth = async (code: string, redirectUri: string) => {
+    try {
+      const response = await client.value.post<APIResponse<AuthTokensData>>('/api/v1/auth/google', {
+        code,
+        redirect_uri: redirectUri,
+      } as GoogleAuthRequest)
+      const data = response.data.data!
+
+      saveToken(data.access_token, data.refresh_token)
+      user.value = data.user
+      authInitialized.value = true
+
+      return { success: true }
+    }
+    catch (error: any) {
+      console.error('Google auth failed:', error)
+
+      const errorMessage = error.response?.data?.error?.message
+        || error.response?.data?.message
+        || error.message
+        || 'Google sign-in failed'
+
+      return { success: false, error: errorMessage }
+    }
+  }
+
   const updateProfile = async (data: UpdateProfileRequest) => {
     try {
       const response = await client.value.put<APIResponse<{ user: User }>>('/api/v1/users/me', data)
@@ -230,6 +256,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     autoLogin,
     updateProfile,
+    googleAuth,
     refreshAccessToken,
   }
 })

@@ -23,7 +23,7 @@ export const useApiStore = defineStore('api', () => {
       // Request interceptor
       client.interceptors.request.use(
         (config) => {
-          const authEndpoints = ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/refresh']
+          const authEndpoints = ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/refresh', '/api/v1/auth/google']
           const isAuthEndpoint = authEndpoints.some(ep => config.url?.endsWith(ep))
 
           if (!isAuthEndpoint && import.meta.client) {

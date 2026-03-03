@@ -18,6 +18,7 @@ export default defineNuxtConfig({
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3040',
       siteName: 'Minsik',
       siteDescription: 'Discover your next favorite book through emotional reading profiles and book influence networks.',
+      googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '',
     },
   },
 
@@ -86,6 +87,7 @@ export default defineNuxtConfig({
     '/authors/**': { ssr: true },
     '/series/**': { ssr: true },
     '/search': { ssr: true },
+    '/auth/**': { ssr: false },
     '/dashboard': { ssr: false },
     '/admin': { ssr: false },
     '/bookshelf': { ssr: false },
