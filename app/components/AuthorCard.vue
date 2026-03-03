@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 const authorLink = computed(() => (props.author
   ? `/authors/${props.author.slug}`
   : ''))
-const photoUrl = computed(() => props.author?.photo_url || '/placeholder-avatar.jpg')
+const photoUrl = computed(() => props.author?.photo_url || '/placeholder-avatar-lazy.jpg')
 const name = computed(() => props.author?.name || '')
 const biography = computed(() => {
   if (!props.author?.bio)

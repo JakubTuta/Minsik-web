@@ -17,7 +17,7 @@ defineProps<Props>()
         class="author-avatar"
       >
         <v-img
-          :src="author.photo_url || '/placeholder-avatar.jpg'"
+          :src="author.photo_url || '/placeholder-avatar-lazy.jpg'"
           lazy-src="/placeholder-avatar-lazy.jpg"
           :alt="author.name"
           cover

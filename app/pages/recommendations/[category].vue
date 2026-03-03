@@ -103,7 +103,6 @@ async function loadMore() {
           cols="6"
           sm="4"
           md="3"
-          lg="2"
         >
           <RecommendationAuthorCard
             :author="item"
@@ -119,7 +118,6 @@ async function loadMore() {
           cols="6"
           sm="4"
           md="3"
-          lg="2"
         >
           <RecommendationBookCard
             :book="item"

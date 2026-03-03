@@ -22,7 +22,7 @@ const hasMore = computed(() => props.categories.length > props.maxVisible)
 
 <template>
   <div v-if="categories.length > 0">
-    <h3 class="text-subtitle-2 text-secondary font-weight-bold mb-2">
+    <h3 class="text-caption text-secondary mb-2">
       Categories
     </h3>
 

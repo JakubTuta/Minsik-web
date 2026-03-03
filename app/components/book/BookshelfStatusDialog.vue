@@ -16,6 +16,7 @@ const emit = defineEmits<{
 }>()
 
 const bookPageStore = useBookPageStore()
+const { bookshelfStatus } = storeToRefs(bookPageStore)
 
 const selectedStatus = ref<BookshelfStatus | null>(props.currentStatus)
 const saving = ref(false)
@@ -106,9 +107,13 @@ async function remove() {
             {{ opt.label }}
           </v-chip>
 
-          <v-divider class="my-2" />
+          <v-divider
+            v-if="bookshelfStatus"
+            class="my-2"
+          />
 
           <v-chip
+            v-if="bookshelfStatus"
             color="error"
             variant="outlined"
             prepend-icon="mdi-bookmark-remove"

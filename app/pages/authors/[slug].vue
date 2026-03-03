@@ -69,7 +69,7 @@ useAuthorStructuredData({
   deathDate: author.value.death_date,
 })
 
-const photoUrl = computed(() => author.value?.photo_url || '/placeholder-avatar.jpg')
+const photoUrl = computed(() => author.value?.photo_url || '/placeholder-avatar-lazy.jpg')
 
 // Calculate age
 const age = computed(() => {

@@ -90,15 +90,6 @@ useInfiniteScroll(
         cols="12"
         md="9"
       >
-        <div
-          v-if="bookshelfStore.publicHasData"
-          class="text-caption text-medium-emphasis mb-3"
-        >
-          {{ bookshelfStore.publicTotal }} {{ bookshelfStore.publicTotal === 1
-            ? 'book'
-            : 'books' }}
-        </div>
-
         <div class="d-flex flex-column gap-2">
           <BookshelfItem
             v-for="entry in filteredItems"

@@ -1,0 +1,322 @@
+<script setup lang="ts">
+import type { Book } from '~/types/api'
+
+interface Props {
+  book: Book
+  slug: string
+  seriesBooks?: Book[]
+  primaryAuthor?: any
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  seriesBooks: () => [],
+  primaryAuthor: null,
+})
+
+const bookPageStore = useBookPageStore()
+
+const coverUrl = computed(() => props.book.primary_cover_url || '/placeholder-book.jpg')
+
+const detailsExpanded = ref(false)
+
+// Reading time: 1 minute per page
+const readingTime = computed(() => {
+  const pages = props.book.number_of_pages
+  if (!pages || pages <= 0)
+    return null
+
+  const minutes = pages
+  if (minutes < 60)
+    return `${minutes} min`
+
+  const hours = Math.floor(minutes / 60)
+  const remainder = minutes % 60
+
+  return remainder > 0
+    ? `${hours}h ${remainder}min`
+    : `${hours}h`
+})
+</script>
+
+<template>
+  <v-card>
+    <v-row no-gutters>
+      <!-- Book Cover -->
+      <v-col
+        cols="12"
+        md="4"
+        lg="3"
+        class="pa-6"
+        align-self="start"
+      >
+        <v-img
+          :src="coverUrl"
+          :alt="book.title"
+          lazy-src="/placeholder-book-lazy.jpg"
+          aspect-ratio="0.67"
+          cover
+          class="book-cover-shadow rounded"
+        />
+      </v-col>
+
+      <!-- Book Info -->
+      <v-col
+        cols="12"
+        md="5"
+        lg="6"
+      >
+        <v-card-text class="d-flex flex-column h-100">
+          <div>
+            <h1 class="text-h4 font-weight-bold mb-3">
+              {{ book.title }}
+            </h1>
+
+            <!-- Series -->
+            <div
+              v-if="book.series"
+              class="mb-4"
+            >
+              <div class="mb-2">
+                <span class="text-body-1">More from </span>
+
+                <NuxtLink
+                  class="font-weight-bold text-body-1 text-primary text-decoration-none"
+                  :to="`/series/${book.series.slug}`"
+                >
+                  {{ book.series.name }}
+                </NuxtLink>
+              </div>
+
+              <!-- Series Books Horizontal Scroll -->
+              <div
+                v-if="seriesBooks.length > 0"
+                class="d-flex gap-3"
+                style="overflow-x: auto; overflow-y: hidden; padding-bottom: 4px;"
+              >
+                <NuxtLink
+                  v-for="seriesBook in seriesBooks"
+                  :key="seriesBook.book_id"
+                  :to="`/books/${seriesBook.slug}`"
+                  class="text-decoration-none flex-shrink-0"
+                  style="width: 80px;"
+                >
+                  <div class="position-relative">
+                    <v-img
+                      :src="seriesBook.primary_cover_url || '/placeholder-book.jpg'"
+                      :alt="seriesBook.title"
+                      lazy-src="/placeholder-book-lazy.jpg"
+                      aspect-ratio="0.67"
+                      width="80"
+                      cover
+                      class="rounded"
+                      :class="{'opacity-50': seriesBook.book_id === book.book_id}"
+                    />
+
+                    <!-- Series Position Badge -->
+                    <v-badge
+                      v-if="seriesBook.series_position"
+                      :content="`#${seriesBook.series_position}`"
+                      color="primary"
+                      class="position-absolute"
+                      style="top: 4px; left: 4px;"
+                    />
+
+                    <!-- Current Book Indicator -->
+                    <div
+                      v-if="seriesBook.book_id === book.book_id"
+                      class="d-flex align-center position-absolute h-100 w-100 justify-center"
+                      style="top: 0; left: 0; background-color: rgba(0, 0, 0, 0.3);"
+                    >
+                      <v-icon
+                        icon="mdi-eye"
+                        color="white"
+                        size="large"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="text-caption mt-1 text-truncate">
+                    {{ seriesBook.title }}
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Rating -->
+            <div class="text-caption text-secondary mb-1 mt-5">
+              Minsik users reviews
+            </div>
+
+            <RatingDisplay
+              :rating="bookPageStore.liveAvgRating ?? book.avg_rating ?? 0"
+              :rating-count="bookPageStore.liveRatingCount ?? book.rating_count ?? 0"
+            />
+
+            <!-- Other Platform Ratings -->
+            <div class="mt-5">
+              <div class="text-caption text-secondary mb-1">
+                Other platforms reviews
+              </div>
+
+              <RatingDisplay
+                :rating="Number(book.ol_avg_rating) / 2"
+                :rating-count="book.ol_rating_count"
+                size="small"
+              />
+            </div>
+
+            <!-- Categories -->
+            <CategoriesChips
+              class="mt-5"
+              :categories="book.genres.map(e => e.name)"
+            />
+
+            <!-- Actions -->
+            <ClientOnly>
+              <BookActions
+                :slug="slug"
+                class="mt-5"
+              />
+            </ClientOnly>
+
+            <!-- Pages & Reading Time -->
+            <div
+              v-if="book.number_of_pages > 0"
+              class="d-flex align-center mt-5 gap-4"
+            >
+              <div class="d-flex align-center text-body-2 text-medium-emphasis gap-1">
+                <v-icon
+                  icon="mdi-book-open-page-variant"
+                  size="small"
+                />
+
+                <span>{{ book.number_of_pages }} pages</span>
+              </div>
+
+              <div
+                v-if="readingTime"
+                class="d-flex align-center text-body-2 text-medium-emphasis gap-1"
+              >
+                <v-icon
+                  icon="mdi-clock-outline"
+                  size="small"
+                />
+
+                <span>~{{ readingTime }} to read</span>
+
+                <v-tooltip
+                  activator="parent"
+                  location="bottom"
+                >
+                  Based on an average reading speed of 1 page per minute.
+                </v-tooltip>
+              </div>
+            </div>
+          </div>
+
+          <!-- Details Toggle -->
+          <div class="mt-auto pt-3">
+            <v-btn
+              variant="text"
+              color="secondary"
+              size="small"
+              @click="detailsExpanded = !detailsExpanded"
+            >
+              Details
+              <v-icon
+                :icon="detailsExpanded
+                  ? 'mdi-chevron-up'
+                  : 'mdi-chevron-down'"
+              />
+            </v-btn>
+
+            <!-- Expandable Details Section -->
+            <v-expand-transition>
+              <div v-show="detailsExpanded">
+                <div class="d-flex text-body-2 mt-2 flex-wrap gap-x-6 gap-y-1">
+                  <span v-if="book.original_publication_year">
+                    <v-icon
+                      icon="mdi-calendar"
+                      size="small"
+                      class="mr-1"
+                    />
+                    Published {{ book.original_publication_year }}
+                  </span>
+
+                  <span v-if="book.publisher">
+                    <v-icon
+                      icon="mdi-domain"
+                      size="small"
+                      class="mr-1"
+                    />
+                    {{ book.publisher }}
+                  </span>
+
+                  <span v-if="book.view_count">
+                    <v-icon
+                      icon="mdi-eye"
+                      size="small"
+                      class="mr-1"
+                    />
+                    {{ book.view_count.toLocaleString() }} views
+                  </span>
+                </div>
+
+                <!-- ISBN -->
+                <div
+                  v-if="book.isbn && book.isbn.length > 0"
+                  class="mt-3"
+                >
+                  <div class="text-caption text-secondary font-weight-bold mb-1">
+                    ISBN
+                  </div>
+
+                  <div class="text-body-2">
+                    {{ book.isbn.join(', ') }}
+                  </div>
+                </div>
+
+                <!-- Editions -->
+                <div
+                  v-if="book.formats && book.formats.length > 0"
+                  class="mt-3"
+                >
+                  <div class="text-caption text-secondary font-weight-bold mb-1">
+                    Editions
+                  </div>
+
+                  <v-chip
+                    v-for="format in book.formats"
+                    :key="format"
+                    size="small"
+                    variant="outlined"
+                    class="mb-1 mr-1"
+                  >
+                    {{ toTitleCase(format) }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-expand-transition>
+          </div>
+        </v-card-text>
+      </v-col>
+
+      <!-- About Author -->
+      <v-col
+        v-if="book.authors.length > 0 && primaryAuthor"
+        cols="12"
+        md="3"
+        lg="3"
+        align-self="start"
+      >
+        <AuthorShortCard :author="primaryAuthor" />
+      </v-col>
+    </v-row>
+  </v-card>
+</template>
+
+<style scoped>
+.book-cover-shadow {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+</style>

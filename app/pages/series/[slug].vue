@@ -146,10 +146,11 @@ const seriesCategories = computed(() => {
                   <RatingDisplay
                     :rating="seriesAvgRating"
                     :rating-count="seriesTotalRatings"
+                    class="mb-4"
                   />
 
                   <!-- Other Platform Ratings -->
-                  <div class="mt-3">
+                  <div class="mb-4">
                     <div class="text-caption text-secondary mb-1">
                       Other platforms reviews
                     </div>
@@ -194,9 +195,7 @@ const seriesCategories = computed(() => {
                   </v-list>
 
                   <!-- Categories -->
-                  <div class="mt-4">
-                    <CategoriesChips :categories="seriesCategories" />
-                  </div>
+                  <CategoriesChips :categories="seriesCategories" />
                 </div>
               </v-card-text>
             </v-col>

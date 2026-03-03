@@ -18,13 +18,13 @@
             class="hero-icon mb-6"
           />
 
-          <h1 class="text-h3 text-sm-h2 text-md-h1 font-weight-bold hero-title mb-4">
+          <h1 class="text-h4 text-sm-h3 text-md-h2 font-weight-bold hero-title mb-4">
             Discover Your Next<br>
 
             <span class="text-primary">Favorite Book</span>
           </h1>
 
-          <p class="text-h6 text-md-h5 text-medium-emphasis hero-subtitle mx-auto mb-8">
+          <p class="text-h6 text-medium-emphasis hero-subtitle mx-auto mb-8">
             Explore curated recommendations, track your reading journey, and connect with a community of passionate readers.
           </p>
 
