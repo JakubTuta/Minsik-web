@@ -10,7 +10,7 @@ const authStore = useAuthStore()
 const slug = route.params.slug as string
 
 // Sorting
-type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc' | 'views-desc' | 'views-asc'
+type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc' | 'readers-desc' | 'readers-asc'
 const sortBy = ref<SortOption>('date-desc')
 
 // Fetch author data
@@ -28,10 +28,10 @@ const { data: books } = await useAsyncData(
 // Watch for sort changes and refetch with new parameters
 watch(sortBy, async (newSort) => {
   const [field, direction] = newSort.split('-')
-  const sortByMap: Record<string, 'publication_year' | 'avg_rating' | 'view_count'> = {
+  const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'readers_count'> = {
     date: 'publication_year',
-    rating: 'avg_rating',
-    views: 'view_count',
+    rating: 'combined_rating',
+    readers: 'readers_count',
   }
 
   const apiSortBy = sortByMap[field]
@@ -98,9 +98,39 @@ const sortOptions = [
   { value: 'date-asc', title: 'Oldest First' },
   { value: 'rating-desc', title: 'Highest Rated' },
   { value: 'rating-asc', title: 'Lowest Rated' },
-  { value: 'views-desc', title: 'Most Viewed' },
-  { value: 'views-asc', title: 'Least Viewed' },
+  { value: 'readers-desc', title: 'Most Readers' },
+  { value: 'readers-asc', title: 'Least Readers' },
 ]
+
+// Weighted rating across app + OL
+const weightedRating = computed(() => {
+  const appRating = author.value?.books_avg_rating ?? 0
+  const appCount = author.value?.books_total_ratings ?? 0
+  const olRating = Number(author.value?.books_ol_avg_rating ?? 0)
+  const olCount = author.value?.books_ol_total_ratings ?? 0
+  const total = appCount + olCount
+
+  if (total === 0)
+    return 0
+
+  return (appRating * appCount + olRating * olCount) / total
+})
+
+const totalRatings = computed(() => (author.value?.books_total_ratings ?? 0) + (author.value?.books_ol_total_ratings ?? 0),
+)
+
+// Readers across app + OL
+const appReaders = computed(() => (author.value?.app_want_to_read_count ?? 0)
+  + (author.value?.app_reading_count ?? 0)
+  + (author.value?.app_read_count ?? 0),
+)
+
+const olReaders = computed(() => (author.value?.ol_want_to_read_count ?? 0)
+  + (author.value?.ol_currently_reading_count ?? 0)
+  + (author.value?.ol_already_read_count ?? 0),
+)
+
+const totalReaders = computed(() => appReaders.value + olReaders.value)
 
 const authorRecommendations = ref<RecommendationSection[]>([])
 const personalizedAuthorRecs = ref<RecommendationSection[]>([])
@@ -187,23 +217,16 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
                 </v-list-item-title>
               </v-list-item>
 
-              <v-list-item v-if="author.birth_place">
+              <v-list-item v-if="author.birth_place || author.nationality">
                 <template #prepend>
                   <v-icon icon="mdi-map-marker" />
                 </template>
 
                 <v-list-item-title class="text-wrap">
-                  {{ author.birth_place }}
-                </v-list-item-title>
-              </v-list-item>
-
-              <v-list-item v-if="author.nationality">
-                <template #prepend>
-                  <v-icon icon="mdi-flag" />
-                </template>
-
-                <v-list-item-title class="text-wrap">
-                  {{ author.nationality }}
+                  {{ [
+                    author.birth_place,
+                    author.nationality,
+                  ].filter(Boolean).join(', ') }}
                 </v-list-item-title>
               </v-list-item>
 
@@ -262,46 +285,58 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
 
                 <v-list-item-title>
                   <span>
-                    {{ author.books_avg_rating
-                      ? author.books_avg_rating.toFixed(1)
-                      : '0.0' }} ({{ author.books_total_ratings
-                      ? author.books_total_ratings.toLocaleString()
-                      : '0' }})
-
+                    {{ weightedRating.toFixed(1) }} ({{ totalRatings.toLocaleString() }})
                     <v-tooltip
-                      :text="`${author.books_avg_rating
-                        ? author.books_avg_rating.toFixed(1)
-                        : '0.0'} average rating (${author.books_total_ratings
-                        ? author.books_total_ratings.toLocaleString()
-                        : '0'} ratings)`"
                       activator="parent"
                       location="bottom"
-                    />
+                    >
+                      <div>
+                        Minsik: {{ author.books_avg_rating
+                          ? author.books_avg_rating.toFixed(1)
+                          : '0.0' }} ({{ author.books_total_ratings
+                          ? author.books_total_ratings.toLocaleString()
+                          : '0' }} ratings)
+                      </div>
+
+                      <div class="mt-1">
+                        Open Library: {{ author.books_ol_avg_rating
+                          ? Number(author.books_ol_avg_rating).toFixed(1)
+                          : '0.0' }} ({{ author.books_ol_total_ratings
+                          ? author.books_ol_total_ratings.toLocaleString()
+                          : '0' }} ratings)
+                      </div>
+                    </v-tooltip>
                   </span>
                 </v-list-item-title>
               </v-list-item>
 
               <v-list-item>
                 <template #prepend>
-                  <v-icon icon="mdi-book-search-outline" />
+                  <v-icon icon="mdi-account-multiple" />
                 </template>
 
                 <v-list-item-title>
-                  {{ author.books_total_views
-                    ? author.books_total_views.toLocaleString()
-                    : '0' }} total book views
-                </v-list-item-title>
-              </v-list-item>
+                  <span>
+                    {{ totalReaders.toLocaleString() }} readers
+                    <v-tooltip
+                      activator="parent"
+                      location="bottom"
+                    >
+                      <div>Minsik - Want to Read: {{ (author.app_want_to_read_count ?? 0).toLocaleString() }}</div>
 
-              <v-list-item>
-                <template #prepend>
-                  <v-icon icon="mdi-eye" />
-                </template>
+                      <div>Minsik - Reading: {{ (author.app_reading_count ?? 0).toLocaleString() }}</div>
 
-                <v-list-item-title>
-                  {{ author.view_count
-                    ? author.view_count.toLocaleString()
-                    : '0' }} profile views
+                      <div>Minsik - Read: {{ (author.app_read_count ?? 0).toLocaleString() }}</div>
+
+                      <div class="mt-1">
+                        Open Library - Want to Read: {{ (author.ol_want_to_read_count ?? 0).toLocaleString() }}
+                      </div>
+
+                      <div>Open Library - Reading: {{ (author.ol_currently_reading_count ?? 0).toLocaleString() }}</div>
+
+                      <div>Open Library - Read: {{ (author.ol_already_read_count ?? 0).toLocaleString() }}</div>
+                    </v-tooltip>
+                  </span>
                 </v-list-item-title>
               </v-list-item>
             </v-list>

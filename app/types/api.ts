@@ -82,7 +82,8 @@ export interface Author extends AuthorMinimal {
   book_categories: string[]
   books_avg_rating: number
   books_total_ratings: number
-  books_total_views: number
+  books_ol_avg_rating?: string | null
+  books_ol_total_ratings: number
   view_count: number
   last_viewed_at?: string
   open_library_id?: string | null
@@ -92,6 +93,12 @@ export interface Author extends AuthorMinimal {
   wikipedia_url?: string | null
   remote_ids: Record<string, string>
   alternate_names: string[]
+  app_want_to_read_count: number
+  app_reading_count: number
+  app_read_count: number
+  ol_want_to_read_count: number
+  ol_currently_reading_count: number
+  ol_already_read_count: number
   // Computed client-side
   display_dates?: string
 }
@@ -115,8 +122,13 @@ export interface Series extends SeriesMinimal {
   rating_count: number
   ol_avg_rating?: string | null
   ol_rating_count: number
-  total_views: number
   author?: Author
+  app_want_to_read_count: number
+  app_reading_count: number
+  app_read_count: number
+  ol_want_to_read_count: number
+  ol_currently_reading_count: number
+  ol_already_read_count: number
 }
 
 // Book Types
@@ -126,6 +138,7 @@ export interface Book {
   slug: string
   title: string
   description?: string | null
+  first_sentence?: string | null
   language: string
   original_publication_year?: number | null
   formats: string[]
@@ -153,6 +166,9 @@ export interface Book {
   ol_want_to_read_count: number
   ol_currently_reading_count: number
   ol_already_read_count: number
+  app_want_to_read_count: number
+  app_reading_count: number
+  app_read_count: number
 }
 
 // Card Display Types (for components)

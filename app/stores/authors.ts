@@ -87,7 +87,7 @@ export const useAuthorsStore = defineStore('authors', () => {
   // Fetch ALL author's books (load all at once)
   const fetchAuthorBooks = async (
     slug: string,
-    sortBy: 'publication_year' | 'avg_rating' | 'view_count' = 'view_count',
+    sortBy: 'publication_year' | 'combined_rating' | 'readers_count' = 'combined_rating',
     order: 'asc' | 'desc' = 'desc',
     force = false,
   ) => {
@@ -143,7 +143,7 @@ export const useAuthorsStore = defineStore('authors', () => {
     if (!currentAuthor.value)
       return
     await fetchAuthor(currentAuthor.value.slug, true)
-    await fetchAuthorBooks(currentAuthor.value.slug, 'view_count', 'desc', true)
+    await fetchAuthorBooks(currentAuthor.value.slug, 'combined_rating', 'desc', true)
   }
 
   // Clear cache

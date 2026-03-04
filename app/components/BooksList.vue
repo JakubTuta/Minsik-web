@@ -11,6 +11,27 @@ withDefaults(defineProps<Props>(), {
   loading: false,
   emptyMessage: 'No books found.',
 })
+
+function weightedRating(book: Book): number {
+  const olRating = Number(book.ol_avg_rating ?? 0)
+  const total = book.rating_count + (book.ol_rating_count ?? 0)
+
+  if (total === 0)
+    return 0
+
+  return ((book.avg_rating * book.rating_count) + (olRating * (book.ol_rating_count ?? 0))) / total
+}
+
+function totalRatingCount(book: Book): number {
+  return book.rating_count + (book.ol_rating_count ?? 0)
+}
+
+function totalReaders(book: Book): number {
+  const app = (book.app_want_to_read_count ?? 0) + (book.app_reading_count ?? 0) + (book.app_read_count ?? 0)
+  const ol = (book.ol_want_to_read_count ?? 0) + (book.ol_currently_reading_count ?? 0) + (book.ol_already_read_count ?? 0)
+
+  return app + ol
+}
 </script>
 
 <template>
@@ -70,21 +91,49 @@ withDefaults(defineProps<Props>(), {
                   color="warning"
                 />
 
-                <span class="text-body-2">{{ book.avg_rating
-                  ? book.avg_rating.toFixed(1)
-                  : '0.0' }}</span>
+                <span class="text-body-2">
+                  {{ weightedRating(book).toFixed(1) }} ({{ totalRatingCount(book).toLocaleString() }})
+                </span>
+
+                <v-tooltip
+                  activator="parent"
+                  location="bottom"
+                >
+                  <div>Minsik: {{ book.avg_rating.toFixed(1) }} ({{ book.rating_count }} ratings)</div>
+
+                  <div class="mt-1">
+                    Open Library: {{ Number(book.ol_avg_rating ?? 0).toFixed(1) }} ({{ book.ol_rating_count ?? 0 }} ratings)
+                  </div>
+                </v-tooltip>
               </div>
 
               <div class="d-flex align-center gap-1">
                 <v-icon
-                  icon="mdi-eye"
+                  icon="mdi-account-multiple"
                   size="small"
                   color="info"
                 />
 
-                <span class="text-body-2">{{ book.view_count
-                  ? book.view_count.toLocaleString()
-                  : '0' }}</span>
+                <span class="text-body-2">{{ totalReaders(book).toLocaleString() }}</span>
+
+                <v-tooltip
+                  activator="parent"
+                  location="bottom"
+                >
+                  <div>Minsik - Want to Read: {{ (book.app_want_to_read_count ?? 0).toLocaleString() }}</div>
+
+                  <div>Minsik - Reading: {{ (book.app_reading_count ?? 0).toLocaleString() }}</div>
+
+                  <div>Minsik - Read: {{ (book.app_read_count ?? 0).toLocaleString() }}</div>
+
+                  <div class="mt-1">
+                    Open Library - Want to Read: {{ (book.ol_want_to_read_count ?? 0).toLocaleString() }}
+                  </div>
+
+                  <div>Open Library - Reading: {{ (book.ol_currently_reading_count ?? 0).toLocaleString() }}</div>
+
+                  <div>Open Library - Read: {{ (book.ol_already_read_count ?? 0).toLocaleString() }}</div>
+                </v-tooltip>
               </div>
             </div>
 

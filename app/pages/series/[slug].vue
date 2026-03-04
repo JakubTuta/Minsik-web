@@ -84,6 +84,12 @@ useSeriesStructuredData({
 const seriesAvgRating = computed(() => Number(series.value?.avg_rating) || 0)
 const seriesTotalRatings = computed(() => series.value?.rating_count ?? 0)
 
+const statisticsExpanded = ref(false)
+
+function toggleStatistics() {
+  statisticsExpanded.value = !statisticsExpanded.value
+}
+
 // Get book covers for collage (max 4)
 const collageCovers = computed(() => {
   if (!books.value || books.value.length === 0)
@@ -156,7 +162,7 @@ const seriesCategories = computed(() => {
                     </div>
 
                     <RatingDisplay
-                      :rating="Number(series.ol_avg_rating) / 2"
+                      :rating="Number(series.ol_avg_rating)"
                       :rating-count="series.ol_rating_count"
                       size="small"
                     />
@@ -181,21 +187,47 @@ const seriesCategories = computed(() => {
                       </v-list-item-title>
                     </v-list-item>
 
-                    <v-list-item>
-                      <template #prepend>
-                        <v-icon icon="mdi-eye" />
-                      </template>
-
-                      <v-list-item-title>
-                        {{ series.view_count
-                          ? series.view_count.toLocaleString()
-                          : '0' }} views
-                      </v-list-item-title>
-                    </v-list-item>
                   </v-list>
 
                   <!-- Categories -->
                   <CategoriesChips :categories="seriesCategories" />
+                </div>
+
+                <!-- Statistics Toggle at bottom -->
+                <div class="mt-auto pt-3">
+                  <v-btn
+                    variant="text"
+                    color="secondary"
+                    size="small"
+                    @click="toggleStatistics"
+                  >
+                    Statistics
+                    <v-icon
+                      :icon="statisticsExpanded
+                        ? 'mdi-chevron-up'
+                        : 'mdi-chevron-down'"
+                    />
+                  </v-btn>
+
+                  <v-expand-transition>
+                    <div v-show="statisticsExpanded">
+                      <div class="mt-2 text-body-2">
+                        <div>Minsik want to read: {{ (series.app_want_to_read_count ?? 0).toLocaleString() }}</div>
+
+                        <div>Minsik reading: {{ (series.app_reading_count ?? 0).toLocaleString() }}</div>
+
+                        <div>Minsik read: {{ (series.app_read_count ?? 0).toLocaleString() }}</div>
+
+                        <div class="mt-3">
+                          Open Library want to read: {{ (series.ol_want_to_read_count ?? 0).toLocaleString() }}
+                        </div>
+
+                        <div>Open Library reading: {{ (series.ol_currently_reading_count ?? 0).toLocaleString() }}</div>
+
+                        <div>Open Library read: {{ (series.ol_already_read_count ?? 0).toLocaleString() }}</div>
+                      </div>
+                    </div>
+                  </v-expand-transition>
                 </div>
               </v-card-text>
             </v-col>

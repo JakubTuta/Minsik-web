@@ -155,43 +155,49 @@ onUnmounted(() => {
         />
 
         <!-- Description -->
-        <v-card
-          v-if="book.description"
-          class="mt-4"
-        >
+        <v-card class="mt-4">
           <v-card-text>
             <h2 class="text-h6 font-weight-bold mb-3">
               Description
             </h2>
 
-            <div
-              ref="descriptionRef"
-              class="description-content"
-              :class="{'description-collapsed': descriptionNeedsTruncation && !descriptionExpanded}"
-              :style="descriptionNeedsTruncation && descriptionExpanded && expandedHeight
-                ? {'maxHeight': `${expandedHeight}px`}
-                : undefined"
-            >
-              <p
-                class="text-body-1 mb-0"
-                style="white-space: pre-line;"
+            <template v-if="book.description">
+              <div
+                ref="descriptionRef"
+                class="description-content"
+                :class="{'description-collapsed': descriptionNeedsTruncation && !descriptionExpanded}"
+                :style="descriptionNeedsTruncation && descriptionExpanded && expandedHeight
+                  ? {'maxHeight': `${expandedHeight}px`}
+                  : undefined"
               >
-                {{ book.description }}
-              </p>
-            </div>
+                <p
+                  class="text-body-1 mb-0"
+                  style="white-space: pre-line;"
+                >
+                  {{ book.description }}
+                </p>
+              </div>
 
-            <v-btn
-              v-if="descriptionNeedsTruncation"
-              variant="text"
-              color="secondary"
-              size="small"
-              class="mt-2"
-              @click="toggleDescription"
+              <v-btn
+                v-if="descriptionNeedsTruncation"
+                variant="text"
+                color="secondary"
+                size="small"
+                class="mt-2"
+                @click="toggleDescription"
+              >
+                {{ descriptionExpanded
+                  ? 'Read less'
+                  : 'Read more' }}
+              </v-btn>
+            </template>
+
+            <p
+              v-else
+              class="text-body-1 text-medium-emphasis mb-0 font-italic"
             >
-              {{ descriptionExpanded
-                ? 'Read less'
-                : 'Read more' }}
-            </v-btn>
+              There is no description yet, we will add it soon.
+            </p>
           </v-card-text>
         </v-card>
 

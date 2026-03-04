@@ -18,6 +18,19 @@ const bookPageStore = useBookPageStore()
 const coverUrl = computed(() => props.book.primary_cover_url || '/placeholder-book.jpg')
 
 const detailsExpanded = ref(false)
+const statisticsExpanded = ref(false)
+
+function toggleDetails() {
+  detailsExpanded.value = !detailsExpanded.value
+  if (detailsExpanded.value)
+    statisticsExpanded.value = false
+}
+
+function toggleStatistics() {
+  statisticsExpanded.value = !statisticsExpanded.value
+  if (statisticsExpanded.value)
+    detailsExpanded.value = false
+}
 
 // Reading time: 1 minute per page
 const readingTime = computed(() => {
@@ -158,10 +171,27 @@ const readingTime = computed(() => {
               </div>
 
               <RatingDisplay
-                :rating="Number(book.ol_avg_rating) / 2"
+                :rating="Number(book.ol_avg_rating)"
                 :rating-count="book.ol_rating_count"
                 size="small"
               />
+            </div>
+
+            <!-- First Sentence -->
+            <div
+              v-if="book.first_sentence"
+              class="mb-4 mt-5"
+            >
+              <div class="text-caption text-secondary mb-1">
+                First Sentence
+              </div>
+
+              <div
+                class="text-body-1 font-italic"
+                style="border-left: 3px solid rgb(var(--v-theme-primary)); padding-left: 12px;"
+              >
+                "{{ book.first_sentence }}"
+              </div>
             </div>
 
             <!-- Categories -->
@@ -213,21 +243,37 @@ const readingTime = computed(() => {
             </div>
           </div>
 
-          <!-- Details Toggle -->
+          <!-- Details / Statistics Toggles -->
           <div class="mt-auto pt-3">
-            <v-btn
-              variant="text"
-              color="secondary"
-              size="small"
-              @click="detailsExpanded = !detailsExpanded"
-            >
-              Details
-              <v-icon
-                :icon="detailsExpanded
-                  ? 'mdi-chevron-up'
-                  : 'mdi-chevron-down'"
-              />
-            </v-btn>
+            <div class="d-flex gap-2">
+              <v-btn
+                variant="text"
+                color="secondary"
+                size="small"
+                @click="toggleDetails"
+              >
+                Details
+                <v-icon
+                  :icon="detailsExpanded
+                    ? 'mdi-chevron-up'
+                    : 'mdi-chevron-down'"
+                />
+              </v-btn>
+
+              <v-btn
+                variant="text"
+                color="secondary"
+                size="small"
+                @click="toggleStatistics"
+              >
+                Statistics
+                <v-icon
+                  :icon="statisticsExpanded
+                    ? 'mdi-chevron-up'
+                    : 'mdi-chevron-down'"
+                />
+              </v-btn>
+            </div>
 
             <!-- Expandable Details Section -->
             <v-expand-transition>
@@ -293,6 +339,39 @@ const readingTime = computed(() => {
                   >
                     {{ toTitleCase(format) }}
                   </v-chip>
+                </div>
+              </div>
+            </v-expand-transition>
+
+            <!-- Expandable Statistics Section -->
+            <v-expand-transition>
+              <div v-show="statisticsExpanded">
+                <div class="d-flex text-body-2 mt-2 flex-wrap gap-x-6 gap-y-1">
+                  <span v-if="book.view_count">
+                    <v-icon
+                      icon="mdi-eye"
+                      size="small"
+                      class="mr-1"
+                    />
+                    {{ book.view_count.toLocaleString() }} views
+                  </span>
+                </div>
+
+                <!-- Bookshelf Stats -->
+                <div class="mt-3 text-body-2">
+                  <div>Minsik want to read: {{ book.app_want_to_read_count.toLocaleString() }}</div>
+
+                  <div>Minsik reading: {{ book.app_reading_count.toLocaleString() }}</div>
+
+                  <div>Minsik read: {{ book.app_read_count.toLocaleString() }}</div>
+
+                  <div class="mt-3">
+                    Open Library want to read: {{ book.ol_want_to_read_count.toLocaleString() }}
+                  </div>
+
+                  <div>Open Library reading: {{ book.ol_currently_reading_count.toLocaleString() }}</div>
+
+                  <div>Open Library read: {{ book.ol_already_read_count.toLocaleString() }}</div>
                 </div>
               </div>
             </v-expand-transition>
