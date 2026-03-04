@@ -38,5 +38,7 @@ COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./.output
 # Switch to non-root user
 USER nuxtjs
 
+EXPOSE 3000
+
 # Start the application
 CMD ["node", ".output/server/index.mjs"]
