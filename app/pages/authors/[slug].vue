@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Book } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 import { formatDisplayDate } from '~/utils/format'
 
@@ -13,32 +14,68 @@ const slug = route.params.slug as string
 type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc' | 'readers-desc' | 'readers-asc'
 const sortBy = ref<SortOption>('date-desc')
 
+const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'readers_count'> = {
+  date: 'publication_year',
+  rating: 'combined_rating',
+  readers: 'readers_count',
+}
+
+function getSortParams() {
+  const [field, direction] = sortBy.value.split('-')
+  return {
+    apiSortBy: sortByMap[field] as 'publication_year' | 'combined_rating' | 'readers_count',
+    apiOrder: direction as 'asc' | 'desc',
+  }
+}
+
 // Fetch author data
 const { data: author, error: authorError } = await useAsyncData(
   `author-${slug}`,
   () => authorsStore.fetchAuthor(slug),
 )
 
-// Fetch books with default sorting initially
-const { data: books } = await useAsyncData(
+// Pagination state
+const allBooks = ref<Book[]>([])
+const booksOffset = ref(0)
+const booksTotalCount = ref(0)
+const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.value)
+
+// Fetch initial page of books
+const { data: initialBooksData } = await useAsyncData(
   `author-books-${slug}`,
-  () => authorsStore.fetchAuthorBooks(slug, 'publication_year', 'desc'),
+  () => authorsStore.fetchAuthorBooksPage(slug, 'publication_year', 'desc', 0, 20),
 )
 
-// Watch for sort changes and refetch with new parameters
-watch(sortBy, async (newSort) => {
-  const [field, direction] = newSort.split('-')
-  const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'readers_count'> = {
-    date: 'publication_year',
-    rating: 'combined_rating',
-    readers: 'readers_count',
-  }
+if (initialBooksData.value) {
+  allBooks.value = initialBooksData.value.books
+  booksTotalCount.value = initialBooksData.value.total_count
+  booksOffset.value = initialBooksData.value.books.length
+}
 
-  const apiSortBy = sortByMap[field]
-  const apiOrder = direction as 'asc' | 'desc'
+// Reset and refetch when sort changes
+watch(sortBy, async () => {
+  const { apiSortBy, apiOrder } = getSortParams()
+  allBooks.value = []
+  booksTotalCount.value = 0
+  booksOffset.value = 0
 
-  books.value = await authorsStore.fetchAuthorBooks(slug, apiSortBy, apiOrder, true)
+  const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, apiOrder, 0, 20)
+  allBooks.value = result.books
+  booksTotalCount.value = result.total_count
+  booksOffset.value = result.books.length
 })
+
+// Load next page
+async function loadMoreBooks() {
+  if (!hasMoreBooks.value)
+    return
+
+  const { apiSortBy, apiOrder } = getSortParams()
+  const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, apiOrder, booksOffset.value, 20)
+  allBooks.value.push(...result.books)
+  booksTotalCount.value = result.total_count
+  booksOffset.value += result.books.length
+}
 
 // Handle 404
 if (authorError.value || !author.value) {
@@ -386,8 +423,10 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
             </div>
 
             <BooksList
-              :books="books || []"
+              :books="allBooks"
               :loading="authorsStore.isLoadingBooks"
+              :load-more="loadMoreBooks"
+              :has-more="hasMoreBooks"
               empty-message="No books found for this author."
             />
           </v-card-text>

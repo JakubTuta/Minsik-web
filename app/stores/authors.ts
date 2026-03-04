@@ -84,6 +84,31 @@ export const useAuthorsStore = defineStore('authors', () => {
     }
   }
 
+  // Fetch a single page of author's books (for infinite scroll)
+  const fetchAuthorBooksPage = async (
+    slug: string,
+    sortBy: 'publication_year' | 'combined_rating' | 'readers_count' = 'publication_year',
+    order: 'asc' | 'desc' = 'desc',
+    offset = 0,
+    limit = 20,
+  ): Promise<AuthorBooksResponse> => {
+    isLoadingBooks.value = true
+
+    try {
+      const response = await apiStore.client.get<APIResponse<AuthorBooksResponse>>(`/api/v1/authors/${slug}/books`, {
+        params: { limit, offset, sort_by: sortBy, order },
+      })
+
+      return response.data.data!
+    }
+    catch {
+      return { books: [], total_count: 0, limit, offset }
+    }
+    finally {
+      isLoadingBooks.value = false
+    }
+  }
+
   // Fetch ALL author's books (load all at once)
   const fetchAuthorBooks = async (
     slug: string,
@@ -171,6 +196,7 @@ export const useAuthorsStore = defineStore('authors', () => {
     // Actions
     fetchAuthor,
     fetchAuthorBooks,
+    fetchAuthorBooksPage,
     cacheAuthor,
     getAuthor,
     hasAuthor,

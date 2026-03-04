@@ -5,12 +5,18 @@ interface Props {
   books: Book[]
   loading?: boolean
   emptyMessage?: string
+  loadMore?: () => void | Promise<void>
+  hasMore?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   loading: false,
   emptyMessage: 'No books found.',
+  hasMore: false,
 })
+
+const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
+useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
 
 function weightedRating(book: Book): number {
   const olRating = Number(book.ol_avg_rating ?? 0)
