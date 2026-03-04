@@ -14,7 +14,6 @@ defineProps<Props>()
     <div class="cover-zone bg-surface-variant">
       <v-img
         :src="book.primary_cover_url || '/placeholder-book.jpg'"
-        lazy-src="/placeholder-book-lazy.jpg"
         :alt="book.title"
         class="h-100"
       />

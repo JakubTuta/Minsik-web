@@ -236,7 +236,6 @@ onUnmounted(() => {
           <v-img
           :src="cover.url"
           :alt="`Cover ${index + 1}`"
-          lazy-src="/placeholder-book-lazy.jpg"
           :aspect-ratio="0.67"
           width="140"
           cover

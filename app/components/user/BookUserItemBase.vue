@@ -25,7 +25,6 @@ defineProps<Props>()
       >
         <v-img
           :src="coverUrl || '/placeholder-book.jpg'"
-          lazy-src="/placeholder-book-lazy.jpg"
           :alt="title"
           width="90"
           height="120"

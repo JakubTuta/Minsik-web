@@ -49,7 +49,6 @@ const biography = computed(() => {
           <v-img
             :src="photoUrl"
             :alt="name"
-            lazy-src="/placeholder-avatar-lazy.jpg"
           />
         </v-avatar>
 

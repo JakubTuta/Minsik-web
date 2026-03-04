@@ -58,7 +58,6 @@ function totalReaders(book: Book): number {
             <v-img
               :src="book.primary_cover_url || '/placeholder-book.jpg'"
               :alt="book.title"
-              lazy-src="/placeholder-book-lazy.jpg"
               width="120"
               height="180"
               cover

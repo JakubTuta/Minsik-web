@@ -380,7 +380,6 @@ function getPartStyle(partType: SubtitlePart['type']) {
                           v-if="result.cover_url"
                           :src="result.cover_url"
                           :alt="result.title"
-                          lazy-src="/placeholder-book-lazy.jpg"
                         />
 
                         <v-icon
@@ -480,7 +479,6 @@ function getPartStyle(partType: SubtitlePart['type']) {
                           v-if="result.cover_url"
                           :src="result.cover_url"
                           :alt="result.title"
-                          lazy-src="/placeholder-avatar-lazy.jpg"
                         />
 
                         <v-icon

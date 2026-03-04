@@ -191,7 +191,6 @@ function getResultPath(result: SearchResult) {
               v-if="result.type === 'book'"
               :src="result.cover_url || '/placeholder-book-lazy.jpg'"
               :alt="result.title"
-              lazy-src="/placeholder-book-lazy.jpg"
               aspect-ratio="0.67"
               class="rounded"
               width="110"
@@ -206,7 +205,6 @@ function getResultPath(result: SearchResult) {
               <v-img
                 :src="result.cover_url || '/placeholder-avatar-lazy.jpg'"
                 :alt="result.title"
-                lazy-src="/placeholder-avatar-lazy.jpg"
               />
             </v-avatar>
 

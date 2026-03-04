@@ -44,7 +44,6 @@ const seriesText = computed(() => {
       <v-img
         :src="coverUrl"
         :alt="title"
-        lazy-src="/placeholder-book-lazy.jpg"
         height="320"
         cover
         class="bg-surface-variant"

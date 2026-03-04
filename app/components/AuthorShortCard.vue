@@ -31,7 +31,6 @@ defineProps<Props>()
           <v-img
             :src="author.photo_url"
             :alt="author.name"
-            lazy-src="/placeholder-avatar-lazy.jpg"
           />
         </v-avatar>
 

@@ -65,7 +65,6 @@ const readingTime = computed(() => {
         <v-img
           :src="coverUrl"
           :alt="book.title"
-          lazy-src="/placeholder-book-lazy.jpg"
           aspect-ratio="0.67"
           cover
           class="book-cover-shadow rounded"
@@ -116,7 +115,6 @@ const readingTime = computed(() => {
                     <v-img
                       :src="seriesBook.primary_cover_url || '/placeholder-book.jpg'"
                       :alt="seriesBook.title"
-                      lazy-src="/placeholder-book-lazy.jpg"
                       aspect-ratio="0.67"
                       width="80"
                       cover

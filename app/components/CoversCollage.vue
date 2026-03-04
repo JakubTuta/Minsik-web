@@ -33,7 +33,6 @@ const containerStyle = computed(() => {
       <v-img
         :src="cover"
         :alt="`Book cover ${index + 1}`"
-        lazy-src="/placeholder-book-lazy.jpg"
         aspect-ratio="0.67"
         cover
         class="rounded"

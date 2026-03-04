@@ -168,7 +168,6 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
           <v-img
             :src="photoUrl"
             :alt="author.name"
-            lazy-src="/placeholder-avatar-lazy.jpg"
           />
         </v-avatar>
 
