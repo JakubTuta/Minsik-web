@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { EditFieldConfig } from '~/types/admin'
 import type { Author, Book } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 
@@ -8,6 +9,7 @@ const authorsStore = useAuthorsStore()
 const seriesStore = useSeriesStore()
 const bookPageStore = useBookPageStore()
 const authStore = useAuthStore()
+const adminStore = useAdminStore()
 const recommendationsStore = useRecommendationsStore()
 
 const slug = route.params.slug as string
@@ -99,6 +101,62 @@ function toggleDescription() {
   descriptionExpanded.value = !descriptionExpanded.value
 }
 
+const isAdmin = computed(() => authStore.user?.role === 'admin')
+const editDialogOpen = ref(false)
+const editError = ref('')
+
+const bookEditFields: EditFieldConfig[] = [
+  { key: 'title', label: 'Title', type: 'text' },
+  { key: 'slug', label: 'Slug', type: 'text' },
+  { key: 'description', label: 'Description', type: 'textarea' },
+  { key: 'first_sentence', label: 'First Sentence', type: 'textarea' },
+  { key: 'language', label: 'Language', type: 'text' },
+  { key: 'original_publication_year', label: 'Publication Year', type: 'number' },
+  { key: 'publisher', label: 'Publisher', type: 'text' },
+  { key: 'number_of_pages', label: 'Number of Pages', type: 'number' },
+  { key: 'primary_cover_url', label: 'Cover URL', type: 'text' },
+  { key: 'isbn', label: 'ISBN', type: 'array' },
+  { key: 'formats', label: 'Formats', type: 'array' },
+  { key: 'open_library_id', label: 'Open Library ID', type: 'text' },
+  { key: 'google_books_id', label: 'Google Books ID', type: 'text' },
+  { key: 'series_id', label: 'Series ID', type: 'number' },
+  { key: 'series_position', label: 'Series Position', type: 'text' },
+]
+
+const bookEditOriginalData = computed(() => ({
+  title: book.value?.title ?? null,
+  slug: book.value?.slug ?? null,
+  description: book.value?.description ?? null,
+  first_sentence: book.value?.first_sentence ?? null,
+  language: book.value?.language ?? null,
+  original_publication_year: book.value?.original_publication_year ?? null,
+  publisher: book.value?.publisher ?? null,
+  number_of_pages: book.value?.number_of_pages || null,
+  primary_cover_url: book.value?.primary_cover_url ?? null,
+  isbn: book.value?.isbn ?? [],
+  formats: book.value?.formats ?? [],
+  open_library_id: book.value?.open_library_id ?? null,
+  google_books_id: book.value?.google_books_id ?? null,
+  series_id: book.value?.series ? null : null,
+  series_position: book.value?.series_position ?? null,
+}))
+
+async function handleBookEditSave(editedData: Record<string, any>) {
+  editError.value = ''
+  const result = await adminStore.updateBook(book.value!.book_id, bookEditOriginalData.value, editedData)
+  if (result.success) {
+    editDialogOpen.value = false
+    const newSlug = editedData.slug && editedData.slug !== slug ? editedData.slug : slug
+    await booksStore.fetchBook(newSlug, true)
+    if (newSlug !== slug) {
+      await navigateTo(`/books/${newSlug}`)
+    }
+  }
+  else {
+    editError.value = (result as any).error || 'Update failed'
+  }
+}
+
 onMounted(async () => {
   if (book.value?.authors[0]?.slug) {
     try {
@@ -153,6 +211,33 @@ onUnmounted(() => {
           :series-books="seriesBooks"
           :primary-author="primaryAuthor"
         />
+
+        <ClientOnly>
+          <div
+            v-if="isAdmin"
+            class="d-flex justify-end mt-2"
+          >
+            <v-btn
+              prepend-icon="mdi-pencil"
+              variant="text"
+              size="small"
+              color="secondary"
+              @click="editDialogOpen = true"
+            >
+              Edit Book
+            </v-btn>
+          </div>
+
+          <AdminEditDialog
+            v-model="editDialogOpen"
+            title="Edit Book"
+            :fields="bookEditFields"
+            :original-data="bookEditOriginalData"
+            :loading="adminStore.isUpdateLoading"
+            :error="editError"
+            @save="handleBookEditSave"
+          />
+        </ClientOnly>
 
         <!-- Description -->
         <v-card class="mt-4">

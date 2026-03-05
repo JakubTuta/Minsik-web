@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import type { EditFieldConfig } from '~/types/admin'
+
 const route = useRoute()
 const seriesStore = useSeriesStore()
 const authorsStore = useAuthorsStore()
+const authStore = useAuthStore()
+const adminStore = useAdminStore()
 
 const slug = route.params.slug as string
 
@@ -90,6 +94,40 @@ function toggleStatistics() {
   statisticsExpanded.value = !statisticsExpanded.value
 }
 
+const isAdmin = computed(() => authStore.user?.role === 'admin')
+const editDialogOpen = ref(false)
+const editError = ref('')
+
+const seriesEditFields: EditFieldConfig[] = [
+  { key: 'name', label: 'Name', type: 'text' },
+  { key: 'slug', label: 'Slug', type: 'text' },
+  { key: 'description', label: 'Description', type: 'textarea' },
+  { key: 'total_books', label: 'Total Books', type: 'number' },
+]
+
+const seriesEditOriginalData = computed(() => ({
+  name: series.value?.name ?? null,
+  slug: series.value?.slug ?? null,
+  description: series.value?.description ?? null,
+  total_books: series.value?.total_books ?? null,
+}))
+
+async function handleSeriesEditSave(editedData: Record<string, any>) {
+  editError.value = ''
+  const result = await adminStore.updateSeries(series.value!.series_id, seriesEditOriginalData.value, editedData)
+  if (result.success) {
+    editDialogOpen.value = false
+    const newSlug = editedData.slug && editedData.slug !== slug ? editedData.slug : slug
+    await seriesStore.fetchSeries(newSlug, true)
+    if (newSlug !== slug) {
+      await navigateTo(`/series/${newSlug}`)
+    }
+  }
+  else {
+    editError.value = (result as any).error || 'Update failed'
+  }
+}
+
 // Get book covers for collage (max 4)
 const collageCovers = computed(() => {
   if (!books.value || books.value.length === 0)
@@ -140,9 +178,34 @@ const seriesCategories = computed(() => {
                     Book Series
                   </div>
 
-                  <h1 class="text-h4 font-weight-bold mb-4">
-                    {{ series.name }}
-                  </h1>
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <h1 class="text-h4 font-weight-bold">
+                      {{ series.name }}
+                    </h1>
+
+                    <ClientOnly>
+                      <v-btn
+                        v-if="isAdmin"
+                        icon="mdi-pencil"
+                        variant="text"
+                        size="small"
+                        color="secondary"
+                        @click="editDialogOpen = true"
+                      />
+                    </ClientOnly>
+                  </div>
+
+                  <ClientOnly>
+                    <AdminEditDialog
+                      v-model="editDialogOpen"
+                      title="Edit Series"
+                      :fields="seriesEditFields"
+                      :original-data="seriesEditOriginalData"
+                      :loading="adminStore.isUpdateLoading"
+                      :error="editError"
+                      @save="handleSeriesEditSave"
+                    />
+                  </ClientOnly>
 
                   <!-- Rating -->
                   <div class="text-caption text-secondary mb-1">

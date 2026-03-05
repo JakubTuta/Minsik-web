@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { EditFieldConfig } from '~/types/admin'
 import type { Book } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 import { formatDisplayDate } from '~/utils/format'
@@ -7,6 +8,7 @@ const route = useRoute()
 const authorsStore = useAuthorsStore()
 const recommendationsStore = useRecommendationsStore()
 const authStore = useAuthStore()
+const adminStore = useAdminStore()
 
 const slug = route.params.slug as string
 
@@ -169,6 +171,56 @@ const olReaders = computed(() => (author.value?.ol_want_to_read_count ?? 0)
 
 const totalReaders = computed(() => appReaders.value + olReaders.value)
 
+const isAdmin = computed(() => authStore.user?.role === 'admin')
+const editDialogOpen = ref(false)
+const editError = ref('')
+
+const authorEditFields: EditFieldConfig[] = [
+  { key: 'name', label: 'Name', type: 'text' },
+  { key: 'slug', label: 'Slug', type: 'text' },
+  { key: 'bio', label: 'Biography', type: 'textarea' },
+  { key: 'birth_date', label: 'Birth Date (YYYY-MM-DD)', type: 'text' },
+  { key: 'death_date', label: 'Death Date (YYYY-MM-DD)', type: 'text' },
+  { key: 'birth_place', label: 'Birth Place', type: 'text' },
+  { key: 'nationality', label: 'Nationality', type: 'text' },
+  { key: 'photo_url', label: 'Photo URL', type: 'text' },
+  { key: 'wikipedia_url', label: 'Wikipedia URL', type: 'text' },
+  { key: 'wikidata_id', label: 'Wikidata ID', type: 'text' },
+  { key: 'open_library_id', label: 'Open Library ID', type: 'text' },
+  { key: 'alternate_names', label: 'Alternate Names', type: 'array' },
+]
+
+const authorEditOriginalData = computed(() => ({
+  name: author.value?.name ?? null,
+  slug: author.value?.slug ?? null,
+  bio: author.value?.bio ?? null,
+  birth_date: author.value?.birth_date ?? null,
+  death_date: author.value?.death_date ?? null,
+  birth_place: author.value?.birth_place ?? null,
+  nationality: author.value?.nationality ?? null,
+  photo_url: author.value?.photo_url ?? null,
+  wikipedia_url: author.value?.wikipedia_url ?? null,
+  wikidata_id: author.value?.wikidata_id ?? null,
+  open_library_id: author.value?.open_library_id ?? null,
+  alternate_names: author.value?.alternate_names ?? [],
+}))
+
+async function handleAuthorEditSave(editedData: Record<string, any>) {
+  editError.value = ''
+  const result = await adminStore.updateAuthor(author.value!.author_id, authorEditOriginalData.value, editedData)
+  if (result.success) {
+    editDialogOpen.value = false
+    const newSlug = editedData.slug && editedData.slug !== slug ? editedData.slug : slug
+    await authorsStore.fetchAuthor(newSlug, true)
+    if (newSlug !== slug) {
+      await navigateTo(`/authors/${newSlug}`)
+    }
+  }
+  else {
+    editError.value = (result as any).error || 'Update failed'
+  }
+}
+
 const authorRecommendations = ref<RecommendationSection[]>([])
 const personalizedAuthorRecs = ref<RecommendationSection[]>([])
 
@@ -211,6 +263,30 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
         <h1 class="text-h3 font-weight-bold">
           {{ author.name }}
         </h1>
+
+        <ClientOnly>
+          <v-btn
+            v-if="isAdmin"
+            prepend-icon="mdi-pencil"
+            variant="text"
+            size="small"
+            color="secondary"
+            class="mt-2"
+            @click="editDialogOpen = true"
+          >
+            Edit Author
+          </v-btn>
+
+          <AdminEditDialog
+            v-model="editDialogOpen"
+            title="Edit Author"
+            :fields="authorEditFields"
+            :original-data="authorEditOriginalData"
+            :loading="adminStore.isUpdateLoading"
+            :error="editError"
+            @save="handleAuthorEditSave"
+          />
+        </ClientOnly>
       </v-col>
     </v-row>
 

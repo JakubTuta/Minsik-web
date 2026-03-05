@@ -2,6 +2,22 @@ import type { CoverageStats, ImportDumpResult, IngestionResult, IngestionSource 
 import type { APIResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
+function getChangedFields(
+  original: Record<string, any>,
+  edited: Record<string, any>,
+  allowedKeys: string[],
+): Record<string, any> {
+  const changes: Record<string, any> = {}
+  for (const key of allowedKeys) {
+    const orig = original[key] ?? null
+    const edit = edited[key] ?? null
+    if (JSON.stringify(orig) !== JSON.stringify(edit)) {
+      changes[key] = edit
+    }
+  }
+  return changes
+}
+
 export const useAdminStore = defineStore('admin', () => {
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
@@ -17,6 +33,7 @@ export const useAdminStore = defineStore('admin', () => {
   const isImportLoading = ref(false)
 
   const errors = ref<Record<string, string>>({})
+  const isUpdateLoading = ref(false)
 
   const fetchCoverage = async () => {
     isCoverageLoading.value = true
@@ -93,6 +110,75 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
+  const updateBook = async (bookId: number, original: Record<string, any>, edited: Record<string, any>) => {
+    const allowedKeys = [
+      'title', 'slug', 'description', 'first_sentence', 'language',
+      'original_publication_year', 'primary_cover_url', 'formats', 'isbn',
+      'publisher', 'number_of_pages', 'external_ids', 'open_library_id',
+      'google_books_id', 'series_id', 'series_position',
+    ]
+    const changes = getChangedFields(original, edited, allowedKeys)
+    if (Object.keys(changes).length === 0)
+      return { success: true, noChanges: true }
+
+    isUpdateLoading.value = true
+    try {
+      await client.value.patch(`/api/v1/admin/books/${bookId}`, changes)
+      return { success: true }
+    }
+    catch (error: any) {
+      const msg = error.response?.data?.error?.message || 'Failed to update book'
+      return { success: false, error: msg }
+    }
+    finally {
+      isUpdateLoading.value = false
+    }
+  }
+
+  const updateAuthor = async (authorId: number, original: Record<string, any>, edited: Record<string, any>) => {
+    const allowedKeys = [
+      'name', 'slug', 'bio', 'birth_date', 'death_date', 'birth_place',
+      'nationality', 'photo_url', 'wikidata_id', 'wikipedia_url',
+      'remote_ids', 'alternate_names', 'open_library_id',
+    ]
+    const changes = getChangedFields(original, edited, allowedKeys)
+    if (Object.keys(changes).length === 0)
+      return { success: true, noChanges: true }
+
+    isUpdateLoading.value = true
+    try {
+      await client.value.patch(`/api/v1/admin/authors/${authorId}`, changes)
+      return { success: true }
+    }
+    catch (error: any) {
+      const msg = error.response?.data?.error?.message || 'Failed to update author'
+      return { success: false, error: msg }
+    }
+    finally {
+      isUpdateLoading.value = false
+    }
+  }
+
+  const updateSeries = async (seriesId: number, original: Record<string, any>, edited: Record<string, any>) => {
+    const allowedKeys = ['name', 'slug', 'description', 'total_books']
+    const changes = getChangedFields(original, edited, allowedKeys)
+    if (Object.keys(changes).length === 0)
+      return { success: true, noChanges: true }
+
+    isUpdateLoading.value = true
+    try {
+      await client.value.patch(`/api/v1/admin/series/${seriesId}`, changes)
+      return { success: true }
+    }
+    catch (error: any) {
+      const msg = error.response?.data?.error?.message || 'Failed to update series'
+      return { success: false, error: msg }
+    }
+    finally {
+      isUpdateLoading.value = false
+    }
+  }
+
   return {
     coverage,
     ingestionResult,
@@ -102,10 +188,14 @@ export const useAdminStore = defineStore('admin', () => {
     isIngestionLoading,
     isSearchLoading,
     isImportLoading,
+    isUpdateLoading,
     errors,
     fetchCoverage,
     triggerIngestion,
     searchBooks,
     importDump,
+    updateBook,
+    updateAuthor,
+    updateSeries,
   }
 })
