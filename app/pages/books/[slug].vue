@@ -137,7 +137,9 @@ const bookEditOriginalData = computed(() => ({
   formats: book.value?.formats ?? [],
   open_library_id: book.value?.open_library_id ?? null,
   google_books_id: book.value?.google_books_id ?? null,
-  series_id: book.value?.series ? null : null,
+  series_id: book.value?.series
+    ? null
+    : null,
   series_position: book.value?.series_position ?? null,
 }))
 
@@ -146,7 +148,9 @@ async function handleBookEditSave(editedData: Record<string, any>) {
   const result = await adminStore.updateBook(book.value!.book_id, bookEditOriginalData.value, editedData)
   if (result.success) {
     editDialogOpen.value = false
-    const newSlug = editedData.slug && editedData.slug !== slug ? editedData.slug : slug
+    const newSlug = editedData.slug && editedData.slug !== slug
+      ? editedData.slug
+      : slug
     await booksStore.fetchBook(newSlug, true)
     if (newSlug !== slug) {
       await navigateTo(`/books/${newSlug}`)
@@ -215,7 +219,7 @@ onUnmounted(() => {
         <ClientOnly>
           <div
             v-if="isAdmin"
-            class="d-flex justify-end mt-2"
+            class="d-flex mt-2 justify-end"
           >
             <v-btn
               prepend-icon="mdi-pencil"
@@ -327,7 +331,7 @@ onUnmounted(() => {
           class="bg-surface-variant rounded"
           />
 
-          <div class="text-caption text-secondary mt-2 text-center">
+          <div class="text-secondary mt-2 text-center">
           {{ cover.size }} ({{ cover.width }}px)
           </div>
           </v-card>

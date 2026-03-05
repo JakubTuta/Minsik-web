@@ -30,7 +30,7 @@ defineProps<Props>()
 
       <div
         v-if="book.author_names.length > 0"
-        class="text-caption text-medium-emphasis line-clamp-1 mt-1"
+        class="text-medium-emphasis line-clamp-1 mt-1"
       >
         <template
           v-for="(name, i) in book.author_names.slice(0, 2)"

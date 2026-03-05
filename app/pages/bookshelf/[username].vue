@@ -67,7 +67,7 @@ useInfiniteScroll(
           @{{ username }}
         </div>
 
-        <div class="text-caption text-medium-emphasis">
+        <div class="text-subtitle-1">
           Public Bookshelf
         </div>
       </div>
@@ -95,6 +95,7 @@ useInfiniteScroll(
             v-for="entry in filteredItems"
             :key="entry.book_id"
             :entry="entry"
+            is-public-profile
           />
         </div>
 

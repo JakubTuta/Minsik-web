@@ -104,7 +104,7 @@ useInfiniteScroll(
             No comments yet
           </div>
 
-          <div class="text-caption text-secondary mt-2">
+          <div class="text-secondary mt-2">
             Comment on books while browsing to see them here
           </div>
         </div>

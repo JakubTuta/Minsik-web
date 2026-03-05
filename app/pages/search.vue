@@ -78,7 +78,10 @@ useInfiniteScroll(
 useSeo({
   title: computed(() => {
     const q = (route.query.q as string) || searchStore.query
-    return q ? `Search: ${q}` : 'Search'
+
+    return q
+      ? `Search: ${q}`
+      : 'Search'
   }),
   description: 'Search for books, authors, and series on Minsik.',
 })
@@ -251,7 +254,7 @@ function getResultPath(result: SearchResult) {
             </div>
 
             <!-- Books count row: shown for author/series, empty for book -->
-            <div class="result-row-secondary text-caption text-secondary">
+            <div class="result-row-secondary text-secondary">
               <template v-if="result.type !== 'book'">
                 {{ result.book_count }} {{ result.book_count === 1
                   ? 'book'
@@ -314,7 +317,7 @@ function getResultPath(result: SearchResult) {
           No results found for "{{ searchStore.query }}"
         </div>
 
-        <div class="text-caption text-secondary mt-2">
+        <div class="text-secondary mt-2">
           Try different keywords or filters
         </div>
       </v-col>

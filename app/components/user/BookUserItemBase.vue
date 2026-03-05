@@ -49,7 +49,7 @@ defineProps<Props>()
             </NuxtLink>
 
             <!-- Authors -->
-            <div class="text-caption text-medium-emphasis text-truncate">
+            <div class="text-medium-emphasis text-truncate">
               <span
                 v-if="authorNames.length > 0"
                 class="text-body-1"

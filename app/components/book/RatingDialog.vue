@@ -167,9 +167,9 @@ async function handleDelete() {
           </div>
 
           <div class="d-flex justify-space-between mt-3">
-            <span class="text-caption text-medium-emphasis">Poor</span>
+            <span class="text-medium-emphasis">Poor</span>
 
-            <span class="text-caption text-medium-emphasis">Excellent</span>
+            <span class="text-medium-emphasis">Excellent</span>
           </div>
         </div>
 
@@ -221,11 +221,11 @@ async function handleDelete() {
             </div>
 
             <div class="d-flex justify-space-between mt-2">
-              <span class="text-caption text-medium-emphasis">
+              <span class="text-medium-emphasis">
                 {{ dim.lowLabel }}
               </span>
 
-              <span class="text-caption text-medium-emphasis">
+              <span class="text-medium-emphasis">
                 {{ dim.highLabel }}
               </span>
             </div>

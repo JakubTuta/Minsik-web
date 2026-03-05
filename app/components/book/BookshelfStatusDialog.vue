@@ -10,15 +10,18 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'saved': []
 }>()
 
+const { currentStatus } = toRefs(props)
+
 const bookPageStore = useBookPageStore()
 const { bookshelfStatus } = storeToRefs(bookPageStore)
 
-const selectedStatus = ref<BookshelfStatus | null>(props.currentStatus)
+const selectedStatus = ref<BookshelfStatus | null>(currentStatus.value)
 const saving = ref(false)
 const removing = ref(false)
 

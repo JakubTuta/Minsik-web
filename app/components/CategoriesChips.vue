@@ -22,9 +22,9 @@ const hasMore = computed(() => props.categories.length > props.maxVisible)
 
 <template>
   <div v-if="categories.length > 0">
-    <h3 class="text-caption text-secondary mb-2">
+    <div class="text-secondary mb-2">
       Categories
-    </h3>
+    </div>
 
     <div class="d-flex flex-wrap gap-2">
       <v-chip

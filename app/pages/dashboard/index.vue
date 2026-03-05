@@ -98,7 +98,7 @@ onMounted(() => {
               {{ authStore.user?.display_name || authStore.user?.username }}
             </div>
 
-            <div class="text-caption text-secondary">
+            <div class="text-secondary">
               @{{ authStore.user?.username }}
             </div>
           </div>

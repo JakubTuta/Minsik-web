@@ -78,7 +78,7 @@ const seriesText = computed(() => {
 
         <div
           v-if="seriesText"
-          class="text-caption text-info mb-2"
+          class="text-info mb-2"
         >
           {{ seriesText }}
         </div>
@@ -97,7 +97,7 @@ const seriesText = computed(() => {
 
           <span
             v-if="book.rating_count"
-            class="text-caption text-secondary"
+            class="text-secondary"
           >
             ({{ book.rating_count }})
           </span>

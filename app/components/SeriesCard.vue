@@ -8,7 +8,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   series: undefined,
-  loading: false,
 })
 
 const seriesLink = computed(() => (props.series

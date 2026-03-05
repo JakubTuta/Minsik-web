@@ -64,7 +64,7 @@ onMounted(() => {
           Admin Panel
         </h1>
 
-        <p class="text-caption text-secondary mb-0">
+        <p class="text-secondary mb-0">
           Manage book ingestion and database operations
         </p>
       </div>
@@ -126,7 +126,7 @@ onMounted(() => {
                     {{ adminStore.coverage.db_books_count.toLocaleString() }}
                   </div>
 
-                  <div class="text-caption text-secondary">
+                  <div class="text-secondary">
                     Books in Database
                   </div>
                 </v-card>
@@ -146,7 +146,7 @@ onMounted(() => {
                     {{ adminStore.coverage.db_authors_count.toLocaleString() }}
                   </div>
 
-                  <div class="text-caption text-secondary">
+                  <div class="text-secondary">
                     Authors
                   </div>
                 </v-card>
@@ -166,7 +166,7 @@ onMounted(() => {
                     {{ adminStore.coverage.db_series_count.toLocaleString() }}
                   </div>
 
-                  <div class="text-caption text-secondary">
+                  <div class="text-secondary">
                     Series
                   </div>
                 </v-card>
@@ -205,7 +205,7 @@ onMounted(() => {
                 class="mb-2"
               />
 
-              <div class="text-caption text-secondary">
+              <div class="text-secondary">
                 {{ (adminStore.coverage.coverage_percent * 100).toFixed(2) }}% of {{ adminStore.coverage.ol_english_total.toLocaleString() }} Open Library English books
               </div>
             </div>
@@ -319,7 +319,7 @@ onMounted(() => {
                 cols="12"
                 sm="6"
               >
-                <div class="text-caption text-secondary">
+                <div class="text-secondary">
                   Job ID
                 </div>
 
@@ -332,7 +332,7 @@ onMounted(() => {
                 cols="12"
                 sm="6"
               >
-                <div class="text-caption text-secondary">
+                <div class="text-secondary">
                   Status
                 </div>
 
@@ -359,7 +359,7 @@ onMounted(() => {
                     {{ adminStore.ingestionResult.total_books }}
                   </div>
 
-                  <div class="text-caption text-secondary">
+                  <div class="text-secondary">
                     Total
                   </div>
                 </v-card>
@@ -378,7 +378,7 @@ onMounted(() => {
                     {{ adminStore.ingestionResult.processed }}
                   </div>
 
-                  <div class="text-caption text-secondary">
+                  <div class="text-secondary">
                     Processed
                   </div>
                 </v-card>
@@ -397,7 +397,7 @@ onMounted(() => {
                     {{ adminStore.ingestionResult.successful }}
                   </div>
 
-                  <div class="text-caption text-secondary">
+                  <div class="text-secondary">
                     Successful
                   </div>
                 </v-card>
@@ -416,7 +416,7 @@ onMounted(() => {
                     {{ adminStore.ingestionResult.failed }}
                   </div>
 
-                  <div class="text-caption text-secondary">
+                  <div class="text-secondary">
                     Failed
                   </div>
                 </v-card>
@@ -537,7 +537,7 @@ onMounted(() => {
                 <v-list-item-subtitle>
                   <div>{{ book.authors?.join(', ') || 'Unknown author' }}</div>
 
-                  <div class="text-caption">
+                  <div class="">
                     {{ book.source || 'Unknown source' }} • ID: {{ book.id }}
                   </div>
                 </v-list-item-subtitle>

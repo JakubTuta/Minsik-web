@@ -11,10 +11,9 @@ const props = defineProps<Props>()
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
-const itemCount = computed(() =>
-  props.category.item_type === 'author'
-    ? (props.category.author_items?.length ?? 0)
-    : (props.category.book_items?.length ?? 0),
+const itemCount = computed(() => (props.category.item_type === 'author'
+  ? (props.category.author_items?.length ?? 0)
+  : (props.category.book_items?.length ?? 0)),
 )
 
 function scroll(direction: 'left' | 'right') {

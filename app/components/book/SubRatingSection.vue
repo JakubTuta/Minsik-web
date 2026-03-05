@@ -228,12 +228,12 @@ const chartOptions = computed(() => ({
                 {{ getAvg(dim.key).toFixed(1) }}
               </span>
 
-              <span class="text-caption font-weight-medium">
+              <span class="font-weight-medium">
                 {{ dim.label }}
               </span>
             </div>
 
-            <div class="text-caption text-medium-emphasis font-italic">
+            <div class="text-medium-emphasis font-italic">
               {{ getDescription(dim) }}
             </div>
           </div>

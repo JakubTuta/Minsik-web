@@ -71,14 +71,14 @@ const isInvalid = computed(() => model.value && passwordRules.some(rule => rule(
         variant="outlined"
         class="pa-3"
       >
-        <div class="text-caption font-weight-medium mb-2">
+        <div class="font-weight-medium mb-2">
           Password requirements:
         </div>
 
         <div
           v-for="(req, index) in passwordRequirements"
           :key="index"
-          class="d-flex align-center text-caption mb-1"
+          class="d-flex align-center mb-1"
         >
           <v-icon
             :color="req.test(model)

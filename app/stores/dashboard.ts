@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia'
 import type { APIResponse } from '~/types/api'
 import type { UserStats } from '~/types/user'
+import { defineStore } from 'pinia'
 
 export const useDashboardStore = defineStore('dashboard', () => {
   const apiStore = useApiStore()

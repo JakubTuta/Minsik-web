@@ -11,7 +11,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false,
   error: '',
 })
 
@@ -32,7 +31,10 @@ function getArrayValue(key: string): string {
   const val = editedData.value[key]
   if (!val)
     return ''
-  return Array.isArray(val) ? val.join(', ') : String(val)
+
+  return Array.isArray(val)
+    ? val.join(', ')
+    : String(val)
 }
 
 function setArrayValue(key: string, value: string) {
@@ -60,6 +62,7 @@ function handleClose() {
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between pa-4">
         <span>{{ title }}</span>
+
         <v-btn
           icon="mdi-close"
           variant="text"
@@ -87,7 +90,9 @@ function handleClose() {
           >
             <v-col
               cols="12"
-              :md="field.type === 'textarea' ? 12 : 6"
+              :md="field.type === 'textarea'
+                ? 12
+                : 6"
             >
               <v-textarea
                 v-if="field.type === 'textarea'"

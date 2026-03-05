@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import type { BookComment } from '~/types/user'
 
-interface Props {
+const props = defineProps<{
   comment: BookComment
   isOwn?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  isOwn: false,
-})
+}>()
 
 const emit = defineEmits<{
   edit: []
@@ -103,6 +99,7 @@ function getSubRatings(comment: BookComment) {
 
 function userInitial(comment: BookComment): string {
   const username = comment.username || comment.user?.username || '?'
+
   return username.charAt(0).toUpperCase()
 }
 
@@ -234,7 +231,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
               <template #activator="{'props': tooltipProps}">
                 <span
                   v-bind="tooltipProps"
-                  class="text-caption text-secondary cursor-pointer"
+                  class="text-secondary cursor-pointer"
                   style="text-decoration: underline dotted;"
                 >
                   Detailed rating
@@ -248,14 +245,14 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
                   class="d-flex align-center gap-2"
                 >
                   <span
-                    class="text-caption font-weight-bold"
+                    class="font-weight-bold"
                     :style="`color: rgb(${s.rgb}); min-width: 28px; text-align: right;`"
                   >
                     {{ s.value.toFixed(1) }}
                   </span>
 
                   <span
-                    class="text-caption"
+                    class=""
                     :style="`color: rgb(${s.rgb})`"
                   >
                     {{ s.label }}
@@ -275,7 +272,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
             <template #activator="{'props': tooltipProps}">
               <span
                 v-bind="tooltipProps"
-                class="text-caption text-medium-emphasis cursor-pointer"
+                class="text-medium-emphasis cursor-pointer"
               >
                 {{ formatDate(comment.comment_created_at).relative }}
               </span>

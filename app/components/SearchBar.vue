@@ -17,11 +17,13 @@ const emit = defineEmits<{
   'search': [query: string]
 }>()
 
+const { modelValue } = toRefs(props)
+
 const router = useRouter()
 const searchStore = useSearchStore()
 const quickSearchStore = useQuickSearchStore()
 
-const localQuery = ref(props.modelValue)
+const localQuery = ref(modelValue.value)
 const showResults = ref(false)
 const searchFieldRef = ref()
 const resultsCardRef = ref()
@@ -322,7 +324,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
             color="primary"
           />
 
-          <div class="text-caption text-secondary mt-2 text-center">
+          <div class="text-secondary mt-2 text-center">
             Searching...
           </div>
         </v-card-text>
@@ -356,7 +358,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
               :md="columnWidth"
             >
               <div class="pa-3">
-                <div class="text-caption text-secondary font-weight-bold mb-2">
+                <div class="text-secondary font-weight-bold mb-2">
                   BOOKS
                 </div>
 
@@ -414,7 +416,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
               :md="columnWidth"
             >
               <div class="pa-3">
-                <div class="text-caption text-secondary font-weight-bold mb-2">
+                <div class="text-secondary font-weight-bold mb-2">
                   SERIES
                 </div>
 
@@ -458,7 +460,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
               :md="columnWidth"
             >
               <div class="pa-3">
-                <div class="text-caption text-secondary font-weight-bold mb-2">
+                <div class="text-secondary font-weight-bold mb-2">
                   AUTHORS
                 </div>
 

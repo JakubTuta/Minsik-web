@@ -10,9 +10,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false,
   emptyMessage: 'No books found.',
-  hasMore: false,
 })
 
 const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)

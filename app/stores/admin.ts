@@ -15,6 +15,7 @@ function getChangedFields(
       changes[key] = edit
     }
   }
+
   return changes
 }
 
@@ -112,10 +113,22 @@ export const useAdminStore = defineStore('admin', () => {
 
   const updateBook = async (bookId: number, original: Record<string, any>, edited: Record<string, any>) => {
     const allowedKeys = [
-      'title', 'slug', 'description', 'first_sentence', 'language',
-      'original_publication_year', 'primary_cover_url', 'formats', 'isbn',
-      'publisher', 'number_of_pages', 'external_ids', 'open_library_id',
-      'google_books_id', 'series_id', 'series_position',
+      'title',
+      'slug',
+      'description',
+      'first_sentence',
+      'language',
+      'original_publication_year',
+      'primary_cover_url',
+      'formats',
+      'isbn',
+      'publisher',
+      'number_of_pages',
+      'external_ids',
+      'open_library_id',
+      'google_books_id',
+      'series_id',
+      'series_position',
     ]
     const changes = getChangedFields(original, edited, allowedKeys)
     if (Object.keys(changes).length === 0)
@@ -124,10 +137,12 @@ export const useAdminStore = defineStore('admin', () => {
     isUpdateLoading.value = true
     try {
       await client.value.patch(`/api/v1/admin/books/${bookId}`, changes)
+
       return { success: true }
     }
     catch (error: any) {
       const msg = error.response?.data?.error?.message || 'Failed to update book'
+
       return { success: false, error: msg }
     }
     finally {
@@ -137,9 +152,19 @@ export const useAdminStore = defineStore('admin', () => {
 
   const updateAuthor = async (authorId: number, original: Record<string, any>, edited: Record<string, any>) => {
     const allowedKeys = [
-      'name', 'slug', 'bio', 'birth_date', 'death_date', 'birth_place',
-      'nationality', 'photo_url', 'wikidata_id', 'wikipedia_url',
-      'remote_ids', 'alternate_names', 'open_library_id',
+      'name',
+      'slug',
+      'bio',
+      'birth_date',
+      'death_date',
+      'birth_place',
+      'nationality',
+      'photo_url',
+      'wikidata_id',
+      'wikipedia_url',
+      'remote_ids',
+      'alternate_names',
+      'open_library_id',
     ]
     const changes = getChangedFields(original, edited, allowedKeys)
     if (Object.keys(changes).length === 0)
@@ -148,10 +173,12 @@ export const useAdminStore = defineStore('admin', () => {
     isUpdateLoading.value = true
     try {
       await client.value.patch(`/api/v1/admin/authors/${authorId}`, changes)
+
       return { success: true }
     }
     catch (error: any) {
       const msg = error.response?.data?.error?.message || 'Failed to update author'
+
       return { success: false, error: msg }
     }
     finally {
@@ -168,10 +195,12 @@ export const useAdminStore = defineStore('admin', () => {
     isUpdateLoading.value = true
     try {
       await client.value.patch(`/api/v1/admin/series/${seriesId}`, changes)
+
       return { success: true }
     }
     catch (error: any) {
       const msg = error.response?.data?.error?.message || 'Failed to update series'
+
       return { success: false, error: msg }
     }
     finally {

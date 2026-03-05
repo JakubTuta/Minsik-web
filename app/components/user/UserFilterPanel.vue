@@ -19,8 +19,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showStatusFilter: false,
-  showRatingFilter: false,
   status: null,
   selectedRatings: () => [],
   ratingCounts: () => ({}),
@@ -81,7 +79,7 @@ function starLabel(star: number): string {
     />
 
     <!-- Sort By -->
-    <div class="text-caption text-medium-emphasis font-weight-bold text-uppercase mb-2">
+    <div class="text-medium-emphasis font-weight-bold text-uppercase mb-2">
       Sort By
     </div>
 
@@ -128,7 +126,7 @@ function starLabel(star: number): string {
     <template v-if="showStatusFilter">
       <v-divider class="my-4" />
 
-      <div class="text-caption text-medium-emphasis font-weight-bold text-uppercase mb-3">
+      <div class="text-medium-emphasis font-weight-bold text-uppercase mb-3">
         Reading Status
       </div>
 
@@ -168,7 +166,7 @@ function starLabel(star: number): string {
     <template v-if="showRatingFilter">
       <v-divider class="my-4" />
 
-      <div class="text-caption text-medium-emphasis font-weight-bold text-uppercase mb-2">
+      <div class="text-medium-emphasis font-weight-bold text-uppercase mb-2">
         Filter by Rating
       </div>
 

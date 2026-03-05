@@ -3,7 +3,10 @@ import type { BookshelfEntry, BookshelfStatus } from '~/types/user'
 
 const props = defineProps<{
   entry: BookshelfEntry
+  isPublicProfile: boolean
 }>()
+
+const { isPublicProfile } = toRefs(props)
 
 const bookshelfStore = useBookshelfStore()
 
@@ -43,7 +46,9 @@ async function handleRemove() {
         :prepend-icon="status.icon"
         size="small"
         variant="elevated"
-        @click="dialogOpen = true"
+        @click="isPublicProfile
+          ? null
+          : dialogOpen = true"
       >
         {{ status.label }}
       </v-btn>

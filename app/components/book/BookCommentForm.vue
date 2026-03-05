@@ -15,10 +15,12 @@ const emit = defineEmits<{
   cancelled: []
 }>()
 
+const { existingComment } = toRefs(props)
+
 const bookPageStore = useBookPageStore()
 
-const body = ref(props.existingComment?.body ?? '')
-const isSpoiler = ref(props.existingComment?.is_spoiler ?? false)
+const body = ref(existingComment.value?.body ?? '')
+const isSpoiler = ref(existingComment.value?.is_spoiler ?? false)
 const saving = ref(false)
 const error = ref('')
 

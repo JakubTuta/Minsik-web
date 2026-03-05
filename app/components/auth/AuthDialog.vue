@@ -186,14 +186,14 @@ function signInWithGoogle() {
                 variant="outlined"
                 class="pa-3"
               >
-                <div class="text-caption font-weight-medium mb-2">
+                <div class="font-weight-medium mb-2">
                   Username requirements:
                 </div>
 
                 <div
                   v-for="(req, index) in usernameRequirements"
                   :key="index"
-                  class="d-flex align-center text-caption mb-1"
+                  class="d-flex align-center mb-1"
                 >
                   <v-icon
                     :color="req.test(username)
@@ -276,7 +276,7 @@ function signInWithGoogle() {
           <div class="d-flex align-center my-4 gap-3">
             <v-divider />
 
-            <span class="text-caption text-medium-emphasis text-no-wrap">or continue with</span>
+            <span class="text-medium-emphasis text-no-wrap">or continue with</span>
 
             <v-divider />
           </div>

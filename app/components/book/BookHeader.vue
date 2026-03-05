@@ -102,7 +102,7 @@ const readingTime = computed(() => {
               <!-- Series Books Horizontal Scroll -->
               <div
                 v-if="seriesBooks.length > 0"
-                class="d-flex gap-3 series-scroll"
+                class="d-flex series-scroll gap-3"
               >
                 <NuxtLink
                   v-for="seriesBook in seriesBooks"
@@ -119,7 +119,7 @@ const readingTime = computed(() => {
                       width="80"
                       cover
                       class="rounded"
-                      :class="{'opacity-50': seriesBook.book_id === book.book_id}"
+                      :class="{'opacity-75': seriesBook.book_id === book.book_id}"
                     />
 
                     <!-- Series Position Badge -->
@@ -128,14 +128,14 @@ const readingTime = computed(() => {
                       :content="`#${seriesBook.series_position}`"
                       color="primary"
                       class="position-absolute"
-                      style="top: 4px; left: 4px;"
+                      style="top: 10px; left: 15px;"
                     />
 
                     <!-- Current Book Indicator -->
                     <div
                       v-if="seriesBook.book_id === book.book_id"
                       class="d-flex align-center position-absolute h-100 w-100 justify-center"
-                      style="top: 0; left: 0; background-color: rgba(0, 0, 0, 0.3);"
+                      style="top: 0; left: 0; background-color: rgba(0, 0, 0, 0.2);"
                     >
                       <v-icon
                         icon="mdi-eye"
@@ -145,7 +145,7 @@ const readingTime = computed(() => {
                     </div>
                   </div>
 
-                  <div class="text-caption mt-1 text-truncate">
+                  <div class="font-weight-thin text-decoration-none line-clamp-2 mt-1 text-center text-black">
                     {{ seriesBook.title }}
                   </div>
                 </NuxtLink>
@@ -153,7 +153,7 @@ const readingTime = computed(() => {
             </div>
 
             <!-- Rating -->
-            <div class="text-caption text-secondary mb-1 mt-5">
+            <div class="text-secondary mb-1 mt-6">
               Minsik users reviews
             </div>
 
@@ -163,8 +163,8 @@ const readingTime = computed(() => {
             />
 
             <!-- Other Platform Ratings -->
-            <div class="mt-5">
-              <div class="text-caption text-secondary mb-1">
+            <div class="mt-4">
+              <div class="text-secondary mb-1">
                 Other platforms reviews
               </div>
 
@@ -178,9 +178,9 @@ const readingTime = computed(() => {
             <!-- First Sentence -->
             <div
               v-if="book.first_sentence"
-              class="mb-4 mt-5"
+              class="mt-6"
             >
-              <div class="text-caption text-secondary mb-1">
+              <div class="text-secondary mb-1">
                 First Sentence
               </div>
 
@@ -194,7 +194,7 @@ const readingTime = computed(() => {
 
             <!-- Categories -->
             <CategoriesChips
-              class="mt-5"
+              class="mt-6"
               :categories="book.genres.map(e => e.name)"
             />
 
@@ -202,14 +202,14 @@ const readingTime = computed(() => {
             <ClientOnly>
               <BookActions
                 :slug="slug"
-                class="mt-5"
+                class="mt-6"
               />
             </ClientOnly>
 
             <!-- Pages & Reading Time -->
             <div
               v-if="book.number_of_pages > 0"
-              class="d-flex align-center mt-5 gap-4"
+              class="d-flex align-center mt-6 gap-4"
             >
               <div class="d-flex align-center text-body-2 text-medium-emphasis gap-1">
                 <v-icon
@@ -242,7 +242,7 @@ const readingTime = computed(() => {
           </div>
 
           <!-- Details / Statistics Toggles -->
-          <div class="mt-auto pt-3">
+          <div class="pt-4">
             <div class="d-flex gap-2">
               <v-btn
                 variant="text"
@@ -310,7 +310,7 @@ const readingTime = computed(() => {
                   v-if="book.isbn && book.isbn.length > 0"
                   class="mt-3"
                 >
-                  <div class="text-caption text-secondary font-weight-bold mb-1">
+                  <div class="text-secondary font-weight-bold mb-1">
                     ISBN
                   </div>
 
@@ -324,7 +324,7 @@ const readingTime = computed(() => {
                   v-if="book.formats && book.formats.length > 0"
                   class="mt-3"
                 >
-                  <div class="text-caption text-secondary font-weight-bold mb-1">
+                  <div class="text-secondary font-weight-bold mb-1">
                     Editions
                   </div>
 
@@ -356,7 +356,7 @@ const readingTime = computed(() => {
                 </div>
 
                 <!-- Bookshelf Stats -->
-                <div class="mt-3 text-body-2">
+                <div class="text-body-2 mt-3">
                   <div>Minsik want to read: {{ book.app_want_to_read_count.toLocaleString() }}</div>
 
                   <div>Minsik reading: {{ book.app_reading_count.toLocaleString() }}</div>

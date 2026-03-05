@@ -33,7 +33,7 @@ defineProps<Props>()
         {{ author.name }}
       </NuxtLink>
 
-      <div class="text-caption text-medium-emphasis mt-1">
+      <div class="text-medium-emphasis mt-1">
         {{ author.book_count }} {{ author.book_count === 1
           ? 'book'
           : 'books' }}

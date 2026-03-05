@@ -9,7 +9,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   author: undefined,
-  loading: false,
   variant: 'default',
 })
 

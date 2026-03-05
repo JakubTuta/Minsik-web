@@ -117,7 +117,9 @@ async function handleSeriesEditSave(editedData: Record<string, any>) {
   const result = await adminStore.updateSeries(series.value!.series_id, seriesEditOriginalData.value, editedData)
   if (result.success) {
     editDialogOpen.value = false
-    const newSlug = editedData.slug && editedData.slug !== slug ? editedData.slug : slug
+    const newSlug = editedData.slug && editedData.slug !== slug
+      ? editedData.slug
+      : slug
     await seriesStore.fetchSeries(newSlug, true)
     if (newSlug !== slug) {
       await navigateTo(`/series/${newSlug}`)
@@ -178,7 +180,7 @@ const seriesCategories = computed(() => {
                     Book Series
                   </div>
 
-                  <div class="d-flex align-center justify-space-between mb-4">
+                  <div class="d-flex align-center justify-space-between">
                     <h1 class="text-h4 font-weight-bold">
                       {{ series.name }}
                     </h1>
@@ -208,56 +210,44 @@ const seriesCategories = computed(() => {
                   </ClientOnly>
 
                   <!-- Rating -->
-                  <div class="text-caption text-secondary mb-1">
+                  <div class="text-secondary mb-1 mt-6">
                     Minsik users reviews
                   </div>
 
                   <RatingDisplay
                     :rating="seriesAvgRating"
                     :rating-count="seriesTotalRatings"
-                    class="mb-4"
                   />
 
                   <!-- Other Platform Ratings -->
-                  <div class="mb-4">
-                    <div class="text-caption text-secondary mb-1">
-                      Other platforms reviews
-                    </div>
-
-                    <RatingDisplay
-                      :rating="Number(series.ol_avg_rating)"
-                      :rating-count="series.ol_rating_count"
-                      size="small"
-                    />
+                  <div class="text-secondary mb-1 mt-4">
+                    Other platforms reviews
                   </div>
 
-                  <v-divider class="mb-4" />
+                  <RatingDisplay
+                    :rating="Number(series.ol_avg_rating)"
+                    :rating-count="series.ol_rating_count"
+                    size="small"
+                  />
 
                   <!-- Metadata -->
-                  <v-list
-                    density="compact"
-                    class="bg-transparent"
-                  >
-                    <v-list-item>
-                      <template #prepend>
-                        <v-icon icon="mdi-book-multiple" />
-                      </template>
+                  <div class="mt-6">
+                    <v-icon icon="mdi-book-multiple" />
 
-                      <v-list-item-title>
-                        {{ series.total_books }} {{ series.total_books === 1
-                          ? 'book'
-                          : 'books' }}
-                      </v-list-item-title>
-                    </v-list-item>
-
-                  </v-list>
+                    {{ series.total_books }} {{ series.total_books === 1
+                      ? 'book'
+                      : 'books' }}
+                  </div>
 
                   <!-- Categories -->
-                  <CategoriesChips :categories="seriesCategories" />
+                  <CategoriesChips
+                    :categories="seriesCategories"
+                    class="mt-6"
+                  />
                 </div>
 
                 <!-- Statistics Toggle at bottom -->
-                <div class="mt-auto pt-3">
+                <div class="pt-4">
                   <v-btn
                     variant="text"
                     color="secondary"
@@ -274,7 +264,7 @@ const seriesCategories = computed(() => {
 
                   <v-expand-transition>
                     <div v-show="statisticsExpanded">
-                      <div class="mt-2 text-body-2">
+                      <div class="text-body-2 mt-2">
                         <div>Minsik want to read: {{ (series.app_want_to_read_count ?? 0).toLocaleString() }}</div>
 
                         <div>Minsik reading: {{ (series.app_reading_count ?? 0).toLocaleString() }}</div>

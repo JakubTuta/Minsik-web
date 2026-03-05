@@ -32,7 +32,7 @@ defineProps<{
         {{ user.display_name || user.username }}
       </div>
 
-      <div class="text-caption text-medium-emphasis">
+      <div class="text-medium-emphasis">
         @{{ user.username }}
       </div>
 

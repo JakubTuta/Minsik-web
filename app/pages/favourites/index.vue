@@ -98,7 +98,7 @@ useInfiniteScroll(
             No favourite books yet
           </div>
 
-          <div class="text-caption text-secondary mt-2">
+          <div class="text-secondary mt-2">
             Mark books as favourites while browsing
           </div>
         </div>

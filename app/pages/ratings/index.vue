@@ -124,7 +124,7 @@ useInfiniteScroll(
             No ratings yet
           </div>
 
-          <div class="text-caption text-secondary mt-2">
+          <div class="text-secondary mt-2">
             Rate books while browsing to see them here
           </div>
         </div>

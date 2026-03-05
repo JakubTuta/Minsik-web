@@ -41,7 +41,7 @@ const isSmall = computed(() => props.size === 'small')
 
     <span
       :class="isSmall
-        ? 'text-caption text-secondary'
+        ? ' text-secondary'
         : 'text-body-1 text-secondary'"
     >
       ({{ ratingCount.toLocaleString() }}{{ mobile

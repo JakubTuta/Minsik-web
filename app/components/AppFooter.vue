@@ -183,7 +183,7 @@ const authDialogStore = useAuthDialogStore()
 
       <v-divider class="my-6" />
 
-      <div class="d-flex align-center ga-4 text-caption text-secondary flex-wrap justify-center">
+      <div class="d-flex align-center ga-4 text-secondary flex-wrap justify-center">
         <span>© {{ new Date().getFullYear() }} Minsik. All rights reserved.</span>
 
         <NuxtLink

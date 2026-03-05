@@ -139,7 +139,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           color="secondary"
           size="32"
         >
-          <span class="text-caption font-weight-bold">{{ userInitials }}</span>
+          <span class="font-weight-bold">{{ userInitials }}</span>
         </v-avatar>
 
         <v-icon
@@ -170,7 +170,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
               size="36"
               class="me-2"
             >
-              <span class="text-caption font-weight-bold">{{ userInitials }}</span>
+              <span class="font-weight-bold">{{ userInitials }}</span>
             </v-avatar>
           </template>
         </v-list-item>

@@ -75,6 +75,7 @@ useInfiniteScroll(
             v-for="entry in filteredItems"
             :key="entry.book_id"
             :entry="entry"
+            :is-public-profile="false"
           />
         </div>
 
@@ -117,7 +118,7 @@ useInfiniteScroll(
             Your bookshelf is empty
           </div>
 
-          <div class="text-caption text-secondary mt-2">
+          <div class="text-secondary mt-2">
             Add books to your bookshelf while browsing
           </div>
         </div>

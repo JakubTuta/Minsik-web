@@ -24,6 +24,7 @@ const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'reader
 
 function getSortParams() {
   const [field, direction] = sortBy.value.split('-')
+
   return {
     apiSortBy: sortByMap[field] as 'publication_year' | 'combined_rating' | 'readers_count',
     apiOrder: direction as 'asc' | 'desc',
@@ -210,7 +211,9 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
   const result = await adminStore.updateAuthor(author.value!.author_id, authorEditOriginalData.value, editedData)
   if (result.success) {
     editDialogOpen.value = false
-    const newSlug = editedData.slug && editedData.slug !== slug ? editedData.slug : slug
+    const newSlug = editedData.slug && editedData.slug !== slug
+      ? editedData.slug
+      : slug
     await authorsStore.fetchAuthor(newSlug, true)
     if (newSlug !== slug) {
       await navigateTo(`/authors/${newSlug}`)
