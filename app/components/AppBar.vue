@@ -46,6 +46,15 @@ const appBarSearchQuery = ref('')
     <v-spacer />
 
     <!-- Desktop: Theme Toggle & User Menu -->
+    <v-btn
+      v-if="!mobile"
+      variant="text"
+      prepend-icon="mdi-treasure-chest"
+      to="/open-case"
+    >
+      Open a Case
+    </v-btn>
+
     <ThemeToggle
       v-if="!mobile"
     />
@@ -109,8 +118,6 @@ const appBarSearchQuery = ref('')
           <ThemeToggle />
         </div>
       </v-list-item>
-
-      <v-divider class="my-2" />
 
       <!-- User Menu Items (expanded) -->
       <ClientOnly>

@@ -148,6 +148,13 @@ const readingTime = computed(() => {
                   <div class="font-weight-thin text-decoration-none line-clamp-2 mt-1 text-center text-black">
                     {{ seriesBook.title }}
                   </div>
+
+                  <v-tooltip
+                    activator="parent"
+                    location="bottom"
+                  >
+                    {{ seriesBook.title }}
+                  </v-tooltip>
                 </NuxtLink>
               </div>
             </div>

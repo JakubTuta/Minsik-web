@@ -114,6 +114,12 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
     <v-divider class="my-1" />
 
     <v-list-item
+      prepend-icon="mdi-treasure-chest"
+      title="Open a Case"
+      to="/open-case"
+    />
+
+    <v-list-item
       disabled
       prepend-icon="mdi-information"
       title="About"
@@ -175,7 +181,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           </template>
         </v-list-item>
 
-        <v-divider />
+        <v-divider class="my-1" />
 
         <v-list-item
           prepend-icon="mdi-view-dashboard"
@@ -189,7 +195,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           :to="`/bookshelf/${user?.username}`"
         />
 
-        <v-divider />
+        <v-divider class="my-1" />
 
         <v-list-item
           v-if="user?.role === 'admin'"
@@ -222,7 +228,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           to="/comments"
         />
 
-        <v-divider />
+        <v-divider class="my-1" />
 
         <v-list-item
           prepend-icon="mdi-logout"
@@ -232,6 +238,8 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       </template>
 
       <template v-else>
+        <v-divider class="my-1" />
+
         <v-list-item
           prepend-icon="mdi-login"
           title="Sign In"
@@ -244,7 +252,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           @click="authDialogStore.openRegister()"
         />
 
-        <v-divider />
+        <v-divider class="my-1" />
 
         <v-list-item
           disabled
