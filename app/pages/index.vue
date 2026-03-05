@@ -9,11 +9,9 @@ useSeo({
   description: 'Discover your next favorite book through curated recommendations, emotional reading profiles, and a passionate reading community.',
 })
 
-// Client-side fetch for guest recommendations
 const { data: categories, error } = await useAsyncData(
   'home-recommendations',
   () => recommendationsStore.fetchHomeRecommendations(),
-  { server: false },
 )
 
 const filteredCategories = computed<RecommendationSection[]>(() => (categories.value ?? []).filter(
@@ -25,20 +23,22 @@ const filteredCategories = computed<RecommendationSection[]>(() => (categories.v
 const personalizedCategories = ref<RecommendationSection[]>([])
 const isLoadingPersonalized = ref(false)
 
-watch(() => authStore.isAuthenticated, async (isAuth) => {
-  if (isAuth) {
-    isLoadingPersonalized.value = true
-    try {
-      personalizedCategories.value = await recommendationsStore.fetchPersonalizedHomeRecommendations() ?? []
+if (import.meta.client) {
+  watch(() => authStore.isAuthenticated, async (isAuth) => {
+    if (isAuth) {
+      isLoadingPersonalized.value = true
+      try {
+        personalizedCategories.value = await recommendationsStore.fetchPersonalizedHomeRecommendations() ?? []
+      }
+      finally {
+        isLoadingPersonalized.value = false
+      }
     }
-    finally {
-      isLoadingPersonalized.value = false
+    else {
+      personalizedCategories.value = []
     }
-  }
-  else {
-    personalizedCategories.value = []
-  }
-}, { immediate: true })
+  }, { immediate: true })
+}
 </script>
 
 <template>

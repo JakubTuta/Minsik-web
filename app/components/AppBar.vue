@@ -49,6 +49,15 @@ const appBarSearchQuery = ref('')
     <v-btn
       v-if="!mobile"
       variant="text"
+      prepend-icon="mdi-compass"
+      to="/discover"
+    >
+      Discover
+    </v-btn>
+
+    <v-btn
+      v-if="!mobile"
+      variant="text"
       prepend-icon="mdi-treasure-chest"
       to="/open-case"
     >

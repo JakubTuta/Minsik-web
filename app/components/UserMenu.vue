@@ -114,6 +114,12 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
     <v-divider class="my-1" />
 
     <v-list-item
+      prepend-icon="mdi-compass"
+      title="Discover"
+      to="/discover"
+    />
+
+    <v-list-item
       prepend-icon="mdi-treasure-chest"
       title="Open a Case"
       to="/open-case"

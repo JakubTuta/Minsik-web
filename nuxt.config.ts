@@ -94,6 +94,7 @@ export default defineNuxtConfig({
     '/favourites': { ssr: false },
     '/ratings': { ssr: false },
     '/comments': { ssr: false },
-    '/open-case': { ssr: false },
+    '/open-case': { ssr: true },
+    '/discover': { ssr: true },
   },
 })

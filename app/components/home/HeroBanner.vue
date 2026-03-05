@@ -1,3 +1,22 @@
+<script setup lang="ts">
+import gsap from 'gsap'
+
+const iconRef = ref<HTMLElement | null>(null)
+const titleRef = ref<HTMLElement | null>(null)
+const subtitleRef = ref<HTMLElement | null>(null)
+const btnsRef = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  gsap.from([iconRef.value, titleRef.value, subtitleRef.value, btnsRef.value], {
+    opacity: 0,
+    y: 24,
+    duration: 0.55,
+    stagger: 0.12,
+    ease: 'power2.out',
+  })
+})
+</script>
+
 <template>
   <div class="hero-banner py-16">
     <v-container>
@@ -11,24 +30,38 @@
           lg="8"
           class="text-center"
         >
-          <v-icon
-            icon="mdi-snowflake"
-            size="72"
-            color="primary"
-            class="hero-icon mb-6"
-          />
+          <div
+            ref="iconRef"
+            class="d-inline-block mb-6"
+          >
+            <v-icon
+              icon="mdi-snowflake"
+              size="72"
+              color="primary"
+              class="hero-icon"
+            />
+          </div>
 
-          <h1 class="text-h4 text-sm-h3 text-md-h2 font-weight-bold hero-title mb-4">
+          <h1
+            ref="titleRef"
+            class="text-h4 text-sm-h3 text-md-h2 font-weight-bold hero-title mb-4"
+          >
             Discover Your Next<br>
 
             <span class="text-primary">Favorite Book</span>
           </h1>
 
-          <p class="text-h6 text-medium-emphasis hero-subtitle mx-auto mb-8">
+          <p
+            ref="subtitleRef"
+            class="text-h6 text-medium-emphasis hero-subtitle mx-auto mb-8"
+          >
             Explore curated recommendations, track your reading journey, and connect with a community of passionate readers.
           </p>
 
-          <div class="d-flex ga-3 flex-wrap justify-center">
+          <div
+            ref="btnsRef"
+            class="d-flex ga-3 flex-wrap justify-center"
+          >
             <v-btn
               to="/search"
               color="primary"
