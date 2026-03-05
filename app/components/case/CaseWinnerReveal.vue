@@ -1,23 +1,28 @@
 <script setup lang="ts">
+import type { Book, BookSummary } from '~/types/api'
 import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
-import type { CaseBookItem } from '~/types/case'
+import type { Rarity } from '~/types/case'
+import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
-  winner: CaseBookItem
-  winnerDetail: Record<string, any>
+  winner: BookSummary
+  winnerDetail: Book
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'play-again': [] }>()
 
-const rarityColor = computed(() => RARITY_COLORS[props.winner.rarity] ?? '#95A5A6')
-const rarityLabel = computed(() => RARITY_LABELS[props.winner.rarity] ?? props.winner.rarity)
+const rarityColor = computed(() => RARITY_COLORS[props.winner.rarity as Rarity] ?? '#95A5A6')
+const rarityLabel = computed(() => RARITY_LABELS[props.winner.rarity as Rarity] ?? props.winner.rarity)
 
 const descriptionSnippet = computed(() => {
-  const desc = props.winnerDetail?.description
+  const desc = props.winner.description
   if (!desc)
     return null
-  return desc.length > 220 ? `${desc.slice(0, 220)}…` : desc
+
+  return desc.length > 220
+    ? `${desc.slice(0, 220)}…`
+    : desc
 })
 
 const authorsList = computed(() => props.winner.authors)
@@ -28,23 +33,25 @@ const authorsList = computed(() => props.winner.authors)
     <!-- Background glow -->
     <div
       class="reveal-bg-glow"
-      :style="{ background: `radial-gradient(ellipse at center, ${rarityColor}22 0%, transparent 70%)` }"
+      :style="{'background': `radial-gradient(ellipse at center, ${rarityColor}22 0%, transparent 70%)`}"
     />
 
     <v-card class="reveal-card mx-auto">
       <!-- Rarity top border -->
       <div
         class="reveal-top-border"
-        :style="{ background: `linear-gradient(to right, transparent, ${rarityColor}, transparent)` }"
+        :style="{'background': `linear-gradient(to right, transparent, ${rarityColor}, transparent)`}"
       />
 
       <v-card-text class="pa-6">
         <div class="d-flex flex-column align-center text-center">
           <!-- Rarity badge -->
           <v-chip
-            :style="{ backgroundColor: rarityColor, color: '#fff', fontWeight: 700 }"
+            :style="{'backgroundColor': rarityColor,
+                     'color': '#fff',
+                     'fontWeight': 700}"
             size="small"
-            class="mb-4 text-uppercase letter-spacing-wide"
+            class="text-uppercase letter-spacing-wide mb-4"
           >
             {{ rarityLabel }}
           </v-chip>
@@ -52,10 +59,10 @@ const authorsList = computed(() => props.winner.authors)
           <!-- Book cover with glow -->
           <div
             class="cover-wrapper mb-4"
-            :style="{ boxShadow: `0 8px 40px ${rarityColor}55` }"
+            :style="{'boxShadow': `0 8px 40px ${rarityColor}55`}"
           >
             <v-img
-              :src="winner.primary_cover_url || '/placeholder-book.jpg'"
+              :src="winner.primary_cover_url || '/placeholder-book-lazy.jpg'"
               :alt="winner.title"
               width="160"
               height="234"
@@ -82,35 +89,36 @@ const authorsList = computed(() => props.winner.authors)
           </div>
 
           <!-- Stats row -->
-          <div class="d-flex align-center gap-6 mb-4 flex-wrap justify-center">
+          <div class="d-flex align-center mb-4 flex-wrap justify-center gap-6">
             <div class="d-flex align-center gap-1">
               <RatingDisplay
-                :rating="Number(winner.avg_rating)"
-                :rating-count="winner.rating_count"
+                :rating="weightedRating(Number(winner.avg_rating ?? 0), winner.rating_count, winner.ol_avg_rating, winner.ol_rating_count)"
+                :rating-count="totalRatingCount(winner.rating_count, winner.ol_rating_count)"
                 size="small"
               />
             </div>
 
-            <div class="d-flex align-center gap-1 text-body-2 text-medium-emphasis">
+            <div class="d-flex align-center text-body-2 text-medium-emphasis gap-1">
               <v-icon
                 icon="mdi-account-multiple"
                 size="small"
               />
-              <span>{{ winner.readers.toLocaleString() }} readers</span>
+
+              <span>{{ totalReaders(winner.app_want_to_read_count, winner.app_reading_count, winner.app_read_count, winner.ol_want_to_read_count, winner.ol_currently_reading_count, winner.ol_already_read_count).toLocaleString() }} readers</span>
             </div>
           </div>
 
           <!-- Description snippet -->
           <p
             v-if="descriptionSnippet"
-            class="text-body-2 text-medium-emphasis text-left mb-5"
+            class="text-body-2 text-medium-emphasis mb-5 text-left"
             style="max-width: 480px;"
           >
             {{ descriptionSnippet }}
           </p>
 
           <!-- Action buttons -->
-          <div class="d-flex gap-3 flex-wrap justify-center">
+          <div class="d-flex flex-wrap justify-center gap-3">
             <NuxtLink
               :to="`/books/${winner.slug}`"
               class="text-decoration-none"

@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { OpenCaseData } from '~/types/case'
 import gsap from 'gsap'
 import { useDisplay } from 'vuetify'
 import { RARITY_COLORS } from '~/types/case'
-import type { OpenCaseData } from '~/types/case'
 
 interface Props {
   data: OpenCaseData
@@ -16,7 +16,9 @@ const { mobile } = useDisplay()
 const containerRef = ref<HTMLElement | null>(null)
 const trackRef = ref<HTMLElement | null>(null)
 
-const ITEM_WIDTH = computed(() => mobile.value ? 120 : 160)
+const ITEM_WIDTH = computed(() => (mobile.value
+  ? 120
+  : 160))
 const ITEM_GAP = 12
 const SLOT_SIZE = computed(() => ITEM_WIDTH.value + ITEM_GAP)
 
@@ -46,6 +48,7 @@ onMounted(async () => {
 
 function getItemStyle(rarity: string) {
   const color = RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] ?? '#95A5A6'
+
   return {
     borderTop: `4px solid ${color}`,
     boxShadow: `0 0 12px ${color}33`,
@@ -54,6 +57,7 @@ function getItemStyle(rarity: string) {
 
 function getGlowStyle(rarity: string) {
   const color = RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] ?? '#95A5A6'
+
   return { background: `linear-gradient(to bottom, ${color}44, transparent 50%)` }
 }
 </script>
@@ -63,6 +67,7 @@ function getGlowStyle(rarity: string) {
     <!-- Pointer indicator -->
     <div class="spinner-pointer">
       <div class="pointer-arrow" />
+
       <div class="pointer-line" />
     </div>
 
@@ -73,6 +78,7 @@ function getGlowStyle(rarity: string) {
     >
       <!-- Gradient overlays for fade effect -->
       <div class="fade-left" />
+
       <div class="fade-right" />
 
       <!-- Scrolling track -->
@@ -84,7 +90,7 @@ function getGlowStyle(rarity: string) {
           v-for="(item, index) in data.display_list"
           :key="`${item.book_id}-${index}`"
           class="spinner-item"
-          :style="{ width: `${ITEM_WIDTH}px` }"
+          :style="{'width': `${ITEM_WIDTH}px`}"
         >
           <v-card
             class="item-card h-100"
@@ -99,7 +105,7 @@ function getGlowStyle(rarity: string) {
             <!-- Book cover -->
             <div class="cover-container d-flex align-center justify-center">
               <v-img
-                :src="item.primary_cover_url || '/placeholder-book.jpg'"
+                :src="item.primary_cover_url || '/placeholder-book-lazy.jpg'"
                 :alt="item.title"
                 :width="ITEM_WIDTH - 32"
                 :height="(ITEM_WIDTH - 32) * 1.4"

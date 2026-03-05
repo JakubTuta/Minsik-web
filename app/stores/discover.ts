@@ -1,5 +1,5 @@
-import type { Book, APIResponse } from '~/types/api'
-import type { BookLength, Quality, Mood, Era, SeriesFilter, Popularity, DiscoverPhase, DiscoverBookFilters, DiscoverBookData } from '~/types/discover'
+import type { APIResponse, BookSummary } from '~/types/api'
+import type { BookLength, DiscoverBookData, DiscoverBookFilters, DiscoverPhase, Era, Mood, Popularity, Quality, SeriesFilter } from '~/types/discover'
 import { defineStore } from 'pinia'
 
 export const useDiscoverStore = defineStore('discover', () => {
@@ -18,24 +18,31 @@ export const useDiscoverStore = defineStore('discover', () => {
   const phase = ref<DiscoverPhase>('filtering')
   const isLoading = ref(false)
   const error = ref<string | null>(null)
-  const discoveredBook = ref<Book | null>(null)
+  const discoveredBook = ref<BookSummary | null>(null)
   const matchingCount = ref<number | null>(null)
   const excludeIds = ref<number[]>([])
 
   const filtersPayload = computed<DiscoverBookFilters>(() => {
     const filters: DiscoverBookFilters = { language: 'en' }
-    if (bookLength.value) filters.book_length = bookLength.value
-    if (quality.value) filters.quality = quality.value
-    if (moods.value.length) filters.moods = [...moods.value]
-    if (era.value) filters.era = era.value
-    if (seriesFilter.value) filters.series_filter = seriesFilter.value
-    if (popularity.value) filters.popularity = popularity.value
-    if (excludeIds.value.length) filters.exclude_ids = excludeIds.value.slice(0, 500)
+    if (bookLength.value)
+      filters.book_length = bookLength.value
+    if (quality.value)
+      filters.quality = quality.value
+    if (moods.value.length)
+      filters.moods = [...moods.value]
+    if (era.value)
+      filters.era = era.value
+    if (seriesFilter.value)
+      filters.series_filter = seriesFilter.value
+    if (popularity.value)
+      filters.popularity = popularity.value
+    if (excludeIds.value.length)
+      filters.exclude_ids = excludeIds.value.slice(0, 500)
+
     return filters
   })
 
-  const hasActiveFilters = computed(() =>
-    bookLength.value !== null
+  const hasActiveFilters = computed(() => bookLength.value !== null
     || quality.value !== null
     || moods.value.length > 0
     || era.value !== null
@@ -44,7 +51,8 @@ export const useDiscoverStore = defineStore('discover', () => {
   )
 
   const discover = async () => {
-    if (isLoading.value) return
+    if (isLoading.value)
+      return
 
     isLoading.value = true
     error.value = null
@@ -59,6 +67,7 @@ export const useDiscoverStore = defineStore('discover', () => {
       if (!response.data.data) {
         phase.value = 'empty'
         matchingCount.value = 0
+
         return
       }
 

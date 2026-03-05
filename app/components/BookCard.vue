@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 const bookLink = computed(() => (props.book
   ? `/books/${props.book.slug}`
   : ''))
-const coverUrl = computed(() => props.book?.primary_cover_url || '/placeholder-book.jpg')
+const coverUrl = computed(() => props.book?.primary_cover_url || '/placeholder-book-lazy.jpg')
 const title = computed(() => props.book?.title || '')
 
 const seriesText = computed(() => {

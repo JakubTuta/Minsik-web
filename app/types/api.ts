@@ -27,14 +27,14 @@ export interface PaginatedResponse<T> {
 }
 
 export interface AuthorBooksResponse {
-  books: Book[]
+  books: BookSummary[]
   total_count: number
   limit: number
   offset: number
 }
 
 export interface SeriesBooksResponse {
-  books: Book[]
+  books: BookSummary[]
   total_count: number
   limit: number
   offset: number
@@ -133,6 +133,27 @@ export interface Series extends SeriesMinimal {
 
 // Book Types
 
+export interface BookSummary {
+  book_id: number
+  slug: string
+  title: string
+  description?: string | null
+  primary_cover_url?: string | null
+  authors: AuthorMinimal[]
+  rating_count: number
+  avg_rating: string | null
+  ol_rating_count: number
+  ol_avg_rating?: string | null
+  ol_want_to_read_count: number
+  ol_currently_reading_count: number
+  ol_already_read_count: number
+  app_want_to_read_count: number
+  app_reading_count: number
+  app_read_count: number
+  series_position?: string | null
+  rarity?: string | null
+}
+
 export interface Book {
   book_id: number
   slug: string
@@ -171,7 +192,7 @@ export interface Book {
   app_read_count: number
 }
 
-// Card Display Types (for components)
+// Card Display Types — kept for BookCard.vue compatibility
 
 export interface BookCardData {
   slug: string
@@ -180,10 +201,10 @@ export interface BookCardData {
   authors: Array<{ name: string, slug: string }>
   series?: { name: string, slug: string } | null
   series_position?: string | null
-  avg_rating?: number
+  avg_rating?: string | null
   rating_count?: number
-  view_count: number
-  genres?: Array<{ name: string, slug: string }>
+  ol_avg_rating?: string | null
+  ol_rating_count?: number
 }
 
 // Search Types

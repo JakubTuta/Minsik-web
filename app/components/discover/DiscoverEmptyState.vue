@@ -4,7 +4,7 @@ const emit = defineEmits<{ 'reset-filters': [] }>()
 
 <template>
   <v-card
-    class="pa-8 text-center mx-auto"
+    class="mx-auto pa-8 text-center"
     max-width="500"
     elevation="2"
   >

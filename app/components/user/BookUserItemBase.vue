@@ -24,7 +24,7 @@ defineProps<Props>()
         style="width: 90px; height: 120px;"
       >
         <v-img
-          :src="coverUrl || '/placeholder-book.jpg'"
+          :src="coverUrl || '/placeholder-book-lazy.jpg'"
           :alt="title"
           width="90"
           height="120"

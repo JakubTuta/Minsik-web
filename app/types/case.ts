@@ -1,4 +1,4 @@
-import type { AuthorMinimal } from '~/types/api'
+import type { Book, BookSummary } from '~/types/api'
 
 export type Rarity = 'legendary' | 'ultra_rare' | 'super_rare' | 'rare' | 'uncommon' | 'common'
 
@@ -20,24 +20,11 @@ export const RARITY_LABELS: Record<Rarity, string> = {
   common: 'Common',
 }
 
-export interface CaseBookItem {
-  book_id: number
-  title: string
-  slug: string
-  primary_cover_url: string
-  authors: AuthorMinimal[]
-  rarity: Rarity
-  combined_rating: string
-  avg_rating: string
-  rating_count: number
-  readers: number
-}
-
 export interface OpenCaseData {
-  display_list: CaseBookItem[]
+  display_list: BookSummary[]
   winning_index: number
-  winner: CaseBookItem
-  winner_detail: Record<string, any>
+  winner: BookSummary
+  winner_detail: Book
 }
 
 export type CasePhase = 'idle' | 'opening' | 'spinning' | 'revealing'

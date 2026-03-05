@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Book } from '~/types/api'
+import type { BookSummary } from '~/types/api'
+import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
-  books: Book[]
+  books: BookSummary[]
   loading?: boolean
   emptyMessage?: string
   loadMore?: () => void | Promise<void>
@@ -15,27 +16,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
 useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
-
-function weightedRating(book: Book): number {
-  const olRating = Number(book.ol_avg_rating ?? 0)
-  const total = book.rating_count + (book.ol_rating_count ?? 0)
-
-  if (total === 0)
-    return 0
-
-  return ((book.avg_rating * book.rating_count) + (olRating * (book.ol_rating_count ?? 0))) / total
-}
-
-function totalRatingCount(book: Book): number {
-  return book.rating_count + (book.ol_rating_count ?? 0)
-}
-
-function totalReaders(book: Book): number {
-  const app = (book.app_want_to_read_count ?? 0) + (book.app_reading_count ?? 0) + (book.app_read_count ?? 0)
-  const ol = (book.ol_want_to_read_count ?? 0) + (book.ol_currently_reading_count ?? 0) + (book.ol_already_read_count ?? 0)
-
-  return app + ol
-}
 </script>
 
 <template>
@@ -60,7 +40,7 @@ function totalReaders(book: Book): number {
             style="width: 120px; height: 180px;"
           >
             <v-img
-              :src="book.primary_cover_url || '/placeholder-book.jpg'"
+              :src="book.primary_cover_url || '/placeholder-book-lazy.jpg'"
               :alt="book.title"
               width="120"
               height="180"
@@ -74,19 +54,6 @@ function totalReaders(book: Book): number {
             </h3>
 
             <div class="d-flex mb-3 flex-wrap gap-3">
-              <div
-                v-if="book.original_publication_year"
-                class="d-flex align-center gap-1"
-              >
-                <v-icon
-                  icon="mdi-calendar"
-                  size="small"
-                  color="secondary"
-                />
-
-                <span class="text-body-2">{{ book.original_publication_year }}</span>
-              </div>
-
               <div class="d-flex align-center gap-1">
                 <v-icon
                   icon="mdi-star"
@@ -95,14 +62,14 @@ function totalReaders(book: Book): number {
                 />
 
                 <span class="text-body-2">
-                  {{ weightedRating(book).toFixed(1) }} ({{ totalRatingCount(book).toLocaleString() }})
+                  {{ weightedRating(Number(book.avg_rating ?? 0), book.rating_count, book.ol_avg_rating, book.ol_rating_count).toFixed(1) }} ({{ totalRatingCount(book.rating_count, book.ol_rating_count).toLocaleString() }})
                 </span>
 
                 <v-tooltip
                   activator="parent"
                   location="bottom"
                 >
-                  <div>Minsik: {{ book.avg_rating.toFixed(1) }} ({{ book.rating_count }} ratings)</div>
+                  <div>Minsik: {{ Number(book.avg_rating ?? 0).toFixed(1) }} ({{ book.rating_count }} ratings)</div>
 
                   <div class="mt-1">
                     Open Library: {{ Number(book.ol_avg_rating ?? 0).toFixed(1) }} ({{ book.ol_rating_count ?? 0 }} ratings)
@@ -117,7 +84,7 @@ function totalReaders(book: Book): number {
                   color="info"
                 />
 
-                <span class="text-body-2">{{ totalReaders(book).toLocaleString() }}</span>
+                <span class="text-body-2">{{ totalReaders(book.app_want_to_read_count, book.app_reading_count, book.app_read_count, book.ol_want_to_read_count, book.ol_currently_reading_count, book.ol_already_read_count).toLocaleString() }}</span>
 
                 <v-tooltip
                   activator="parent"

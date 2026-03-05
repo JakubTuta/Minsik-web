@@ -1,4 +1,4 @@
-import type { APIResponse, Book, Series, SeriesBooksResponse } from '~/types/api'
+import type { APIResponse, Book, BookSummary, Series, SeriesBooksResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useSeriesStore = defineStore('series', () => {
@@ -6,7 +6,7 @@ export const useSeriesStore = defineStore('series', () => {
 
   // State
   const series = ref(new Map<string, Series>())
-  const seriesBooks = ref(new Map<string, Book[]>())
+  const seriesBooks = ref(new Map<string, BookSummary[]>())
   const isLoading = ref(false)
   const isLoadingBooks = ref(false)
   const lastFetchTime = ref(new Map<string, number>())

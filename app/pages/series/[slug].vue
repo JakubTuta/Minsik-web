@@ -135,22 +135,7 @@ const collageCovers = computed(() => {
   if (!books.value || books.value.length === 0)
     return []
 
-  return books.value.slice(0, 4).map(book => book.primary_cover_url || '/placeholder-book.jpg')
-})
-
-// Get unique categories from all books
-const seriesCategories = computed(() => {
-  if (!books.value || books.value.length === 0)
-    return []
-
-  const categoriesSet = new Set<string>()
-  books.value.forEach((book) => {
-    book.genres?.forEach((genre) => {
-      categoriesSet.add(genre.name)
-    })
-  })
-
-  return Array.from(categoriesSet)
+  return books.value.slice(0, 4).map(book => book.primary_cover_url || '/placeholder-book-lazy.jpg')
 })
 </script>
 
@@ -239,11 +224,6 @@ const seriesCategories = computed(() => {
                       : 'books' }}
                   </div>
 
-                  <!-- Categories -->
-                  <CategoriesChips
-                    :categories="seriesCategories"
-                    class="mt-6"
-                  />
                 </div>
 
                 <!-- Statistics Toggle at bottom -->

@@ -13,7 +13,7 @@ defineProps<Props>()
     <!-- Cover zone: 80% -->
     <div class="cover-zone bg-surface-variant">
       <v-img
-        :src="book.primary_cover_url || '/placeholder-book.jpg'"
+        :src="book.primary_cover_url || '/placeholder-book-lazy.jpg'"
         :alt="book.title"
         class="h-100"
       />

@@ -1,4 +1,4 @@
-import type { Book } from '~/types/api'
+import type { BookSummary } from '~/types/api'
 
 export type BookLength = 'short' | 'medium' | 'long' | 'epic'
 export type Quality = 'high' | 'medium' | 'low' | 'very_low'
@@ -16,11 +16,12 @@ export interface DiscoverBookFilters {
   era?: Era | null
   series_filter?: SeriesFilter | null
   popularity?: Popularity | null
+  genre_slugs?: string[]
   exclude_ids?: number[]
 }
 
 export interface DiscoverBookData {
-  book: Book
+  book: BookSummary
   matching_count: number
 }
 

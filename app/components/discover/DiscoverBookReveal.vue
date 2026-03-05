@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { Book } from '~/types/api'
+import type { BookSummary } from '~/types/api'
+import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 import gsap from 'gsap'
 
 interface Props {
-  book: Book
+  book: BookSummary
   matchingCount: number | null
 }
 
@@ -24,8 +25,6 @@ const descriptionSnippet = computed(() => {
     ? `${desc.slice(0, 220)}…`
     : desc
 })
-
-const genreNames = computed(() => props.book.genres?.map(g => g.name) ?? [])
 
 onMounted(async () => {
   await nextTick()
@@ -82,7 +81,7 @@ onMounted(async () => {
             <!-- Book cover -->
             <div class="cover-wrapper mb-4">
               <v-img
-                :src="book.primary_cover_url || '/placeholder-book.jpg'"
+                :src="book.primary_cover_url || '/placeholder-book-lazy.jpg'"
                 :alt="book.title"
                 width="160"
                 height="234"
@@ -111,33 +110,20 @@ onMounted(async () => {
             <!-- Stats -->
             <div class="d-flex align-center mb-3 flex-wrap justify-center gap-4">
               <RatingDisplay
-                :rating="book.avg_rating"
-                :rating-count="book.rating_count"
+                :rating="weightedRating(Number(book.avg_rating ?? 0), book.rating_count, book.ol_avg_rating, book.ol_rating_count)"
+                :rating-count="totalRatingCount(book.rating_count, book.ol_rating_count)"
                 size="small"
               />
 
               <div class="d-flex align-center text-body-2 text-medium-emphasis gap-1">
                 <v-icon
                   size="small"
-                  icon="mdi-eye"
+                  icon="mdi-account-multiple"
                 />
 
-                <span>{{ book.view_count.toLocaleString() }} views</span>
+                <span>{{ totalReaders(book.app_want_to_read_count, book.app_reading_count, book.app_read_count, book.ol_want_to_read_count, book.ol_currently_reading_count, book.ol_already_read_count).toLocaleString() }} readers</span>
               </div>
             </div>
-
-            <!-- Genres -->
-            <!--
-              <div
-              v-if="genreNames.length"
-              class="mb-4"
-              >
-              <CategoriesChips
-              :categories="genreNames"
-              :max-visible="4"
-              />
-              </div>
-            -->
 
             <!-- Description -->
             <p

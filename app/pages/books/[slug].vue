@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EditFieldConfig } from '~/types/admin'
-import type { Author, Book } from '~/types/api'
+import type { Author, Book, BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 
 const route = useRoute()
@@ -55,7 +55,7 @@ useBookStructuredData({
 
 // Non-blocking data fetches
 const primaryAuthor = ref<Author | null>(null)
-const seriesBooks = ref<Book[]>([])
+const seriesBooks = ref<BookSummary[]>([])
 const bookRecommendations = ref<RecommendationSection[]>([])
 const personalizedBookRecs = ref<RecommendationSection[]>([])
 const descriptionExpanded = ref(false)

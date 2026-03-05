@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Author, Book } from '~/types/api'
+import type { Author, Book, BookSummary } from '~/types/api'
 
 interface Props {
   book: Book
   slug: string
-  seriesBooks?: Book[]
+  seriesBooks?: BookSummary[]
   primaryAuthor?: Author | null
 }
 
@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const bookPageStore = useBookPageStore()
 
-const coverUrl = computed(() => props.book.primary_cover_url || '/placeholder-book.jpg')
+const coverUrl = computed(() => props.book.primary_cover_url || '/placeholder-book-lazy.jpg')
 
 const detailsExpanded = ref(false)
 const statisticsExpanded = ref(false)
@@ -113,7 +113,7 @@ const readingTime = computed(() => {
                 >
                   <div class="position-relative">
                     <v-img
-                      :src="seriesBook.primary_cover_url || '/placeholder-book.jpg'"
+                      :src="seriesBook.primary_cover_url || '/placeholder-book-lazy.jpg'"
                       :alt="seriesBook.title"
                       aspect-ratio="0.67"
                       width="80"

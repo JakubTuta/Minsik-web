@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { BookLength, Quality, Mood, Era, SeriesFilter, Popularity } from '~/types/discover'
+import type { BookLength, Era, Mood, Popularity, Quality, SeriesFilter } from '~/types/discover'
 import {
   BOOK_LENGTH_OPTIONS,
-  QUALITY_OPTIONS,
-  MOOD_OPTIONS,
   ERA_OPTIONS,
-  SERIES_OPTIONS,
+  MOOD_OPTIONS,
   POPULARITY_OPTIONS,
+  QUALITY_OPTIONS,
+  SERIES_OPTIONS,
 } from '~/types/discover'
 
+const emit = defineEmits<{ 'clear-all': [] }>()
 const bookLength = defineModel<BookLength | null>('bookLength', { default: null })
 const quality = defineModel<Quality | null>('quality', { default: null })
 const moods = defineModel<Mood[]>('moods', { default: () => [] })
@@ -16,10 +17,7 @@ const era = defineModel<Era | null>('era', { default: null })
 const seriesFilter = defineModel<SeriesFilter | null>('seriesFilter', { default: null })
 const popularity = defineModel<Popularity | null>('popularity', { default: null })
 
-const emit = defineEmits<{ 'clear-all': [] }>()
-
-const hasActiveFilters = computed(() =>
-  bookLength.value !== null
+const hasActiveFilters = computed(() => bookLength.value !== null
   || quality.value !== null
   || moods.value.length > 0
   || era.value !== null
@@ -40,7 +38,7 @@ function clearAll() {
 
 <template>
   <v-card
-    class="pa-6 mx-auto filter-card"
+    class="filter-card mx-auto pa-6"
     max-width="820"
     elevation="2"
   >
@@ -132,7 +130,7 @@ function clearAll() {
           mdi-emoticon
         </v-icon>
         Mood
-        <span class="text-caption text-medium-emphasis ml-2 font-weight-regular">select multiple</span>
+        <span class="text-caption text-medium-emphasis font-weight-regular ml-2">select multiple</span>
       </div>
 
       <v-chip-group
@@ -273,7 +271,7 @@ function clearAll() {
     <!-- Clear All -->
     <div
       v-if="hasActiveFilters"
-      class="text-center mt-6 pt-4 border-t"
+      class="mt-6 border-t pt-4 text-center"
     >
       <v-btn
         variant="text"

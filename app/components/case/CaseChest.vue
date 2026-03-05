@@ -36,7 +36,8 @@ const emit = defineEmits<{
 
     <div
       class="mt-6 text-center"
-      :class="{ 'click-label': !opening && !disabled, 'opacity-0': opening }"
+      :class="{'click-label': !opening && !disabled,
+               'opacity-0': opening}"
     >
       <div class="text-h6 font-weight-bold text-medium-emphasis">
         Open a Book Case

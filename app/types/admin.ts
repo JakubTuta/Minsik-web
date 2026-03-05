@@ -31,6 +31,7 @@ export interface AdminUpdateBookRequest {
   language?: string | null
   original_publication_year?: number | null
   primary_cover_url?: string | null
+  cover_history?: Array<{ url: string, width: number, size: string }> | null
   formats?: string[] | null
   isbn?: string[] | null
   publisher?: string | null
