@@ -34,7 +34,6 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
           offset: 0,
         },
       })
-
       results.value = response.data.data.results || []
       isEmpty.value = results.value.length === 0
     }

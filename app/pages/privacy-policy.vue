@@ -87,34 +87,49 @@ useSeoMeta({
             class="pa-0"
           >
             <v-list-item
-              title="Provide, operate, and maintain the Service"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Provide, operate, and maintain the Service</span>
+              </template>
+            </v-list-item>
 
             <v-list-item
-              title="Personalize your reading experience and recommendations"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Personalize your reading experience and recommendations</span>
+              </template>
+            </v-list-item>
 
             <v-list-item
-              title="Respond to your comments, questions, and support requests"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Respond to your comments, questions, and support requests</span>
+              </template>
+            </v-list-item>
 
             <v-list-item
-              title="Monitor and analyze usage patterns to improve the Service"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Monitor and analyze usage patterns to improve the Service</span>
+              </template>
+            </v-list-item>
 
             <v-list-item
-              title="Detect, prevent, and address technical issues or abuse"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Detect, prevent, and address technical issues or abuse</span>
+              </template>
+            </v-list-item>
           </v-list>
         </v-card>
 
@@ -174,34 +189,49 @@ useSeoMeta({
             class="pa-0"
           >
             <v-list-item
-              title="Access the personal data we hold about you"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Access the personal data we hold about you</span>
+              </template>
+            </v-list-item>
 
             <v-list-item
-              title="Request correction of inaccurate data"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Request correction of inaccurate data</span>
+              </template>
+            </v-list-item>
 
             <v-list-item
-              title="Request deletion of your personal data"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Request deletion of your personal data</span>
+              </template>
+            </v-list-item>
 
             <v-list-item
-              title="Object to or restrict processing of your data"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Object to or restrict processing of your data</span>
+              </template>
+            </v-list-item>
 
             <v-list-item
-              title="Data portability — receive a copy of your data in a structured format"
               prepend-icon="mdi-check-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">Data portability — receive a copy of your data in a structured format</span>
+              </template>
+            </v-list-item>
           </v-list>
         </v-card>
 

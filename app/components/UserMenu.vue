@@ -126,9 +126,9 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
     />
 
     <v-list-item
-      disabled
       prepend-icon="mdi-information"
       title="About"
+      to="/about"
     />
   </template>
 
@@ -241,6 +241,14 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           title="Sign Out"
           @click="authStore.logout()"
         />
+
+        <v-divider class="my-1" />
+
+        <v-list-item
+          prepend-icon="mdi-information"
+          title="About"
+          to="/about"
+        />
       </template>
 
       <template v-else>
@@ -261,9 +269,9 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         <v-divider class="my-1" />
 
         <v-list-item
-          disabled
           prepend-icon="mdi-information"
           title="About"
+          to="/about"
         />
       </template>
     </v-list>

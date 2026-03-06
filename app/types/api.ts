@@ -218,12 +218,11 @@ export interface SearchResult {
   authors: string[]
   author_slugs: string[]
   series_slug: string | null
-  series_name?: string | null
-  book_covers?: string[]
   relevance_score: number
-  view_count: number
-  avg_rating: string | null
-  rating_count: number
+  app_avg_rating?: string | null
+  app_rating_count: number
+  ol_avg_rating?: string | null
+  ol_rating_count: number
   book_count: number
 }
 

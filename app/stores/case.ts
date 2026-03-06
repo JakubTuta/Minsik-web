@@ -22,6 +22,7 @@ export const useCaseStore = defineStore('case', () => {
       const response = await client.value.get<APIResponse<OpenCaseData>>('/api/v1/case/open', {
         params: { language },
       })
+      console.log(response.data)
       caseData.value = response.data.data!
     }
     catch (err: any) {

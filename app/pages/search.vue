@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SearchResult } from '~/types/api'
+import { totalRatingCount, weightedRating } from '~/utils/format'
 
 const route = useRoute()
 const router = useRouter()
@@ -102,17 +103,13 @@ function getTypeChipColor(type: SearchResult['type']) {
 
 // Get collage covers for series (max 4)
 function getSeriesCollageCovers(result: SearchResult) {
-  if (!result.book_covers || result.book_covers.length === 0) {
-    return [result.cover_url || '/placeholder-book-lazy.jpg']
-  }
-
-  return result.book_covers.slice(0, 4)
+  return [result.cover_url || '/placeholder-book-lazy.jpg']
 }
 
 // Format rating display
 function formatRating(result: SearchResult) {
-  const avg = Number(result.avg_rating) || 0
-  const count = result.rating_count || 0
+  const avg = weightedRating(Number(result.app_avg_rating ?? 0), result.app_rating_count, result.ol_avg_rating, result.ol_rating_count)
+  const count = totalRatingCount(result.app_rating_count, result.ol_rating_count)
 
   return { avg: avg.toFixed(1), count }
 }
@@ -347,7 +344,7 @@ function getResultPath(result: SearchResult) {
 <style scoped>
 .result-card {
   position: relative;
-  height: 380px;
+  height: 360px;
   overflow: hidden;
 }
 
@@ -357,7 +354,7 @@ function getResultPath(result: SearchResult) {
 }
 
 .result-info-zone {
-  height: 190px;
+  height: 170px;
   overflow: hidden;
 }
 

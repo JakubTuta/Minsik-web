@@ -68,5 +68,5 @@ export const SERIES_OPTIONS: FilterOption<SeriesFilter>[] = [
 
 export const POPULARITY_OPTIONS: FilterOption<Popularity>[] = [
   { value: 'popular', label: 'Popular', icon: 'mdi-fire', description: '>100 readers' },
-  { value: 'hidden_gem', label: 'Hidden Gem', icon: 'mdi-diamond-stone', description: '<50 readers, high rating' },
+  { value: 'hidden_gem', label: 'Hidden Gem', icon: 'mdi-diamond-stone', description: '<50 readers' },
 ]

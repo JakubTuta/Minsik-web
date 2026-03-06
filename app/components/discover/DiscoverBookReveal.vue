@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BookSummary } from '~/types/api'
-import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 import gsap from 'gsap'
+import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
   book: BookSummary
@@ -10,11 +10,12 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  'discover-another': []
-  'back-to-filters': []
+  discoverAnother: []
+  backToFilters: []
 }>()
 
 const cardInner = ref<HTMLElement | null>(null)
+const flipped = ref(false)
 
 const descriptionSnippet = computed(() => {
   const desc = props.book.description
@@ -39,6 +40,7 @@ onMounted(async () => {
       duration: 0.8,
       ease: 'power2.inOut',
       delay: 0.3,
+      onComplete: () => { flipped.value = true },
     },
   )
 })
@@ -49,13 +51,14 @@ onMounted(async () => {
     <div
       ref="cardInner"
       class="flip-card-inner"
+      :class="{flipped}"
     >
       <!-- Front face (mystery) -->
       <div class="flip-card-front">
         <v-card
           class="d-flex flex-column align-center justify-center pa-8"
-          height="500"
           max-width="580"
+          style="min-height: 300px;"
         >
           <v-icon
             size="80"
@@ -164,7 +167,7 @@ onMounted(async () => {
               <v-btn
                 variant="outlined"
                 prepend-icon="mdi-compass"
-                @click="emit('discover-another')"
+                @click="emit('discoverAnother')"
               >
                 Discover Another
               </v-btn>
@@ -172,7 +175,7 @@ onMounted(async () => {
               <v-btn
                 variant="text"
                 prepend-icon="mdi-filter"
-                @click="emit('back-to-filters')"
+                @click="emit('backToFilters')"
               >
                 Edit Filters
               </v-btn>
@@ -212,6 +215,15 @@ onMounted(async () => {
   inset: 0;
   transform: rotateY(180deg);
   width: 100%;
+}
+
+.flip-card-inner.flipped .flip-card-front {
+  display: none;
+}
+
+.flip-card-inner.flipped .flip-card-back {
+  position: relative;
+  inset: auto;
 }
 
 .cover-wrapper {

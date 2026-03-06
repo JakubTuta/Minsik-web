@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SearchResult } from '~/types/api'
+import { totalRatingCount, weightedRating } from '~/utils/format'
 
 interface Props {
   variant?: 'appbar' | 'full'
@@ -219,17 +220,19 @@ interface SubtitlePart {
 
 function getSubtitleParts(result: SearchResult): SubtitlePart[] {
   const parts: SubtitlePart[] = []
+  const avg = weightedRating(Number(result.app_avg_rating ?? 0), result.app_rating_count, result.ol_avg_rating, result.ol_rating_count)
+  const count = totalRatingCount(result.app_rating_count, result.ol_rating_count)
 
   if (result.type === 'book') {
     // Book: author name · average rating (amount of ratings)
     if (result.authors && result.authors.length > 0) {
       parts.push({ text: result.authors.join(', '), type: 'authors' })
     }
-    if (result.avg_rating != null && result.rating_count != null) {
+    if (count > 0) {
       if (parts.length > 0)
-        parts.push({ text: '·', type: 'separator' })
-      parts.push({ text: result.avg_rating.toString(), type: 'rating' })
-      parts.push({ text: ` (${result.rating_count})`, type: 'rating_count' })
+        parts.push({ text: '', type: 'separator' })
+      parts.push({ text: avg.toFixed(1), type: 'rating' })
+      parts.push({ text: ` (${count})`, type: 'rating_count' })
     }
   }
   else if (result.type === 'series') {
@@ -237,15 +240,15 @@ function getSubtitleParts(result: SearchResult): SubtitlePart[] {
     if (result.authors && result.authors.length > 0) {
       parts.push({ text: result.authors.join(', '), type: 'authors' })
     }
-    if (result.avg_rating != null && result.rating_count != null) {
+    if (count > 0) {
       if (parts.length > 0)
-        parts.push({ text: '·', type: 'separator' })
-      parts.push({ text: result.avg_rating.toString(), type: 'rating' })
-      parts.push({ text: ` (${result.rating_count})`, type: 'rating_count' })
+        parts.push({ text: '', type: 'separator' })
+      parts.push({ text: avg.toFixed(1), type: 'rating' })
+      parts.push({ text: ` (${count})`, type: 'rating_count' })
     }
     if (result.book_count != null) {
       if (parts.length > 0)
-        parts.push({ text: '·', type: 'separator' })
+        parts.push({ text: '', type: 'separator' })
       parts.push({
         text: `${result.book_count} ${result.book_count === 1
           ? 'book'
@@ -256,13 +259,13 @@ function getSubtitleParts(result: SearchResult): SubtitlePart[] {
   }
   else if (result.type === 'author') {
     // Author: average rating (amount of ratings) · amount of books
-    if (result.avg_rating != null && result.rating_count != null) {
-      parts.push({ text: result.avg_rating.toString(), type: 'rating' })
-      parts.push({ text: ` (${result.rating_count})`, type: 'rating_count' })
+    if (count > 0) {
+      parts.push({ text: avg.toFixed(1), type: 'rating' })
+      parts.push({ text: ` (${count})`, type: 'rating_count' })
     }
     if (result.book_count != null) {
       if (parts.length > 0)
-        parts.push({ text: '·', type: 'separator' })
+        parts.push({ text: '', type: 'separator' })
       parts.push({
         text: `${result.book_count} ${result.book_count === 1
           ? 'book'
@@ -392,17 +395,26 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     </template>
 
                     <template #subtitle>
-                      <span
+                      <template
                         v-for="(part, index) in getSubtitleParts(result)"
                         :key="index"
-                        :class="{
-                          'text-primary font-weight-bold': part.type === 'rating',
-                          'text-secondary text-h6': part.type === 'separator',
-                        }"
-                        :style="getPartStyle(part.type)"
                       >
-                        {{ part.text }}
-                      </span>
+                        <v-icon
+                          v-if="part.type === 'separator'"
+                          icon="mdi-dots-vertical"
+                          color="secondary"
+                          size="small"
+                          class="mx-1"
+                        />
+
+                        <span
+                          v-else
+                          :class="{'text-amber font-weight-bold': part.type === 'rating'}"
+                          :style="getPartStyle(part.type)"
+                        >
+                          {{ part.text }}
+                        </span>
+                      </template>
                     </template>
                   </v-list-item>
                 </v-list>
@@ -436,17 +448,26 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     </template>
 
                     <template #subtitle>
-                      <span
+                      <template
                         v-for="(part, index) in getSubtitleParts(result)"
                         :key="index"
-                        :class="{
-                          'text-primary font-weight-bold': part.type === 'rating',
-                          'text-secondary text-h6': part.type === 'separator',
-                        }"
-                        :style="getPartStyle(part.type)"
                       >
-                        {{ part.text }}
-                      </span>
+                        <v-icon
+                          v-if="part.type === 'separator'"
+                          icon="mdi-dots-vertical"
+                          color="secondary"
+                          size="small"
+                          class="mx-1"
+                        />
+
+                        <span
+                          v-else
+                          :class="{'text-amber font-weight-bold': part.type === 'rating'}"
+                          :style="getPartStyle(part.type)"
+                        >
+                          {{ part.text }}
+                        </span>
+                      </template>
                     </template>
                   </v-list-item>
                 </v-list>
@@ -491,17 +512,26 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     </template>
 
                     <template #subtitle>
-                      <span
+                      <template
                         v-for="(part, index) in getSubtitleParts(result)"
                         :key="index"
-                        :class="{
-                          'text-primary font-weight-bold': part.type === 'rating',
-                          'text-secondary text-h6': part.type === 'separator',
-                        }"
-                        :style="getPartStyle(part.type)"
                       >
-                        {{ part.text }}
-                      </span>
+                        <v-icon
+                          v-if="part.type === 'separator'"
+                          icon="mdi-dots-vertical"
+                          color="secondary"
+                          size="small"
+                          class="mx-1"
+                        />
+
+                        <span
+                          v-else
+                          :class="{'text-amber font-weight-bold': part.type === 'rating'}"
+                          :style="getPartStyle(part.type)"
+                        >
+                          {{ part.text }}
+                        </span>
+                      </template>
                     </template>
                   </v-list-item>
                 </v-list>

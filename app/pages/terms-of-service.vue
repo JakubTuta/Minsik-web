@@ -60,10 +60,13 @@ const useProhibitions = [
             <v-list-item
               v-for="item in useProhibitions"
               :key="item"
-              :title="item"
               prepend-icon="mdi-close-circle-outline"
-              class="px-0"
-            />
+              class="px-0 align-start"
+            >
+              <template #title>
+                <span style="white-space: normal;">{{ item }}</span>
+              </template>
+            </v-list-item>
           </v-list>
         </v-card>
 
