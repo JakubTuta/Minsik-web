@@ -97,6 +97,8 @@ function toggleStatistics() {
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 const editDialogOpen = ref(false)
 const editError = ref('')
+const deleteDialogOpen = ref(false)
+const deleteError = ref('')
 
 const seriesEditFields: EditFieldConfig[] = [
   { key: 'name', label: 'Name', type: 'text' },
@@ -111,6 +113,18 @@ const seriesEditOriginalData = computed(() => ({
   description: series.value?.description ?? null,
   total_books: series.value?.total_books ?? null,
 }))
+
+async function handleSeriesDelete() {
+  deleteError.value = ''
+  const result = await adminStore.deleteSeries(series.value!.series_id)
+  if (result.success) {
+    deleteDialogOpen.value = false
+    await navigateTo('/')
+  }
+  else {
+    deleteError.value = (result as any).error || 'Delete failed'
+  }
+}
 
 async function handleSeriesEditSave(editedData: Record<string, any>) {
   editError.value = ''
@@ -171,14 +185,25 @@ const collageCovers = computed(() => {
                     </h1>
 
                     <ClientOnly>
-                      <v-btn
-                        v-if="isAdmin"
-                        icon="mdi-pencil"
-                        variant="text"
-                        size="small"
-                        color="secondary"
-                        @click="editDialogOpen = true"
-                      />
+                      <div class="d-flex">
+                        <v-btn
+                          v-if="isAdmin"
+                          icon="mdi-pencil"
+                          variant="text"
+                          size="small"
+                          color="secondary"
+                          @click="editDialogOpen = true"
+                        />
+
+                        <v-btn
+                          v-if="isAdmin"
+                          icon="mdi-delete"
+                          variant="text"
+                          size="small"
+                          color="error"
+                          @click="deleteDialogOpen = true"
+                        />
+                      </div>
                     </ClientOnly>
                   </div>
 
@@ -192,6 +217,42 @@ const collageCovers = computed(() => {
                       :error="editError"
                       @save="handleSeriesEditSave"
                     />
+
+                    <v-dialog
+                      v-model="deleteDialogOpen"
+                      max-width="400"
+                    >
+                      <v-card>
+                        <v-card-title>Delete Series?</v-card-title>
+                        <v-card-text>
+                          This action cannot be undone. Are you sure you want to delete "{{ series?.name }}"?
+                          <v-alert
+                            v-if="deleteError"
+                            type="error"
+                            class="mt-3"
+                          >
+                            {{ deleteError }}
+                          </v-alert>
+                        </v-card-text>
+                        <v-card-actions>
+                          <v-spacer />
+                          <v-btn
+                            variant="text"
+                            @click="deleteDialogOpen = false"
+                          >
+                            Cancel
+                          </v-btn>
+                          <v-btn
+                            color="error"
+                            variant="flat"
+                            :loading="adminStore.isDeleteLoading"
+                            @click="handleSeriesDelete"
+                          >
+                            Delete
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-dialog>
                   </ClientOnly>
 
                   <!-- Rating -->

@@ -35,6 +35,7 @@ export const useAdminStore = defineStore('admin', () => {
 
   const errors = ref<Record<string, string>>({})
   const isUpdateLoading = ref(false)
+  const isDeleteLoading = ref(false)
 
   const fetchCoverage = async () => {
     isCoverageLoading.value = true
@@ -208,6 +209,51 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
+  const deleteBook = async (bookId: number) => {
+    isDeleteLoading.value = true
+    try {
+      await client.value.delete(`/api/v1/admin/books/${bookId}`)
+      return { success: true }
+    }
+    catch (error: any) {
+      const msg = error.response?.data?.error?.message || 'Failed to delete book'
+      return { success: false, error: msg }
+    }
+    finally {
+      isDeleteLoading.value = false
+    }
+  }
+
+  const deleteAuthor = async (authorId: number) => {
+    isDeleteLoading.value = true
+    try {
+      await client.value.delete(`/api/v1/admin/authors/${authorId}`)
+      return { success: true }
+    }
+    catch (error: any) {
+      const msg = error.response?.data?.error?.message || 'Failed to delete author'
+      return { success: false, error: msg }
+    }
+    finally {
+      isDeleteLoading.value = false
+    }
+  }
+
+  const deleteSeries = async (seriesId: number) => {
+    isDeleteLoading.value = true
+    try {
+      await client.value.delete(`/api/v1/admin/series/${seriesId}`)
+      return { success: true }
+    }
+    catch (error: any) {
+      const msg = error.response?.data?.error?.message || 'Failed to delete series'
+      return { success: false, error: msg }
+    }
+    finally {
+      isDeleteLoading.value = false
+    }
+  }
+
   return {
     coverage,
     ingestionResult,
@@ -218,6 +264,7 @@ export const useAdminStore = defineStore('admin', () => {
     isSearchLoading,
     isImportLoading,
     isUpdateLoading,
+    isDeleteLoading,
     errors,
     fetchCoverage,
     triggerIngestion,
@@ -226,5 +273,8 @@ export const useAdminStore = defineStore('admin', () => {
     updateBook,
     updateAuthor,
     updateSeries,
+    deleteBook,
+    deleteAuthor,
+    deleteSeries,
   }
 })

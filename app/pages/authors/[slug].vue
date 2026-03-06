@@ -175,6 +175,8 @@ const totalReaders = computed(() => appReaders.value + olReaders.value)
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 const editDialogOpen = ref(false)
 const editError = ref('')
+const deleteDialogOpen = ref(false)
+const deleteError = ref('')
 
 const authorEditFields: EditFieldConfig[] = [
   { key: 'name', label: 'Name', type: 'text' },
@@ -205,6 +207,18 @@ const authorEditOriginalData = computed(() => ({
   open_library_id: author.value?.open_library_id ?? null,
   alternate_names: author.value?.alternate_names ?? [],
 }))
+
+async function handleAuthorDelete() {
+  deleteError.value = ''
+  const result = await adminStore.deleteAuthor(author.value!.author_id)
+  if (result.success) {
+    deleteDialogOpen.value = false
+    await navigateTo('/')
+  }
+  else {
+    deleteError.value = (result as any).error || 'Delete failed'
+  }
+}
 
 async function handleAuthorEditSave(editedData: Record<string, any>) {
   editError.value = ''
@@ -280,6 +294,18 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
             Edit Author
           </v-btn>
 
+          <v-btn
+            v-if="isAdmin"
+            prepend-icon="mdi-delete"
+            variant="text"
+            size="small"
+            color="error"
+            class="mt-2"
+            @click="deleteDialogOpen = true"
+          >
+            Delete Author
+          </v-btn>
+
           <AdminEditDialog
             v-model="editDialogOpen"
             title="Edit Author"
@@ -289,6 +315,46 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
             :error="editError"
             @save="handleAuthorEditSave"
           />
+
+          <v-dialog
+            v-model="deleteDialogOpen"
+            max-width="400"
+          >
+            <v-card>
+              <v-card-title>Delete Author?</v-card-title>
+
+              <v-card-text>
+                This action cannot be undone. Are you sure you want to delete "{{ author?.name }}"?
+                <v-alert
+                  v-if="deleteError"
+                  type="error"
+                  class="mt-3"
+                >
+                  {{ deleteError }}
+                </v-alert>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-spacer />
+
+                <v-btn
+                  variant="text"
+                  @click="deleteDialogOpen = false"
+                >
+                  Cancel
+                </v-btn>
+
+                <v-btn
+                  color="error"
+                  variant="flat"
+                  :loading="adminStore.isDeleteLoading"
+                  @click="handleAuthorDelete"
+                >
+                  Delete
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </ClientOnly>
       </v-col>
     </v-row>

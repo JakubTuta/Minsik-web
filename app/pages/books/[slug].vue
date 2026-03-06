@@ -104,6 +104,8 @@ function toggleDescription() {
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 const editDialogOpen = ref(false)
 const editError = ref('')
+const deleteDialogOpen = ref(false)
+const deleteError = ref('')
 
 const bookEditFields: EditFieldConfig[] = [
   { key: 'title', label: 'Title', type: 'text' },
@@ -142,6 +144,18 @@ const bookEditOriginalData = computed(() => ({
     : null,
   series_position: book.value?.series_position ?? null,
 }))
+
+async function handleBookDelete() {
+  deleteError.value = ''
+  const result = await adminStore.deleteBook(book.value!.book_id)
+  if (result.success) {
+    deleteDialogOpen.value = false
+    await navigateTo('/')
+  }
+  else {
+    deleteError.value = (result as any).error || 'Delete failed'
+  }
+}
 
 async function handleBookEditSave(editedData: Record<string, any>) {
   editError.value = ''
@@ -219,7 +233,7 @@ onUnmounted(() => {
         <ClientOnly>
           <div
             v-if="isAdmin"
-            class="d-flex mt-2 justify-end"
+            class="d-flex mt-2 justify-end gap-2"
           >
             <v-btn
               prepend-icon="mdi-pencil"
@@ -229,6 +243,16 @@ onUnmounted(() => {
               @click="editDialogOpen = true"
             >
               Edit Book
+            </v-btn>
+
+            <v-btn
+              prepend-icon="mdi-delete"
+              variant="text"
+              size="small"
+              color="error"
+              @click="deleteDialogOpen = true"
+            >
+              Delete Book
             </v-btn>
           </div>
 
@@ -241,6 +265,42 @@ onUnmounted(() => {
             :error="editError"
             @save="handleBookEditSave"
           />
+
+          <v-dialog
+            v-model="deleteDialogOpen"
+            max-width="400"
+          >
+            <v-card>
+              <v-card-title>Delete Book?</v-card-title>
+              <v-card-text>
+                This action cannot be undone. Are you sure you want to delete "{{ book?.title }}"?
+                <v-alert
+                  v-if="deleteError"
+                  type="error"
+                  class="mt-3"
+                >
+                  {{ deleteError }}
+                </v-alert>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer />
+                <v-btn
+                  variant="text"
+                  @click="deleteDialogOpen = false"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  color="error"
+                  variant="flat"
+                  :loading="adminStore.isDeleteLoading"
+                  @click="handleBookDelete"
+                >
+                  Delete
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </ClientOnly>
 
         <!-- Description -->
