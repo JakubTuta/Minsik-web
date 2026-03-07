@@ -49,6 +49,16 @@ const readingTime = computed(() => {
     ? `${hours}h ${remainder}min`
     : `${hours}h`
 })
+
+function formatSeriesPosition(position: string | null) {
+  if (!position)
+    return ''
+
+  if (Number.isInteger(Number(position)))
+    return `#${position}`
+
+  return `#${Number(position).toFixed(1)}`
+}
 </script>
 
 <template>
@@ -127,7 +137,7 @@ const readingTime = computed(() => {
                     <!-- Series Position Badge -->
                     <v-badge
                       v-if="seriesBook.series_position"
-                      :content="`#${seriesBook.series_position}`"
+                      :content="formatSeriesPosition(seriesBook.series_position)"
                       color="primary"
                       class="position-absolute"
                       style="top: 10px; left: 15px;"
@@ -147,7 +157,7 @@ const readingTime = computed(() => {
                     </div>
                   </div>
 
-                  <div class="font-weight-thin text-decoration-none line-clamp-2 mt-1 text-center text-black">
+                  <div class="font-weight-thin text-onBackground line-clamp-2 mt-1 text-center">
                     {{ seriesBook.title }}
                   </div>
 

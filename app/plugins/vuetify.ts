@@ -53,11 +53,11 @@ export default defineNuxtPlugin((app) => {
             'error-lighten-1': '#ED8A71',
 
             // Text colors
-            'on-primary': '#FFFFFF',
-            'on-secondary': '#FFFFFF',
-            'on-background': '#2C2420',
-            'on-surface': '#2C2420',
-            'on-surface-variant': '#6B5D56',
+            'onPrimary': '#FFFFFF',
+            'onSecondary': '#FFFFFF',
+            'onBackground': '#2C2420',
+            'onSurface': '#2C2420',
+            'onSurfaceVariant': '#6B5D56',
 
             // Borders and dividers
             'border': '#F0DCC8',
@@ -115,11 +115,11 @@ export default defineNuxtPlugin((app) => {
             'error-lighten-1': '#ED8A71',
 
             // Text colors
-            'on-primary': '#1A2332',
-            'on-secondary': '#F8FAFB',
-            'on-background': '#F8FAFB',
-            'on-surface': '#F8FAFB',
-            'on-surface-variant': '#B8C5D6',
+            'onPrimary': '#1A2332',
+            'onSecondary': '#F8FAFB',
+            'onBackground': '#F8FAFB',
+            'onSurface': '#F8FAFB',
+            'onSurfaceVariant': '#B8C5D6',
 
             // Borders and dividers
             'border': '#344256',

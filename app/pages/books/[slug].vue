@@ -140,7 +140,7 @@ const bookEditOriginalData = computed(() => ({
   open_library_id: book.value?.open_library_id ?? null,
   google_books_id: book.value?.google_books_id ?? null,
   series_id: book.value?.series
-    ? null
+    ? book.value.series.series_id
     : null,
   series_position: book.value?.series_position ?? null,
 }))
@@ -272,6 +272,7 @@ onUnmounted(() => {
           >
             <v-card>
               <v-card-title>Delete Book?</v-card-title>
+
               <v-card-text>
                 This action cannot be undone. Are you sure you want to delete "{{ book?.title }}"?
                 <v-alert
@@ -282,14 +283,17 @@ onUnmounted(() => {
                   {{ deleteError }}
                 </v-alert>
               </v-card-text>
+
               <v-card-actions>
                 <v-spacer />
+
                 <v-btn
                   variant="text"
                   @click="deleteDialogOpen = false"
                 >
                   Cancel
                 </v-btn>
+
                 <v-btn
                   color="error"
                   variant="flat"
