@@ -63,17 +63,17 @@ useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
                 />
 
                 <span class="text-body-2">
-                  {{ weightedRating(Number(book.avg_rating ?? 0), book.rating_count, book.ol_avg_rating, book.ol_rating_count).toFixed(1) }} ({{ totalRatingCount(book.rating_count, book.ol_rating_count).toLocaleString() }})
+                  {{ weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count).toFixed(1) }} ({{ totalRatingCount(book.rating_count, book.ol_rating_count).toLocaleString() }})
                 </span>
 
                 <v-tooltip
                   activator="parent"
                   location="bottom"
                 >
-                  <div>Minsik: {{ Number(book.avg_rating ?? 0).toFixed(1) }} ({{ book.rating_count }} ratings)</div>
+                  <div>Minsik: {{ book.avg_rating.toFixed(1) }} ({{ book.rating_count }} ratings)</div>
 
                   <div class="mt-1">
-                    Open Library: {{ Number(book.ol_avg_rating ?? 0).toFixed(1) }} ({{ book.ol_rating_count ?? 0 }} ratings)
+                    Open Library: {{ book.ol_avg_rating.toFixed(1) }} ({{ book.ol_rating_count }} ratings)
                   </div>
                 </v-tooltip>
               </div>

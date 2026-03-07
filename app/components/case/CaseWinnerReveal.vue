@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Book, BookSummary } from '~/types/api'
-import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
 import type { Rarity } from '~/types/case'
+import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
 import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
@@ -93,7 +93,7 @@ const authorsList = computed(() => props.winner.authors)
           <div class="d-flex align-center mb-4 flex-wrap justify-center gap-6">
             <div class="d-flex align-center gap-1">
               <RatingDisplay
-                :rating="weightedRating(Number(winner.avg_rating ?? 0), winner.rating_count, winner.ol_avg_rating, winner.ol_rating_count)"
+                :rating="weightedRating(winner.avg_rating, winner.rating_count, winner.ol_avg_rating, winner.ol_rating_count)"
                 :rating-count="totalRatingCount(winner.rating_count, winner.ol_rating_count)"
                 size="small"
               />

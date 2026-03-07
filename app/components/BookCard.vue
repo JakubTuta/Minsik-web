@@ -18,11 +18,22 @@ const bookLink = computed(() => (props.book
 const coverUrl = computed(() => props.book?.primary_cover_url || '/placeholder-book-lazy.jpg')
 const title = computed(() => props.book?.title || '')
 
+function formatSeriesPosition(position: number | null | undefined) {
+  if (!position)
+    return ''
+
+  if (Number.isInteger(position))
+    return `#${position}`
+
+  return `#${position.toFixed(1)}`
+}
+
 const seriesText = computed(() => {
   if (!props.book?.series)
     return null
+
   const position = props.book.series_position
-    ? ` #${props.book.series_position}`
+    ? ` #${formatSeriesPosition(props.book.series_position)}`
     : ''
 
   return `${props.book.series.name}${position}`

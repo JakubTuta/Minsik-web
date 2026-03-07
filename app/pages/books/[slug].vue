@@ -122,7 +122,7 @@ const bookEditFields: EditFieldConfig[] = [
   { key: 'open_library_id', label: 'Open Library ID', type: 'text' },
   { key: 'google_books_id', label: 'Google Books ID', type: 'text' },
   { key: 'series_id', label: 'Series ID', type: 'number' },
-  { key: 'series_position', label: 'Series Position', type: 'text' },
+  { key: 'series_position', label: 'Series Position', type: 'number' },
 ]
 
 const bookEditOriginalData = computed(() => ({

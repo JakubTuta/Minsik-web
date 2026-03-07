@@ -1,14 +1,13 @@
-export function weightedRating(avgRating: number, ratingCount: number, olAvgRating?: string | null, olRatingCount?: number): number {
-  const olRating = Number(olAvgRating ?? 0)
-  const olCount = olRatingCount ?? 0
-  const total = ratingCount + olCount
+export function weightedRating(avgRating: number, ratingCount: number, olAvgRating: number, olRatingCount: number): number {
+  const total = ratingCount + olRatingCount
   if (total === 0)
     return 0
-  return ((avgRating * ratingCount) + (olRating * olCount)) / total
+
+  return ((avgRating * ratingCount) + (olAvgRating * olRatingCount)) / total
 }
 
-export function totalRatingCount(ratingCount: number, olRatingCount?: number): number {
-  return ratingCount + (olRatingCount ?? 0)
+export function totalRatingCount(ratingCount: number, olRatingCount: number): number {
+  return ratingCount + olRatingCount
 }
 
 export function totalReaders(appWantToRead?: number, appReading?: number, appRead?: number, olWantToRead?: number, olCurrentlyReading?: number, olAlreadyRead?: number): number {

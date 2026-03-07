@@ -93,7 +93,7 @@ function getAvg(key: string): number {
   if (!stat?.avg)
     return 0
 
-  return Number.parseFloat(stat.avg)
+  return stat.avg
 }
 
 function getDescription(dim: DimensionConfig): string {

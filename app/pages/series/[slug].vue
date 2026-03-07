@@ -85,7 +85,7 @@ useSeriesStructuredData({
 })
 
 // Series rating from API
-const seriesAvgRating = computed(() => Number(series.value?.avg_rating) || 0)
+const seriesAvgRating = computed(() => series.value?.avg_rating ?? 0)
 const seriesTotalRatings = computed(() => series.value?.rating_count ?? 0)
 
 const statisticsExpanded = ref(false)
@@ -224,6 +224,7 @@ const collageCovers = computed(() => {
                     >
                       <v-card>
                         <v-card-title>Delete Series?</v-card-title>
+
                         <v-card-text>
                           This action cannot be undone. Are you sure you want to delete "{{ series?.name }}"?
                           <v-alert
@@ -234,14 +235,17 @@ const collageCovers = computed(() => {
                             {{ deleteError }}
                           </v-alert>
                         </v-card-text>
+
                         <v-card-actions>
                           <v-spacer />
+
                           <v-btn
                             variant="text"
                             @click="deleteDialogOpen = false"
                           >
                             Cancel
                           </v-btn>
+
                           <v-btn
                             color="error"
                             variant="flat"
@@ -271,7 +275,7 @@ const collageCovers = computed(() => {
                   </div>
 
                   <RatingDisplay
-                    :rating="Number(series.ol_avg_rating)"
+                    :rating="series.ol_avg_rating"
                     :rating-count="series.ol_rating_count"
                     size="small"
                   />
@@ -284,7 +288,6 @@ const collageCovers = computed(() => {
                       ? 'book'
                       : 'books' }}
                   </div>
-
                 </div>
 
                 <!-- Statistics Toggle at bottom -->

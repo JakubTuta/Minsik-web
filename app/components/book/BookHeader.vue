@@ -50,14 +50,14 @@ const readingTime = computed(() => {
     : `${hours}h`
 })
 
-function formatSeriesPosition(position: string | null) {
+function formatSeriesPosition(position: number | null) {
   if (!position)
     return ''
 
-  if (Number.isInteger(Number(position)))
+  if (Number.isInteger(position))
     return `#${position}`
 
-  return `#${Number(position).toFixed(1)}`
+  return `#${position.toFixed(1)}`
 }
 </script>
 
@@ -177,7 +177,7 @@ function formatSeriesPosition(position: string | null) {
             </div>
 
             <RatingDisplay
-              :rating="bookPageStore.liveAvgRating ?? book.avg_rating ?? 0"
+              :rating="bookPageStore.liveAvgRating ?? book.avg_rating"
               :rating-count="bookPageStore.liveRatingCount ?? book.rating_count ?? 0"
             />
 
@@ -188,7 +188,7 @@ function formatSeriesPosition(position: string | null) {
               </div>
 
               <RatingDisplay
-                :rating="Number(book.ol_avg_rating)"
+                :rating="book.ol_avg_rating"
                 :rating-count="book.ol_rating_count"
                 size="small"
               />

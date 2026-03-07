@@ -114,7 +114,7 @@ onMounted(async () => {
             <!-- Stats -->
             <div class="d-flex align-center mb-3 flex-wrap justify-center gap-4">
               <RatingDisplay
-                :rating="weightedRating(Number(book.avg_rating ?? 0), book.rating_count, book.ol_avg_rating, book.ol_rating_count)"
+                :rating="weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count)"
                 :rating-count="totalRatingCount(book.rating_count, book.ol_rating_count)"
                 size="small"
               />

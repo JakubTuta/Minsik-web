@@ -108,7 +108,7 @@ function getSeriesCollageCovers(result: SearchResult) {
 
 // Format rating display
 function formatRating(result: SearchResult) {
-  const avg = weightedRating(Number(result.app_avg_rating ?? 0), result.app_rating_count, result.ol_avg_rating, result.ol_rating_count)
+  const avg = weightedRating(result.app_avg_rating, result.app_rating_count, result.ol_avg_rating, result.ol_rating_count)
   const count = totalRatingCount(result.app_rating_count, result.ol_rating_count)
 
   return { avg: avg.toFixed(1), count }

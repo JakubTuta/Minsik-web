@@ -146,7 +146,7 @@ const sortOptions = [
 const weightedRating = computed(() => {
   const appRating = author.value?.books_avg_rating ?? 0
   const appCount = author.value?.books_total_ratings ?? 0
-  const olRating = Number(author.value?.books_ol_avg_rating ?? 0)
+  const olRating = author.value?.books_ol_avg_rating ?? 0
   const olCount = author.value?.books_ol_total_ratings ?? 0
   const total = appCount + olCount
 
@@ -482,7 +482,7 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
 
                       <div class="mt-1">
                         Open Library: {{ author.books_ol_avg_rating
-                          ? Number(author.books_ol_avg_rating).toFixed(1)
+                          ? author.books_ol_avg_rating.toFixed(1)
                           : '0.0' }} ({{ author.books_ol_total_ratings
                           ? author.books_ol_total_ratings.toLocaleString()
                           : '0' }} ratings)

@@ -51,7 +51,7 @@ export interface Genre {
 // Sub-Rating Types
 
 export interface SubRatingStat {
-  avg: string | null
+  avg: number
   count: number
 }
 
@@ -82,7 +82,7 @@ export interface Author extends AuthorMinimal {
   book_categories: string[]
   books_avg_rating: number
   books_total_ratings: number
-  books_ol_avg_rating?: string | null
+  books_ol_avg_rating: number
   books_ol_total_ratings: number
   view_count: number
   last_viewed_at?: string
@@ -118,9 +118,9 @@ export interface Series extends SeriesMinimal {
   last_viewed_at?: string | null
   created_at: string
   updated_at: string
-  avg_rating?: string | null
+  avg_rating: number
   rating_count: number
-  ol_avg_rating?: string | null
+  ol_avg_rating: number
   ol_rating_count: number
   author?: Author
   app_want_to_read_count: number
@@ -141,16 +141,16 @@ export interface BookSummary {
   primary_cover_url?: string | null
   authors: AuthorMinimal[]
   rating_count: number
-  avg_rating: string | null
+  avg_rating: number
   ol_rating_count: number
-  ol_avg_rating?: string | null
+  ol_avg_rating: number
   ol_want_to_read_count: number
   ol_currently_reading_count: number
   ol_already_read_count: number
   app_want_to_read_count: number
   app_reading_count: number
   app_read_count: number
-  series_position?: string | null
+  series_position?: number | null
   rarity?: string | null
 }
 
@@ -172,7 +172,7 @@ export interface Book {
   authors: AuthorMinimal[]
   genres: Genre[]
   series?: SeriesMinimal | null
-  series_position?: string | null
+  series_position?: number | null
   open_library_id?: string | null
   google_books_id?: string | null
   sub_rating_stats: Record<string, SubRatingStat>
@@ -183,7 +183,7 @@ export interface Book {
   number_of_pages: number
   external_ids: Record<string, string>
   ol_rating_count: number
-  ol_avg_rating?: string | null
+  ol_avg_rating: number
   ol_want_to_read_count: number
   ol_currently_reading_count: number
   ol_already_read_count: number
@@ -200,10 +200,10 @@ export interface BookCardData {
   primary_cover_url?: string | null
   authors: Array<{ name: string, slug: string }>
   series?: { name: string, slug: string } | null
-  series_position?: string | null
-  avg_rating?: string | null
+  series_position?: number | null
+  avg_rating: number
   rating_count?: number
-  ol_avg_rating?: string | null
+  ol_avg_rating: number
   ol_rating_count?: number
 }
 
@@ -219,9 +219,9 @@ export interface SearchResult {
   author_slugs: string[]
   series_slug: string | null
   relevance_score: number
-  app_avg_rating?: string | null
+  app_avg_rating: number
   app_rating_count: number
-  ol_avg_rating?: string | null
+  ol_avg_rating: number
   ol_rating_count: number
   book_count: number
 }

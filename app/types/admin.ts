@@ -40,7 +40,7 @@ export interface AdminUpdateBookRequest {
   open_library_id?: string | null
   google_books_id?: string | null
   series_id?: number | null
-  series_position?: string | null
+  series_position?: number | null
 }
 
 export interface AdminUpdateAuthorRequest {

@@ -31,7 +31,7 @@ export interface RecommendationBookItem {
   primary_cover_url: string | null
   author_names: string[]
   author_slugs: string[]
-  avg_rating: string | null
+  avg_rating: number
   rating_count: number
   score: number
 }
