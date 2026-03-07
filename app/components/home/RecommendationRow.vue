@@ -109,17 +109,19 @@ onUnmounted(() => {
           <div class="carousel-track">
             <template v-if="category.item_type === 'author'">
               <RecommendationAuthorCard
-                v-for="author in (category.author_items ?? [])"
+                v-for="(author, index) in (category.author_items ?? [])"
                 :key="author.author_id"
                 :author="author"
+                :eager="index < 2"
               />
             </template>
 
             <template v-else>
               <RecommendationBookCard
-                v-for="book in (category.book_items ?? [])"
+                v-for="(book, index) in (category.book_items ?? [])"
                 :key="book.book_id"
                 :book="book"
+                :eager="index < 2"
               />
             </template>
           </div>

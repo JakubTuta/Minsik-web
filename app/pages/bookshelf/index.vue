@@ -72,14 +72,14 @@ useInfiniteScroll(
         <!-- Book list -->
         <div class="d-flex flex-column gap-2">
           <BookshelfItem
-            v-for="entry in filteredItems"
+            v-for="(entry, index) in filteredItems"
             :key="entry.book_id"
             :entry="entry"
             :is-public-profile="false"
+            :eager="index < 2"
           />
         </div>
 
-        <!-- Loading skeleton -->
         <div
           v-if="bookshelfStore.myIsLoading && !bookshelfStore.myHasData"
           class="d-flex flex-column gap-2"

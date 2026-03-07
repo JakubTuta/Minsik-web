@@ -3,9 +3,12 @@ import type { RecommendationBookItem } from '~/types/recommendations'
 
 interface Props {
   book: RecommendationBookItem
+  eager?: boolean
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  eager: false,
+})
 </script>
 
 <template>
@@ -15,6 +18,7 @@ defineProps<Props>()
       <v-img
         :src="book.primary_cover_url || '/placeholder-book-lazy.jpg'"
         :alt="book.title"
+        :eager="eager"
         class="h-100"
       />
     </div>

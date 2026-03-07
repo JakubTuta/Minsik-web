@@ -274,6 +274,7 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
           <v-img
             :src="photoUrl"
             :alt="author.name"
+            eager
           />
         </v-avatar>
 

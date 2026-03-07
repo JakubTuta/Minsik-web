@@ -26,7 +26,7 @@ useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
       class="books-list"
     >
       <NuxtLink
-        v-for="book in books"
+        v-for="(book, index) in books"
         :key="book.book_id"
         :to="`/books/${book.slug}`"
         class="book-item text-decoration-none"
@@ -45,6 +45,7 @@ useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
               width="120"
               height="180"
               cover
+              :eager="index < 2"
             />
           </div>
 

@@ -3,6 +3,7 @@ import type { FavouriteEntry } from '~/types/user'
 
 const props = defineProps<{
   entry: FavouriteEntry
+  eager?: boolean
 }>()
 
 const favouritesStore = useFavouritesStore()
@@ -21,6 +22,7 @@ async function remove() {
     :author-slugs="entry.book_author_slugs"
     :series-name="entry.book_series_name"
     :series-slug="entry.book_series_slug"
+    :eager="eager"
   >
     <template #topRight>
       <v-btn

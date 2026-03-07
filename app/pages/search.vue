@@ -165,7 +165,7 @@ function getResultPath(result: SearchResult) {
     <!-- Results Grid -->
     <v-row v-if="searchStore.hasData">
       <v-col
-        v-for="result in searchStore.results"
+        v-for="(result, index) in searchStore.results"
         :key="`${result.type}-${result.id}`"
         cols="12"
         sm="6"
@@ -195,6 +195,7 @@ function getResultPath(result: SearchResult) {
               class="rounded"
               width="110"
               height="164"
+              :eager="index < 2"
             />
 
             <!-- Author: avatar -->
@@ -205,6 +206,7 @@ function getResultPath(result: SearchResult) {
               <v-img
                 :src="result.cover_url || '/placeholder-avatar-lazy.jpg'"
                 :alt="result.title"
+                :eager="index < 2"
               />
             </v-avatar>
 

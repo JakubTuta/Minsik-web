@@ -64,6 +64,7 @@ const authorsList = computed(() => props.winner.authors)
             <v-img
               :src="winner.primary_cover_url || '/placeholder-book-lazy.jpg'"
               :alt="winner.title"
+              lazy-src="/placeholder-book-lazy.jpg"
               width="160"
               height="234"
               cover

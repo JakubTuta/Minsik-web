@@ -67,6 +67,7 @@ const readingTime = computed(() => {
           :alt="book.title"
           aspect-ratio="0.67"
           cover
+          eager
           class="book-cover-shadow rounded"
         />
       </v-col>
@@ -105,7 +106,7 @@ const readingTime = computed(() => {
                 class="d-flex series-scroll gap-3"
               >
                 <NuxtLink
-                  v-for="seriesBook in seriesBooks"
+                  v-for="(seriesBook, index) in seriesBooks"
                   :key="seriesBook.book_id"
                   :to="`/books/${seriesBook.slug}`"
                   class="text-decoration-none flex-shrink-0"
@@ -119,6 +120,7 @@ const readingTime = computed(() => {
                       width="80"
                       cover
                       class="rounded"
+                      :eager="index < 2"
                       :class="{'opacity-75': seriesBook.book_id === book.book_id}"
                     />
 

@@ -86,6 +86,7 @@ onMounted(async () => {
               <v-img
                 :src="book.primary_cover_url || '/placeholder-book-lazy.jpg'"
                 :alt="book.title"
+                lazy-src="/placeholder-book-lazy.jpg"
                 width="160"
                 height="234"
                 cover

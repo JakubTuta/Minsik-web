@@ -4,6 +4,7 @@ import type { BookshelfEntry, BookshelfStatus } from '~/types/user'
 const props = defineProps<{
   entry: BookshelfEntry
   isPublicProfile: boolean
+  eager?: boolean
 }>()
 
 const { isPublicProfile } = toRefs(props)
@@ -39,6 +40,7 @@ async function handleRemove() {
     :author-slugs="entry.book_author_slugs"
     :series-name="entry.book_series_name"
     :series-slug="entry.book_series_slug"
+    :eager="eager"
   >
     <template #topRight>
       <v-btn

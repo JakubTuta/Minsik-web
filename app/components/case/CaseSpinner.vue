@@ -107,6 +107,7 @@ function getGlowStyle(rarity: string) {
               <v-img
                 :src="item.primary_cover_url || '/placeholder-book-lazy.jpg'"
                 :alt="item.title"
+                lazy-src="/placeholder-book-lazy.jpg"
                 :width="ITEM_WIDTH - 32"
                 :height="(ITEM_WIDTH - 32) * 1.4"
                 cover

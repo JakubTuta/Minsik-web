@@ -99,7 +99,7 @@ async function loadMore() {
     <v-row>
       <template v-if="isAuthorCategory">
         <v-col
-          v-for="item in (items as RecommendationAuthorItem[])"
+          v-for="(item, index) in (items as RecommendationAuthorItem[])"
           :key="item.author_id"
           cols="6"
           sm="4"
@@ -107,6 +107,7 @@ async function loadMore() {
         >
           <RecommendationAuthorCard
             :author="item"
+            :eager="index < 2"
             class="w-100"
           />
         </v-col>
@@ -114,7 +115,7 @@ async function loadMore() {
 
       <template v-else>
         <v-col
-          v-for="item in (items as RecommendationBookItem[])"
+          v-for="(item, index) in (items as RecommendationBookItem[])"
           :key="item.book_id"
           cols="6"
           sm="4"
@@ -122,6 +123,7 @@ async function loadMore() {
         >
           <RecommendationBookCard
             :book="item"
+            :eager="index < 2"
             class="w-100"
           />
         </v-col>

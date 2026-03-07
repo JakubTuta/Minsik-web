@@ -3,9 +3,12 @@ import type { RecommendationAuthorItem } from '~/types/recommendations'
 
 interface Props {
   author: RecommendationAuthorItem
+  eager?: boolean
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  eager: false,
+})
 </script>
 
 <template>
@@ -19,6 +22,7 @@ defineProps<Props>()
         <v-img
           :src="author.photo_url || '/placeholder-avatar-lazy.jpg'"
           :alt="author.name"
+          :eager="eager"
           cover
         />
       </v-avatar>

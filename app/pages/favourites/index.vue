@@ -56,9 +56,10 @@ useInfiniteScroll(
       >
         <div class="d-flex flex-column gap-2">
           <FavouriteItem
-            v-for="entry in filteredItems"
+            v-for="(entry, index) in filteredItems"
             :key="entry.book_id"
             :entry="entry"
+            :eager="index < 2"
           />
         </div>
 

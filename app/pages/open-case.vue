@@ -3,6 +3,7 @@ import type { Rarity } from '~/types/case'
 import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
 
 const caseStore = useCaseStore()
+const { preloadImages } = useImagePreloader()
 
 const rarityTiers: { rarity: Rarity, range: string, probability: string }[] = [
   { rarity: 'legendary', range: '> 4.75', probability: '~1.5%' },
@@ -31,6 +32,8 @@ async function handleChestClick() {
 
     return
   }
+
+  await preloadImages(caseStore.caseData!.display_list.map(item => item.primary_cover_url))
 
   caseStore.setPhase('spinning')
 }
