@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EditFieldConfig } from '~/types/admin'
-import type { Author, Book, BookSummary } from '~/types/api'
+import type { Author, BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 
 const route = useRoute()

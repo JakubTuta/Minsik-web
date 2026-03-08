@@ -167,6 +167,10 @@ export default defineNuxtPlugin((app) => {
         variant: 'tonal',
         rounded: 'xl',
       },
+      VTooltip: {
+        bgColor: 'onBackground',
+        contentClass: 'text-onBackground',
+      },
     },
     display: {
       mobileBreakpoint: 'sm',

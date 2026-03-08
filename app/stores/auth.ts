@@ -23,6 +23,12 @@ export const useAuthStore = defineStore('auth', () => {
   let _refreshPromise: Promise<boolean> | null = null
   let _refreshInterval: ReturnType<typeof setInterval> | null = null
 
+  // Resolves once autoLogin() completes (success or failure) — gates all non-auth API requests
+  let _authReadyResolve: (() => void) | null = null
+  const _authReadyPromise: Promise<void> = import.meta.client
+    ? new Promise<void>((resolve) => { _authReadyResolve = resolve })
+    : Promise.resolve()
+
   const clearRefreshInterval = () => {
     if (_refreshInterval !== null) {
       clearInterval(_refreshInterval)
@@ -208,7 +214,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     authInitialized.value = true
+    _authReadyResolve?.()
   }
+
+  const waitForAuth = () => _authReadyPromise
 
   const googleAuth = async (code: string, redirectUri: string) => {
     try {
@@ -265,6 +274,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     autoLogin,
+    waitForAuth,
     updateProfile,
     googleAuth,
     refreshAccessToken,

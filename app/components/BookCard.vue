@@ -23,7 +23,7 @@ function formatSeriesPosition(position: number | null | undefined) {
     return ''
 
   if (Number.isInteger(position))
-    return `#${position}`
+    return `#${position.toFixed(0)}`
 
   return `#${position.toFixed(1)}`
 }

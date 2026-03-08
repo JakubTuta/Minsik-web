@@ -55,7 +55,7 @@ function formatSeriesPosition(position: number | null) {
     return ''
 
   if (Number.isInteger(position))
-    return `#${position}`
+    return `#${position.toFixed(0)}`
 
   return `#${position.toFixed(1)}`
 }

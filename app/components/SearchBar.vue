@@ -154,10 +154,18 @@ const groupedResults = computed(() => {
     return null
 
   const results = quickSearchStore.results
+  const byRatingCount = (a: SearchResult, b: SearchResult) => {
+    const countA = totalRatingCount(a.app_rating_count, a.ol_rating_count)
+    const countB = totalRatingCount(b.app_rating_count, b.ol_rating_count)
+    if (countA === 0 && countB === 0)
+      return b.relevance_score - a.relevance_score
 
-  const books = results.filter(r => r.type === 'book').slice(0, 10)
-  const series = results.filter(r => r.type === 'series').slice(0, 10)
-  const authors = results.filter(r => r.type === 'author').slice(0, 10)
+    return countB - countA
+  }
+
+  const books = results.filter(r => r.type === 'book').sort(byRatingCount).slice(0, 10)
+  const series = results.filter(r => r.type === 'series').sort(byRatingCount).slice(0, 10)
+  const authors = results.filter(r => r.type === 'author').sort(byRatingCount).slice(0, 10)
 
   return { books, series, authors }
 })
@@ -366,7 +374,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
                 </div>
 
                 <v-list
-                  density="compact"
+                  density="comfortable"
                   class="scrollable-list pa-0"
                 >
                   <v-list-item
@@ -374,6 +382,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     :key="result.id"
                     :title="result.title"
                     :to="`/books/${result.slug}`"
+                    class="mb-1 rounded"
                     @click="showResults = false"
                   >
                     <template #prepend>
@@ -407,9 +416,24 @@ function getPartStyle(partType: SubtitlePart['type']) {
                           class="mx-1"
                         />
 
+                        <template v-else-if="part.type === 'rating'">
+                          <v-icon
+                            icon="mdi-star"
+                            color="amber"
+                            size="x-small"
+                            class="mr-1"
+                          />
+
+                          <span
+                            class="font-weight-bold text-amber"
+                            :style="getPartStyle(part.type)"
+                          >
+                            {{ part.text }}
+                          </span>
+                        </template>
+
                         <span
                           v-else
-                          :class="{'text-amber font-weight-bold': part.type === 'rating'}"
                           :style="getPartStyle(part.type)"
                         >
                           {{ part.text }}
@@ -433,7 +457,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
                 </div>
 
                 <v-list
-                  density="compact"
+                  density="comfortable"
                   class="scrollable-list pa-0"
                 >
                   <v-list-item
@@ -441,6 +465,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     :key="result.id"
                     :title="result.title"
                     :to="`/series/${result.slug}`"
+                    class="mb-1 rounded"
                     @click="showResults = false"
                   >
                     <template #prepend>
@@ -460,9 +485,24 @@ function getPartStyle(partType: SubtitlePart['type']) {
                           class="mx-1"
                         />
 
+                        <template v-else-if="part.type === 'rating'">
+                          <v-icon
+                            icon="mdi-star"
+                            color="amber"
+                            size="x-small"
+                            class="mr-1"
+                          />
+
+                          <span
+                            class="font-weight-bold text-amber"
+                            :style="getPartStyle(part.type)"
+                          >
+                            {{ part.text }}
+                          </span>
+                        </template>
+
                         <span
                           v-else
-                          :class="{'text-amber font-weight-bold': part.type === 'rating'}"
                           :style="getPartStyle(part.type)"
                         >
                           {{ part.text }}
@@ -486,7 +526,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
                 </div>
 
                 <v-list
-                  density="compact"
+                  density="comfortable"
                   class="scrollable-list pa-0"
                 >
                   <v-list-item
@@ -494,6 +534,7 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     :key="result.id"
                     :title="result.title"
                     :to="`/authors/${result.slug}`"
+                    class="mb-1 rounded"
                     @click="showResults = false"
                   >
                     <template #prepend>
@@ -524,9 +565,24 @@ function getPartStyle(partType: SubtitlePart['type']) {
                           class="mx-1"
                         />
 
+                        <template v-else-if="part.type === 'rating'">
+                          <v-icon
+                            icon="mdi-star"
+                            color="amber"
+                            size="x-small"
+                            class="mr-1"
+                          />
+
+                          <span
+                            class="font-weight-bold text-amber"
+                            :style="getPartStyle(part.type)"
+                          >
+                            {{ part.text }}
+                          </span>
+                        </template>
+
                         <span
                           v-else
-                          :class="{'text-amber font-weight-bold': part.type === 'rating'}"
                           :style="getPartStyle(part.type)"
                         >
                           {{ part.text }}
