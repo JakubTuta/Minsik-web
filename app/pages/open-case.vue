@@ -181,6 +181,7 @@ onUnmounted(() => {
   min-height: calc(100vh - 64px);
   padding: 40px 16px;
   position: relative;
+  overflow-x: hidden;
 }
 
 .rarity-info-btn {

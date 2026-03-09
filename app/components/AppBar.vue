@@ -18,7 +18,7 @@ const appBarSearchQuery = ref('')
   >
     <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title
-      v-if="!mobile"
+      v-show="!mobile"
       class="logo-container"
     >
       <NuxtLink
@@ -47,7 +47,7 @@ const appBarSearchQuery = ref('')
 
     <!-- Desktop: Theme Toggle & User Menu -->
     <v-btn
-      v-if="!mobile"
+      v-show="!mobile"
       variant="text"
       prepend-icon="mdi-compass"
       to="/discover"
@@ -56,7 +56,7 @@ const appBarSearchQuery = ref('')
     </v-btn>
 
     <v-btn
-      v-if="!mobile"
+      v-show="!mobile"
       variant="text"
       prepend-icon="mdi-treasure-chest"
       to="/open-case"
@@ -65,25 +65,27 @@ const appBarSearchQuery = ref('')
     </v-btn>
 
     <ThemeToggle
-      v-if="!mobile"
+      v-show="!mobile"
     />
 
-    <ClientOnly v-if="!mobile">
-      <UserMenu />
+    <div v-show="!mobile">
+      <ClientOnly>
+        <UserMenu />
 
-      <template #fallback>
-        <v-btn
-          icon
-          variant="text"
-        >
-          <v-icon icon="mdi-account-circle" />
-        </v-btn>
-      </template>
-    </ClientOnly>
+        <template #fallback>
+          <v-btn
+            icon
+            variant="text"
+          >
+            <v-icon icon="mdi-account-circle" />
+          </v-btn>
+        </template>
+      </ClientOnly>
+    </div>
 
     <!-- Mobile: Menu Button -->
     <v-btn
-      v-if="mobile"
+      v-show="mobile"
       icon
       @click="drawer = !drawer"
     >

@@ -16,6 +16,26 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
 <template>
   <!-- Drawer Mode -->
   <template v-if="drawerMode">
+    <v-list-item
+      prepend-icon="mdi-compass"
+      title="Discover"
+      to="/discover"
+    />
+
+    <v-list-item
+      prepend-icon="mdi-treasure-chest"
+      title="Open a Case"
+      to="/open-case"
+    />
+
+    <v-list-item
+      prepend-icon="mdi-information"
+      title="About"
+      to="/about"
+    />
+
+    <v-divider class="my-1" />
+
     <template v-if="isAuthenticated">
       <v-list-item
         :subtitle="user?.email"
@@ -40,8 +60,6 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           </v-avatar>
         </template>
       </v-list-item>
-
-      <v-divider class="my-1" />
 
       <v-list-item
         prepend-icon="mdi-view-dashboard"
@@ -110,26 +128,6 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         @click="authDialogStore.openRegister()"
       />
     </template>
-
-    <v-divider class="my-1" />
-
-    <v-list-item
-      prepend-icon="mdi-compass"
-      title="Discover"
-      to="/discover"
-    />
-
-    <v-list-item
-      prepend-icon="mdi-treasure-chest"
-      title="Open a Case"
-      to="/open-case"
-    />
-
-    <v-list-item
-      prepend-icon="mdi-information"
-      title="About"
-      to="/about"
-    />
   </template>
 
   <!-- Desktop Mode -->
@@ -190,15 +188,9 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         <v-divider class="my-1" />
 
         <v-list-item
-          prepend-icon="mdi-view-dashboard"
-          title="Dashboard"
-          to="/dashboard"
-        />
-
-        <v-list-item
-          prepend-icon="mdi-account"
-          title="Public Profile"
-          :to="`/bookshelf/${user?.username}`"
+          prepend-icon="mdi-information"
+          title="About"
+          to="/about"
         />
 
         <v-divider class="my-1" />
@@ -208,6 +200,18 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           prepend-icon="mdi-shield-crown"
           title="Admin Panel"
           to="/admin"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-view-dashboard"
+          title="Dashboard"
+          to="/dashboard"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-account"
+          title="Public Profile"
+          :to="`/bookshelf/${user?.username}`"
         />
 
         <v-list-item
@@ -241,17 +245,15 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           title="Sign Out"
           @click="authStore.logout()"
         />
+      </template>
 
-        <v-divider class="my-1" />
-
+      <template v-else>
         <v-list-item
           prepend-icon="mdi-information"
           title="About"
           to="/about"
         />
-      </template>
 
-      <template v-else>
         <v-divider class="my-1" />
 
         <v-list-item
@@ -264,14 +266,6 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           prepend-icon="mdi-account-plus"
           title="Sign Up"
           @click="authDialogStore.openRegister()"
-        />
-
-        <v-divider class="my-1" />
-
-        <v-list-item
-          prepend-icon="mdi-information"
-          title="About"
-          to="/about"
         />
       </template>
     </v-list>
