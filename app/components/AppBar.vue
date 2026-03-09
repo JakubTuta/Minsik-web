@@ -2,11 +2,7 @@
 import { useDisplay } from 'vuetify'
 
 const { mobile } = useDisplay()
-
-const themeStore = useThemeStore()
 const drawer = ref(false)
-
-// Separate state for AppBar search (not connected to search store)
 const appBarSearchQuery = ref('')
 </script>
 
@@ -15,11 +11,13 @@ const appBarSearchQuery = ref('')
     elevation="3"
     color="primary"
     class="app-bar-container"
+    :scroll-behavior="mobile
+      ? 'hide'
+      : undefined"
   >
     <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title
-      v-show="!mobile"
-      class="logo-container"
+      class="d-none d-md-block logo-container"
     >
       <NuxtLink
         to="/"
@@ -47,7 +45,7 @@ const appBarSearchQuery = ref('')
 
     <!-- Desktop: Theme Toggle & User Menu -->
     <v-btn
-      v-show="!mobile"
+      class="d-none d-md-inline-flex"
       variant="text"
       prepend-icon="mdi-compass"
       to="/discover"
@@ -56,7 +54,7 @@ const appBarSearchQuery = ref('')
     </v-btn>
 
     <v-btn
-      v-show="!mobile"
+      class="d-none d-md-inline-flex"
       variant="text"
       prepend-icon="mdi-treasure-chest"
       to="/open-case"
@@ -64,11 +62,11 @@ const appBarSearchQuery = ref('')
       Open a Case
     </v-btn>
 
-    <ThemeToggle
-      v-show="!mobile"
-    />
+    <div class="d-none d-md-flex align-center">
+      <ThemeToggle />
+    </div>
 
-    <div v-show="!mobile">
+    <div class="d-none d-md-flex align-center">
       <ClientOnly>
         <UserMenu />
 
@@ -85,7 +83,7 @@ const appBarSearchQuery = ref('')
 
     <!-- Mobile: Menu Button -->
     <v-btn
-      v-show="mobile"
+      class="d-md-none"
       icon
       @click="drawer = !drawer"
     >
@@ -120,15 +118,6 @@ const appBarSearchQuery = ref('')
       </v-list-item>
 
       <v-divider class="my-2" />
-
-      <!-- Theme Toggle -->
-      <v-list-item @click="themeStore.toggleTheme">
-        <div class="d-flex align-center justify-space-between w-100">
-          <v-list-item-title>Theme</v-list-item-title>
-
-          <ThemeToggle />
-        </div>
-      </v-list-item>
 
       <!-- User Menu Items (expanded) -->
       <ClientOnly>

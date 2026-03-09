@@ -7,6 +7,7 @@ defineProps<Props>()
 
 const authStore = useAuthStore()
 const authDialogStore = useAuthDialogStore()
+const themeStore = useThemeStore()
 const { isAuthenticated, user } = storeToRefs(authStore)
 
 const userDisplayName = computed(() => user.value?.display_name || user.value?.username || 'User')
@@ -16,26 +17,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
 <template>
   <!-- Drawer Mode -->
   <template v-if="drawerMode">
-    <v-list-item
-      prepend-icon="mdi-compass"
-      title="Discover"
-      to="/discover"
-    />
-
-    <v-list-item
-      prepend-icon="mdi-treasure-chest"
-      title="Open a Case"
-      to="/open-case"
-    />
-
-    <v-list-item
-      prepend-icon="mdi-information"
-      title="About"
-      to="/about"
-    />
-
-    <v-divider class="my-1" />
-
+    <!-- User info - only when authenticated -->
     <template v-if="isAuthenticated">
       <v-list-item
         :subtitle="user?.email"
@@ -61,6 +43,48 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         </template>
       </v-list-item>
 
+      <v-divider class="my-1" />
+    </template>
+
+    <!-- Theme toggle - always visible -->
+    <v-list-item @click="themeStore.toggleTheme">
+      <div class="d-flex align-center justify-space-between w-100">
+        <v-list-item-title>Theme</v-list-item-title>
+
+        <ThemeToggle />
+      </div>
+    </v-list-item>
+
+    <!-- Public pages - always visible -->
+    <v-list-item
+      prepend-icon="mdi-compass"
+      title="Discover"
+      to="/discover"
+    />
+
+    <v-list-item
+      prepend-icon="mdi-treasure-chest"
+      title="Open a Case"
+      to="/open-case"
+    />
+
+    <v-list-item
+      prepend-icon="mdi-information"
+      title="About"
+      to="/about"
+    />
+
+    <!-- Authenticated pages -->
+    <template v-if="isAuthenticated">
+      <v-divider class="my-1" />
+
+      <v-list-item
+        v-if="user?.role === 'admin'"
+        prepend-icon="mdi-shield-crown"
+        title="Admin Panel"
+        to="/admin"
+      />
+
       <v-list-item
         prepend-icon="mdi-view-dashboard"
         title="Dashboard"
@@ -71,15 +95,6 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         prepend-icon="mdi-account"
         title="Public Profile"
         :to="`/bookshelf/${user?.username}`"
-      />
-
-      <v-divider class="my-1" />
-
-      <v-list-item
-        v-if="user?.role === 'admin'"
-        prepend-icon="mdi-shield-crown"
-        title="Admin Panel"
-        to="/admin"
       />
 
       <v-list-item
@@ -116,6 +131,8 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
     </template>
 
     <template v-else>
+      <v-divider class="my-1" />
+
       <v-list-item
         prepend-icon="mdi-login"
         title="Sign In"

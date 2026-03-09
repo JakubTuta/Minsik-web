@@ -37,59 +37,59 @@ defineProps<Props>()
 
       <!-- Content -->
       <div class="d-flex flex-column min-w-0 flex-grow-1">
-        <!-- Top row: Title + Top-right slot -->
-        <div class="d-flex justify-space-between gap-2 align-start">
-          <div class="min-w-0">
-            <!-- Book Title -->
-            <NuxtLink
-              :to="`/books/${slug}`"
-              class="text-decoration-none text-primary"
-            >
-              <div class="text-h5 font-weight-bold text-truncate">
-                {{ title }}
-              </div>
-            </NuxtLink>
-
-            <!-- Authors -->
-            <div class="text-medium-emphasis text-truncate">
-              <span
-                v-if="authorNames.length > 0"
-                class="text-body-1"
-              >by </span>
-
-              <template
-                v-for="(author, i) in authorNames"
-                :key="author"
-              >
-                <NuxtLink
-                  :to="`/authors/${authorSlugs[i]}`"
-                  class="text-decoration-none text-medium-emphasis text-body-1"
-                >
-                  {{ author }}
-                </NuxtLink>
-
-                <span v-if="i < authorNames.length - 1">, </span>
-              </template>
-            </div>
-
-            <!-- Series -->
-            <NuxtLink
-              v-if="seriesName && seriesSlug"
-              :to="`/series/${seriesSlug}`"
-              class="text-decoration-none"
-            >
-              <div class="text-body-2 text-medium-emphasis mt-1">
-                Series: {{ seriesName }}
-              </div>
-            </NuxtLink>
+        <!-- Book Title -->
+        <NuxtLink
+          :to="`/books/${slug}`"
+          class="text-decoration-none text-primary"
+        >
+          <div class="text-subtitle-1 font-weight-bold text-truncate">
+            {{ title }}
           </div>
+        </NuxtLink>
 
-          <!-- Top-right slot -->
-          <slot name="topRight" />
+        <!-- Authors -->
+        <div class="text-medium-emphasis text-truncate">
+          <span
+            v-if="authorNames.length > 0"
+            class="text-body-2"
+          >by </span>
+
+          <template
+            v-for="(author, i) in authorNames"
+            :key="author"
+          >
+            <NuxtLink
+              :to="`/authors/${authorSlugs[i]}`"
+              class="text-decoration-none text-medium-emphasis text-body-2"
+            >
+              {{ author }}
+            </NuxtLink>
+
+            <span v-if="i < authorNames.length - 1">, </span>
+          </template>
         </div>
+
+        <!-- Series -->
+        <NuxtLink
+          v-if="seriesName && seriesSlug"
+          :to="`/series/${seriesSlug}`"
+          class="text-decoration-none"
+        >
+          <div class="text-body-2 text-medium-emphasis mt-1">
+            Series: {{ seriesName }}
+          </div>
+        </NuxtLink>
 
         <!-- Middle slot -->
         <slot name="middle" />
+
+        <!-- Action slot — full width below text, right-aligned -->
+        <div
+          v-if="$slots.topRight"
+          class="d-flex justify-end mt-2"
+        >
+          <slot name="topRight" />
+        </div>
       </div>
     </div>
   </v-card>
