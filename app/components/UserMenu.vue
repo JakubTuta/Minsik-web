@@ -62,11 +62,27 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       to="/discover"
     />
 
-    <v-list-item
-      prepend-icon="mdi-treasure-chest"
-      title="Open a Case"
-      to="/open-case"
-    />
+    <v-list-group value="casino">
+      <template #activator="{'props': groupProps}">
+        <v-list-item
+          v-bind="groupProps"
+          prepend-icon="mdi-slot-machine"
+          title="Casino"
+        />
+      </template>
+
+      <v-list-item
+        prepend-icon="mdi-treasure-chest"
+        title="Open a Case"
+        to="/open-case"
+      />
+
+      <v-list-item
+        prepend-icon="mdi-cards"
+        title="Open a Pack"
+        to="/open-pack"
+      />
+    </v-list-group>
 
     <v-list-item
       prepend-icon="mdi-information"

@@ -14,6 +14,7 @@ const appBarSearchQuery = ref('')
     :scroll-behavior="mobile
       ? 'hide'
       : undefined"
+    :scroll-threshold="64"
   >
     <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title
@@ -53,14 +54,42 @@ const appBarSearchQuery = ref('')
       Discover
     </v-btn>
 
-    <v-btn
-      class="d-none d-md-inline-flex"
-      variant="text"
-      prepend-icon="mdi-treasure-chest"
-      to="/open-case"
+    <v-menu
+      class="d-none d-md-flex"
+      location="bottom"
     >
-      Open a Case
-    </v-btn>
+      <template #activator="{'props': menuProps}">
+        <v-btn
+          class="d-none d-md-inline-flex"
+          variant="text"
+          prepend-icon="mdi-slot-machine"
+          v-bind="menuProps"
+        >
+          Casino
+
+          <template #append>
+            <v-icon
+              icon="mdi-menu-down"
+              size="x-large"
+            />
+          </template>
+        </v-btn>
+      </template>
+
+      <v-list min-width="200">
+        <v-list-item
+          prepend-icon="mdi-treasure-chest"
+          title="Open a Case"
+          to="/open-case"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-cards"
+          title="Open a Pack"
+          to="/open-pack"
+        />
+      </v-list>
+    </v-menu>
 
     <div class="d-none d-md-flex align-center">
       <ThemeToggle />

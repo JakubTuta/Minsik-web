@@ -10,5 +10,6 @@ const icon = computed(() => (themeStore.isDark
   <v-btn
     :icon="icon"
     variant="text"
+    @click="themeStore.toggleTheme()"
   />
 </template>

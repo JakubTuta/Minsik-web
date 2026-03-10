@@ -2,7 +2,12 @@
 import type { Rarity } from '~/types/case'
 import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
 
-const caseStore = useCaseStore()
+useSeoMeta({
+  title: 'Open a Pack - Minsik',
+  description: 'Open a book pack and discover 8 random books across all rarity tiers.',
+})
+
+const packStore = usePackStore()
 const { preloadImages } = useImagePreloader()
 
 const rarityTiers: { rarity: Rarity, range: string, probability: string }[] = [
@@ -15,46 +20,54 @@ const rarityTiers: { rarity: Rarity, range: string, probability: string }[] = [
 ]
 
 const showError = computed({
-  get: () => !!caseStore.error,
-  set: () => caseStore.reset(),
+  get: () => !!packStore.error,
+  set: () => packStore.reset(),
 })
 
-async function handleChestClick() {
-  caseStore.setPhase('opening')
+const highestRarityColor = computed(() => RARITY_COLORS[packStore.highestRarity])
+
+async function handlePackClick() {
+  packStore.setPhase('opening')
 
   await Promise.all([
     new Promise<void>(resolve => setTimeout(resolve, 900)),
-    caseStore.openCase(),
+    packStore.openPack(),
   ])
 
-  if (caseStore.error) {
-    caseStore.setPhase('idle')
+  if (packStore.error) {
+    packStore.setPhase('idle')
 
     return
   }
 
-  await preloadImages(caseStore.caseData!.display_list.map(item => item.primary_cover_url))
-
-  caseStore.setPhase('spinning')
+  await preloadImages(packStore.packData!.items.map(item => item.primary_cover_url))
+  packStore.setPhase('glow')
 }
 
-function handleSpinComplete() {
-  caseStore.setPhase('revealing')
+function handleGlowComplete() {
+  packStore.setPhase('spread')
 }
 
-function handlePlayAgain() {
-  caseStore.reset()
+function handleReveal(index: number) {
+  packStore.revealCard(index)
+  if (packStore.allRevealed) {
+    packStore.setPhase('done')
+  }
+}
+
+function handleOpenAnother() {
+  packStore.reset()
 }
 
 onUnmounted(() => {
-  caseStore.reset()
+  packStore.reset()
 })
 </script>
 
 <template>
   <v-container
     fluid
-    class="open-case-page d-flex flex-column"
+    class="open-pack-page d-flex flex-column"
   >
     <!-- Rarity info button -->
     <div class="rarity-info-btn">
@@ -64,9 +77,7 @@ onUnmounted(() => {
         size="large"
         class="text-medium-emphasis"
       >
-        <v-icon>
-          mdi-information-outline
-        </v-icon>
+        <v-icon>mdi-information-outline</v-icon>
 
         <v-tooltip
           activator="parent"
@@ -101,57 +112,57 @@ onUnmounted(() => {
         </v-tooltip>
       </v-btn>
     </div>
-    <!-- Chest phase (idle + opening) -->
+
     <Transition
       name="phase-fade"
       mode="out-in"
     >
+      <!-- Idle / Opening phase -->
       <div
-        v-if="caseStore.phase === 'idle' || caseStore.phase === 'opening'"
-        key="chest"
-        class="flex-grow-1 d-flex flex-column align-center justify-center"
+        v-if="packStore.phase === 'idle' || packStore.phase === 'opening'"
+        key="pack"
+        class="d-flex flex-column align-center flex-grow-1 justify-center"
       >
-        <CaseChest
-          :opening="caseStore.phase === 'opening'"
-          :disabled="caseStore.isLoading"
-          @open="handleChestClick"
+        <PackClosed
+          :opening="packStore.phase === 'opening'"
+          :disabled="packStore.isLoading"
+          @open="handlePackClick"
         />
       </div>
 
-      <!-- Spinner phase -->
+      <!-- Glow phase -->
       <div
-        v-else-if="caseStore.phase === 'spinning' && caseStore.caseData"
-        key="spinner"
-        class="flex-grow-1 spinner-phase w-100"
+        v-else-if="packStore.phase === 'glow'"
+        key="glow"
+        class="d-flex flex-column align-center flex-grow-1 justify-center"
       >
-        <div class="mb-6 text-center">
-          <h2 class="text-h5 font-weight-bold">
-            Opening...
-          </h2>
-        </div>
-
-        <CaseSpinner
-          :data="caseStore.caseData"
-          @spin-complete="handleSpinComplete"
+        <PackGlowCard
+          :rarity-color="highestRarityColor"
+          @glow-complete="handleGlowComplete"
         />
       </div>
 
-      <!-- Reveal phase -->
+      <!-- Spread / Done phase -->
       <div
-        v-else-if="caseStore.phase === 'revealing' && caseStore.caseData"
-        key="reveal"
-        class="reveal-phase d-flex flex-column align-center w-100"
+        v-else-if="(packStore.phase === 'spread' || packStore.phase === 'done') && packStore.packData"
+        key="spread"
+        class="spread-phase d-flex flex-column align-center w-100 pb-10"
       >
         <div class="mb-6 text-center">
           <h2 class="text-h4 font-weight-bold">
-            You got...
+            Your books
           </h2>
+
+          <p class="text-body-2 text-medium-emphasis mt-1">
+            Click each card to reveal
+          </p>
         </div>
 
-        <CaseWinnerReveal
-          :winner="caseStore.caseData.winner"
-          :winner-detail="caseStore.caseData.winner_detail"
-          @play-again="handlePlayAgain"
+        <PackCardGrid
+          :items="packStore.packData.items"
+          :revealed-cards="packStore.revealedCards"
+          @reveal="handleReveal"
+          @open-another="handleOpenAnother"
         />
       </div>
     </Transition>
@@ -162,12 +173,12 @@ onUnmounted(() => {
       color="error"
       :timeout="4000"
     >
-      {{ caseStore.error }}
+      {{ packStore.error }}
 
       <template #actions>
         <v-btn
           variant="text"
-          @click="caseStore.reset()"
+          @click="packStore.reset()"
         >
           Close
         </v-btn>
@@ -177,7 +188,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.open-case-page {
+.open-pack-page {
   min-height: calc(100vh - 64px);
   padding: 40px 16px;
   position: relative;
@@ -202,16 +213,10 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.spinner-phase {
-  max-width: 900px;
-  margin: auto;
-  padding-top: 40px;
-  padding-bottom: 40px;
-}
-
-.reveal-phase {
-  max-width: 640px;
+.spread-phase {
+  max-width: 820px;
   margin: 0 auto;
+  padding-top: 16px;
 }
 
 .phase-fade-enter-active,

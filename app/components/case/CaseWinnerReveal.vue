@@ -6,7 +6,7 @@ import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
   winner: BookSummary
-  winnerDetail: Book
+  winnerDetail?: Book | null
 }
 
 const props = defineProps<Props>()
@@ -151,12 +151,13 @@ const authorsList = computed(() => props.winner.authors)
 .reveal-outer {
   position: relative;
   width: 100%;
+  overflow: hidden;
   animation: reveal-entrance 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .reveal-bg-glow {
   position: absolute;
-  inset: -100px;
+  inset: 0;
   pointer-events: none;
   z-index: 0;
 }
