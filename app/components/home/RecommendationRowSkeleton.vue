@@ -23,9 +23,9 @@ withDefaults(defineProps<Props>(), { count: 2 })
         <v-skeleton-loader
           v-for="m in 5"
           :key="m"
-          type="image, article"
-          width="160"
+          type="image, text, text"
           class="flex-shrink-0 rounded-lg"
+          style="min-width: 200px; height: 380px;"
         />
       </div>
     </div>

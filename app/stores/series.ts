@@ -1,4 +1,4 @@
-import type { APIResponse, Book, BookSummary, Series, SeriesBooksResponse } from '~/types/api'
+import type { APIResponse, BookSummary, Series, SeriesBooksResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useSeriesStore = defineStore('series', () => {

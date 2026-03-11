@@ -16,6 +16,15 @@ const props = withDefaults(defineProps<Props>(), {
 
 const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
 useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
+
+function formatSeriesPosition(position: number | null | undefined) {
+  if (!position)
+    return ''
+
+  return Number.isInteger(position)
+    ? `#${position.toFixed(0)}`
+    : `#${position.toFixed(1)}`
+}
 </script>
 
 <template>
@@ -36,7 +45,7 @@ useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
           class="d-flex h-100 flex-row"
         >
           <div
-            class="flex-shrink-0"
+            class="position-relative flex-shrink-0"
             style="width: 120px; height: 180px;"
           >
             <v-img
@@ -46,6 +55,14 @@ useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
               height="180"
               cover
               :eager="index < 2"
+            />
+
+            <v-badge
+              v-if="book.series_position"
+              :content="formatSeriesPosition(book.series_position)"
+              color="primary"
+              class="position-absolute"
+              style="top: 10px; left: 15px;"
             />
           </div>
 
@@ -130,20 +147,31 @@ useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
     </v-alert>
 
     <!-- Loading Books -->
-    <div
-      v-if="loading"
-      class="py-8"
-    >
-      <v-progress-circular
-        indeterminate
-        color="primary"
-        class="d-block mx-auto"
-      />
-    </div>
+    <Transition name="fade">
+      <div
+        v-if="loading"
+        class="py-8 text-center"
+      >
+        <v-progress-circular
+          indeterminate
+          color="primary"
+        />
+      </div>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 .books-list {
   display: flex;
   flex-direction: column;

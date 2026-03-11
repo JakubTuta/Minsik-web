@@ -16,6 +16,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   const availableCategories = ref<CategoryInfo[]>([])
   const bookRecommendations = ref(new Map<number, RecommendationSection[]>())
   const authorRecommendations = ref(new Map<number, RecommendationSection[]>())
+  const seriesRecommendations = ref(new Map<number, RecommendationSection[]>())
   const personalizedHomeCategories = ref<RecommendationSection[]>([])
   const personalizedBookRecommendations = ref(new Map<number, RecommendationSection[]>())
   const personalizedAuthorRecommendations = ref(new Map<number, RecommendationSection[]>())
@@ -27,6 +28,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   const isLoadingPersonalizedHome = ref(false)
   const isLoadingPersonalizedBookRecs = ref(false)
   const isLoadingPersonalizedAuthorRecs = ref(false)
+  const isLoadingSeriesRecs = ref(false)
 
   // Cache TTL — 5 minutes
   const CACHE_TTL = 5 * 60 * 1000
@@ -258,6 +260,35 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
+  // Fetch recommendations for a specific series
+  async function fetchSeriesRecommendations(seriesId: number, force = false) {
+    const cacheKey = `series-${seriesId}`
+
+    if (!force && seriesRecommendations.value.has(seriesId) && isCacheFresh(cacheKey))
+      return seriesRecommendations.value.get(seriesId)!
+
+    isLoadingSeriesRecs.value = true
+    try {
+      const response = await apiStore.client.get<HomePageResponse>(
+        `/api/v1/recommendations/series/${seriesId}`,
+        { params: { items_per_category: 15 } },
+      )
+      const categories = response.data.data!.sections
+      seriesRecommendations.value.set(seriesId, categories)
+      lastFetchTime.value.set(cacheKey, Date.now())
+
+      return categories
+    }
+    catch (error) {
+      console.error(`Error fetching series recommendations for series ${seriesId}:`, error)
+
+      return []
+    }
+    finally {
+      isLoadingSeriesRecs.value = false
+    }
+  }
+
   // Find display name for a category key (from home data or available categories)
   function getCategoryDisplayName(category: string) {
     const fromHome = homeCategories.value.find(c => c.key === category)
@@ -287,6 +318,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     availableCategories,
     bookRecommendations,
     authorRecommendations,
+    seriesRecommendations,
     personalizedHomeCategories,
     personalizedBookRecommendations,
     personalizedAuthorRecommendations,
@@ -297,6 +329,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     isLoadingPersonalizedHome,
     isLoadingPersonalizedBookRecs,
     isLoadingPersonalizedAuthorRecs,
+    isLoadingSeriesRecs,
 
     // Computed
     hasHomeData,
@@ -309,6 +342,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     fetchPersonalizedHomeRecommendations,
     fetchPersonalizedBookRecommendations,
     fetchPersonalizedAuthorRecommendations,
+    fetchSeriesRecommendations,
     fetchAvailableCategories,
     getCategoryDisplayName,
     clearCache,

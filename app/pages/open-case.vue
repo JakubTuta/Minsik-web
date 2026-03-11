@@ -109,7 +109,7 @@ onUnmounted(() => {
       <div
         v-if="caseStore.phase === 'idle' || caseStore.phase === 'opening'"
         key="chest"
-        class="flex-grow-1 d-flex flex-column align-center justify-center"
+        class="d-flex flex-column align-center flex-grow-1 justify-center"
       >
         <CaseChest
           :opening="caseStore.phase === 'opening'"
@@ -122,7 +122,7 @@ onUnmounted(() => {
       <div
         v-else-if="caseStore.phase === 'spinning' && caseStore.caseData"
         key="spinner"
-        class="flex-grow-1 spinner-phase w-100"
+        class="spinner-phase d-flex flex-column w-100 flex-grow-1 justify-center"
       >
         <div class="mb-6 text-center">
           <h2 class="text-h5 font-weight-bold">
@@ -140,7 +140,7 @@ onUnmounted(() => {
       <div
         v-else-if="caseStore.phase === 'revealing' && caseStore.caseData"
         key="reveal"
-        class="reveal-phase d-flex flex-column align-center w-100"
+        class="reveal-phase d-flex flex-column align-center w-100 flex-grow-1 justify-center"
       >
         <div class="mb-6 text-center">
           <h2 class="text-h4 font-weight-bold">

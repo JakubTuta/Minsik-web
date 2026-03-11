@@ -86,7 +86,7 @@ defineProps<Props>()
         <!-- Action slot — full width below text, right-aligned -->
         <div
           v-if="$slots.topRight"
-          class="d-flex justify-end mt-2"
+          class="d-flex mt-2 justify-end"
         >
           <slot name="topRight" />
         </div>

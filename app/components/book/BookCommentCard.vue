@@ -220,7 +220,13 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
             v-if="comment.rating"
             class="d-flex align-center mb-2 gap-2"
           >
-            <span class="text-body-2 font-weight-bold text-secondary">
+            <v-icon
+              size="x-small"
+              color="amber"
+              icon="mdi-star"
+            />
+
+            <span class="text-body-2 font-weight-bold text-amber">
               {{ comment.rating.overall_rating.toFixed(1) }}
             </span>
 
@@ -252,7 +258,6 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
                   </span>
 
                   <span
-                    class=""
                     :style="`color: rgb(${s.rgb})`"
                   >
                     {{ s.label }}

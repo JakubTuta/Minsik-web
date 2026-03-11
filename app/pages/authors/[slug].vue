@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EditFieldConfig } from '~/types/admin'
-import type { Book } from '~/types/api'
+import type { BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 import { formatDisplayDate } from '~/utils/format'
 
@@ -23,7 +23,7 @@ const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'reader
 }
 
 function getSortParams() {
-  const [field, direction] = sortBy.value.split('-')
+  const [field = 'date', direction = 'desc'] = sortBy.value.split('-')
 
   return {
     apiSortBy: sortByMap[field] as 'publication_year' | 'combined_rating' | 'readers_count',
@@ -38,7 +38,7 @@ const { data: author, error: authorError } = await useAsyncData(
 )
 
 // Pagination state
-const allBooks = ref<Book[]>([])
+const allBooks = ref<BookSummary[]>([])
 const booksOffset = ref(0)
 const booksTotalCount = ref(0)
 const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.value)
@@ -55,12 +55,33 @@ if (initialBooksData.value) {
   booksOffset.value = initialBooksData.value.books.length
 }
 
-// Reset and refetch when sort changes
+// View mode: list or timeline
+const viewMode = ref<'list' | 'timeline'>('list')
+
+// Reset and refetch when sort changes (only relevant in list mode)
 watch(sortBy, async () => {
+  if (viewMode.value !== 'list')
+    return
   const { apiSortBy, apiOrder } = getSortParams()
   allBooks.value = []
   booksTotalCount.value = 0
   booksOffset.value = 0
+
+  const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, apiOrder, 0, 20)
+  allBooks.value = result.books
+  booksTotalCount.value = result.total_count
+  booksOffset.value = result.books.length
+})
+
+// Reset and refetch when view mode changes
+watch(viewMode, async (mode) => {
+  allBooks.value = []
+  booksTotalCount.value = 0
+  booksOffset.value = 0
+
+  const { apiSortBy, apiOrder } = mode === 'timeline'
+    ? { apiSortBy: 'publication_year' as const, apiOrder: 'desc' as const }
+    : getSortParams()
 
   const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, apiOrder, 0, 20)
   allBooks.value = result.books
@@ -73,7 +94,10 @@ async function loadMoreBooks() {
   if (!hasMoreBooks.value)
     return
 
-  const { apiSortBy, apiOrder } = getSortParams()
+  const { apiSortBy, apiOrder } = viewMode.value === 'timeline'
+    ? { apiSortBy: 'publication_year' as const, apiOrder: 'desc' as const }
+    : getSortParams()
+
   const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, apiOrder, booksOffset.value, 20)
   allBooks.value.push(...result.books)
   booksTotalCount.value = result.total_count
@@ -95,7 +119,7 @@ const canonicalUrl = `${config.public.siteUrl}/authors/${slug}`
 useSeo({
   title: author.value.name,
   description: author.value.bio || `${author.value.name} - Author of ${author.value.books_count} books`,
-  image: author.value.photo_url,
+  image: author.value.photo_url ?? undefined,
   type: 'profile',
   url: canonicalUrl,
   author: author.value.name,
@@ -105,7 +129,7 @@ useSeo({
 useAuthorStructuredData({
   name: author.value.name,
   description: author.value.bio,
-  image: author.value.photo_url,
+  image: author.value.photo_url ?? undefined,
   url: canonicalUrl,
   birthDate: author.value.birth_date,
   deathDate: author.value.death_date,
@@ -241,6 +265,15 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
 const authorRecommendations = ref<RecommendationSection[]>([])
 const personalizedAuthorRecs = ref<RecommendationSection[]>([])
 
+// Scroll reveal refs
+const revealSidebar = ref<HTMLElement | null>(null)
+const revealDescription = ref<HTMLElement | null>(null)
+const revealBooks = ref<HTMLElement | null>(null)
+
+useScrollReveal(revealSidebar, { delay: 0.05 })
+useScrollReveal(revealDescription, { delay: 0.1 })
+useScrollReveal(revealBooks, { delay: 0.15 })
+
 onMounted(async () => {
   if (author.value?.author_id) {
     try {
@@ -367,7 +400,7 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
         cols="12"
         md="3"
       >
-        <v-card>
+        <v-card ref="revealSidebar">
           <v-card-text>
             <h2 class="text-h6 font-weight-bold mb-4">
               Personal Information
@@ -546,34 +579,72 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
       >
         <!-- Description Section -->
         <DescriptionCard
+          ref="revealDescription"
           :description="author.bio"
           class="mb-6"
         />
 
         <!-- Books Section -->
-        <v-card>
+        <v-card ref="revealBooks">
           <v-card-text>
             <div class="d-flex align-center justify-space-between mb-4">
               <h2 class="text-h5 font-weight-bold">
                 Books
               </h2>
 
-              <v-select
-                v-model="sortBy"
-                :items="sortOptions"
-                density="compact"
-                variant="outlined"
-                hide-details
-                style="max-width: 200px;"
-              />
+              <div class="d-flex align-center gap-4">
+                <v-select
+                  v-if="viewMode === 'list'"
+                  v-model="sortBy"
+                  :items="sortOptions"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  style="max-width: 200px;"
+                />
+
+                <v-btn-toggle
+                  v-model="viewMode"
+                  mandatory
+                  density="compact"
+                  variant="outlined"
+                  color="primary"
+                >
+                  <v-btn
+                    value="list"
+                    size="small"
+                    prepend-icon="mdi-view-list"
+                  >
+                    List view
+                  </v-btn>
+
+                  <v-btn
+                    value="timeline"
+                    size="small"
+                    prepend-icon="mdi-timeline-outline"
+                    class="ml-2"
+                  >
+                    Timeline view
+                  </v-btn>
+                </v-btn-toggle>
+              </div>
             </div>
 
             <BooksList
+              v-if="viewMode === 'list'"
               :books="allBooks"
               :loading="authorsStore.isLoadingBooks"
               :load-more="loadMoreBooks"
               :has-more="hasMoreBooks"
               empty-message="No books found for this author."
+            />
+
+            <AuthorTimeline
+              v-else
+              :books="allBooks"
+              :loading="authorsStore.isLoadingBooks"
+              :has-more="hasMoreBooks"
+              :load-more="loadMoreBooks"
             />
           </v-card-text>
         </v-card>

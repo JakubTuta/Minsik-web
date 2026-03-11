@@ -16,6 +16,7 @@ const filters = [
   { label: 'Books', value: 'books' as SearchType },
   { label: 'Authors', value: 'authors' as SearchType },
   { label: 'Series', value: 'series' as SearchType },
+  { label: 'Categories', value: 'categories' as SearchType },
 ]
 
 const selectedFilter = computed({

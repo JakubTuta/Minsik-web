@@ -58,9 +58,9 @@ export interface SubRatingStat {
 // Cover Types
 
 export interface CoverHistory {
-  url: string
-  width: number
-  size: string
+  year: number
+  cover_url: string
+  publisher: string
 }
 
 // Author Types
@@ -152,6 +152,7 @@ export interface BookSummary {
   app_read_count: number
   series_position?: number | null
   rarity?: string | null
+  original_publication_year?: number | null
 }
 
 export interface Book {
@@ -190,6 +191,7 @@ export interface Book {
   app_want_to_read_count: number
   app_reading_count: number
   app_read_count: number
+  rating_distribution: Record<string, number>
 }
 
 // Card Display Types — kept for BookCard.vue compatibility
@@ -245,7 +247,7 @@ export interface SearchResponse {
 
 // Filter Types
 
-export type SearchType = 'all' | 'books' | 'authors' | 'series'
+export type SearchType = 'all' | 'books' | 'authors' | 'series' | 'categories'
 
 // Cache Types
 

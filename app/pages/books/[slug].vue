@@ -62,6 +62,17 @@ const descriptionExpanded = ref(false)
 const descriptionRef = ref<HTMLElement>()
 const expandedHeight = ref(0)
 
+// Scroll reveal refs
+const revealDescription = ref<HTMLElement | null>(null)
+const revealCoverHistory = ref<HTMLElement | null>(null)
+const revealRating = ref<HTMLElement | null>(null)
+const revealComments = ref<HTMLElement | null>(null)
+
+useScrollReveal(revealDescription)
+useScrollReveal(revealCoverHistory)
+useScrollReveal(revealRating)
+useScrollReveal(revealComments)
+
 // Description truncation
 const DESCRIPTION_MAX_LENGTH = 500
 const TRUNCATION_WINDOW = 20
@@ -308,7 +319,10 @@ onUnmounted(() => {
         </ClientOnly>
 
         <!-- Description -->
-        <v-card class="mt-4">
+        <v-card
+          ref="revealDescription"
+          class="mt-4"
+        >
           <v-card-text>
             <h2 class="text-h6 font-weight-bold mb-3">
               Description
@@ -355,59 +369,25 @@ onUnmounted(() => {
         </v-card>
 
         <!-- Cover History -->
-        <!--
-          <v-card
-          v-if="book.cover_history && book.cover_history.length > 1"
+        <v-card
+          v-if="book.cover_history && book.cover_history.length >= 2"
+          ref="revealCoverHistory"
           class="mt-4"
-          >
+        >
           <v-card-text>
-          <h2 class="text-h6 font-weight-bold text-primary mb-4">
-          Book Cover History
-          </h2>
+            <h2 class="text-h6 font-weight-bold mb-4">
+              Cover History
+            </h2>
 
-          <div class="cover-timeline">
-          <div
-          v-for="(cover, index) in book.cover_history"
-          :key="index"
-          class="cover-timeline-item"
-          >
-          <div class="cover-timeline-marker">
-          <div class="cover-timeline-dot" />
-
-          <div
-          v-if="index < book.cover_history.length - 1"
-          class="cover-timeline-line"
-          />
-          </div>
-
-          <div class="cover-timeline-content">
-          <v-card
-          elevation="2"
-          rounded="lg"
-          class="pa-2"
-          >
-          <v-img
-          :src="cover.url"
-          :alt="`Cover ${index + 1}`"
-          :aspect-ratio="0.67"
-          width="140"
-          cover
-          class="bg-surface-variant rounded"
-          />
-
-          <div class="text-secondary mt-2 text-center">
-          {{ cover.size }} ({{ cover.width }}px)
-          </div>
-          </v-card>
-          </div>
-          </div>
-          </div>
+            <CoverHistorySection :covers="book.cover_history" />
           </v-card-text>
-          </v-card>
-        -->
+        </v-card>
 
         <!-- Rating -->
-        <v-card class="mt-4">
+        <v-card
+          ref="revealRating"
+          class="mt-4"
+        >
           <v-card-text>
             <SubRatingSection
               :stats="bookPageStore.liveSubRatingStats ?? book.sub_rating_stats ?? {}"
@@ -462,9 +442,15 @@ onUnmounted(() => {
 
         <!-- Comments Section -->
         <ClientOnly>
-          <v-card class="mt-4">
+          <v-card
+            ref="revealComments"
+            class="mt-4"
+          >
             <v-card-text>
-              <BookCommentsSection :slug="slug" />
+              <BookCommentsSection
+                :slug="slug"
+                :distribution="book.rating_distribution"
+              />
             </v-card-text>
           </v-card>
         </ClientOnly>

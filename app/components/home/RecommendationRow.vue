@@ -75,69 +75,84 @@ onUnmounted(() => {
     </div>
 
     <!-- Skeleton loading -->
-    <template v-if="loading">
-      <div class="carousel-wrapper">
-        <div class="carousel-track">
-          <v-skeleton-loader
-            v-for="n in 5"
-            :key="n"
-            type="image, article"
-            class="skeleton-card flex-shrink-0 overflow-hidden rounded-lg"
-          />
-        </div>
+    <div
+      v-if="loading"
+      class="carousel-wrapper"
+    >
+      <div class="carousel-track">
+        <v-skeleton-loader
+          v-for="n in 5"
+          :key="n"
+          type="image, text, text"
+          class="skeleton-card flex-shrink-0 overflow-hidden rounded-lg"
+        />
       </div>
-    </template>
+    </div>
 
     <!-- Carousel -->
-    <template v-else>
-      <div class="carousel-outer">
-        <!-- Left scroll button -->
-        <v-btn
-          v-show="canScrollLeft"
-          icon="mdi-chevron-left"
-          size="small"
-          variant="elevated"
-          class="scroll-btn scroll-btn-left"
-          @click="scroll('left')"
-        />
+    <div
+      v-else
+      class="carousel-outer"
+    >
+      <!-- Left scroll button -->
+      <v-btn
+        v-show="canScrollLeft"
+        icon="mdi-chevron-left"
+        size="small"
+        variant="elevated"
+        class="scroll-btn scroll-btn-left"
+        @click="scroll('left')"
+      />
 
-        <!-- Scrollable track -->
-        <div
-          ref="scrollContainer"
-          class="carousel-wrapper"
-        >
-          <div class="carousel-track">
-            <template v-if="category.item_type === 'author'">
-              <RecommendationAuthorCard
-                v-for="(author, index) in (category.author_items ?? [])"
-                :key="author.author_id"
-                :author="author"
-                :eager="index < 2"
-              />
-            </template>
+      <!-- Scrollable track -->
+      <div
+        ref="scrollContainer"
+        class="carousel-wrapper"
+      >
+        <div class="carousel-track">
+          <template v-if="category.item_type === 'author'">
+            <AuthorPreviewCard
+              v-for="(author, index) in (category.author_items ?? [])"
+              :key="author.author_id"
+              :name="author.name"
+              :slug="author.slug"
+              :photo-url="author.photo_url"
+              :book-count="author.book_count"
+              :rating="author.avg_rating"
+              :rating-count="author.rating_count"
+              :readers="author.readers"
+              :eager="index < 2"
+            />
+          </template>
 
-            <template v-else>
-              <RecommendationBookCard
-                v-for="(book, index) in (category.book_items ?? [])"
-                :key="book.book_id"
-                :book="book"
-                :eager="index < 2"
-              />
-            </template>
-          </div>
+          <template v-else>
+            <BookPreviewCard
+              v-for="(book, index) in (category.book_items ?? [])"
+              :key="book.book_id"
+              :title="book.title"
+              :slug="book.slug"
+              :cover-url="book.primary_cover_url"
+              :author-names="book.author_names"
+              :author-slugs="book.author_slugs"
+              :rating="book.avg_rating"
+              :rating-count="book.rating_count"
+              :readers="book.readers"
+              :eager="index < 2"
+            />
+          </template>
         </div>
-
-        <!-- Right scroll button -->
-        <v-btn
-          v-show="canScrollRight && itemCount > 5"
-          icon="mdi-chevron-right"
-          size="small"
-          variant="elevated"
-          class="scroll-btn scroll-btn-right"
-          @click="scroll('right')"
-        />
       </div>
-    </template>
+
+      <!-- Right scroll button -->
+      <v-btn
+        v-show="canScrollRight && itemCount > 5"
+        icon="mdi-chevron-right"
+        size="small"
+        variant="elevated"
+        class="scroll-btn scroll-btn-right"
+        @click="scroll('right')"
+      />
+    </div>
   </section>
 </template>
 
@@ -190,6 +205,7 @@ onUnmounted(() => {
 .skeleton-card {
   width: calc((100% - 4 * 20px) / 5);
   min-width: 200px;
+  height: 380px;
 }
 
 @media (max-width: 600px) {

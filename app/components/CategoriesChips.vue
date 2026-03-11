@@ -32,6 +32,7 @@ const hasMore = computed(() => props.categories.length > props.maxVisible)
         :key="category"
         size="small"
         variant="tonal"
+        :to="`/search?q=${encodeURIComponent(category)}&type=categories`"
       >
         {{ toTitleCase(category) }}
       </v-chip>

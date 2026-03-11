@@ -11,24 +11,6 @@ const emit = defineEmits<{
   openAnother: []
 }>()
 const { preloadImages } = useImagePreloader()
-const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
-
-function cardRating(item: BookSummary): string {
-  const r = weightedRating(item.avg_rating, item.rating_count, item.ol_avg_rating, item.ol_rating_count)
-  const c = totalRatingCount(item.rating_count, item.ol_rating_count)
-  if (!r || !c)
-    return '—'
-
-  return `${r.toFixed(2)} (${compactFmt.format(c)})`
-}
-
-function cardReaders(item: BookSummary): string {
-  const n = totalReaders(item.app_want_to_read_count, item.app_reading_count, item.app_read_count, item.ol_want_to_read_count, item.ol_currently_reading_count, item.ol_already_read_count)
-
-  return n
-    ? compactFmt.format(n)
-    : '—'
-}
 
 interface Props {
   items: BookSummary[]
@@ -149,58 +131,18 @@ onMounted(async () => {
               </span>
             </div>
 
-            <!-- Book cover -->
-            <div class="card-cover-area">
-              <v-img
-                :src="item.primary_cover_url || '/placeholder-book-lazy.jpg'"
-                :alt="item.title"
-                lazy-src="/placeholder-book-lazy.jpg"
-                width="100"
-                height="148"
-                contain
-                class="card-cover-img"
-              />
-            </div>
-
-            <!-- Book info -->
-            <div class="card-info px-2 pb-2">
-              <NuxtLink
-                :to="`/books/${item.slug}`"
-                class="card-title text-caption font-weight-bold text-decoration-none"
-              >
-                {{ item.title }}
-              </NuxtLink>
-
-              <NuxtLink
-                v-if="item.authors[0]"
-                :to="`/authors/${item.authors[0].slug}`"
-                class="card-author text-caption text-medium-emphasis text-decoration-none"
-              >
-                {{ item.authors[0].name }}
-              </NuxtLink>
-
-              <div class="card-stats mt-1">
-                <v-icon
-                  size="9"
-                  color="amber"
-                >
-                  mdi-star
-                </v-icon>
-
-                <span class="stat-text">{{ cardRating(item) }}</span>
-
-                <span class="stat-sep">·</span>
-
-                <v-icon
-                  size="9"
-                  class="text-medium-emphasis"
-                >
-                  mdi-account-multiple
-                </v-icon>
-
-                <span class="stat-text text-medium-emphasis">{{ cardReaders(item) }}</span>
-              </div>
-            </div>
+            <!-- Book card -->
+            <BookPreviewCard
+              compact
+              :title="item.title"
+              :slug="item.slug"
+              :cover-url="item.primary_cover_url"
+              :author-names="item.authors.map(a => a.name)"
+              :author-slugs="item.authors.map(a => a.slug)"
+              :rating="weightedRating(item.avg_rating, item.rating_count, item.ol_avg_rating, item.ol_rating_count)"
+              :rating-count="totalRatingCount(item.rating_count, item.ol_rating_count)"
+              :readers="totalReaders(item.app_want_to_read_count, item.app_reading_count, item.app_read_count, item.ol_want_to_read_count, item.ol_currently_reading_count, item.ol_already_read_count)"
+            />
           </div>
         </div>
       </div>
@@ -237,7 +179,7 @@ onMounted(async () => {
 
 .pack-card-slot {
   position: relative;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 2 / 3.5;
   border-radius: 10px;
   cursor: pointer;
   perspective: 900px;
@@ -343,70 +285,9 @@ onMounted(async () => {
 }
 
 .rarity-chip {
-  padding: 1px 5px;
+  padding: 0px 3px;
   border-radius: 70px;
-  font-size: 0.4rem;
-  letter-spacing: 0.04em;
-}
-
-.card-cover-area {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-top: 28px;
-  padding-bottom: 2px;
-  position: relative;
-  z-index: 1;
-}
-
-.card-cover-img {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-
-.card-info {
-  position: relative;
-  z-index: 1;
-}
-
-.card-title {
-  display: -webkit-box;
-  font-size: 0.7rem;
-  line-height: 1.3;
-  overflow: hidden;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  color: rgb(var(--v-theme-primary));
-  margin-bottom: 2px;
-}
-
-.card-author {
-  display: block;
-  font-size: 0.6rem;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: rgb(var(--v-theme-on-surface-variant, var(--v-medium-emphasis-opacity)));
-}
-
-.card-stats {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-wrap: nowrap;
-  overflow: hidden;
-}
-
-.stat-text {
-  font-size: 0.6rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.stat-sep {
-  font-size: 0.6rem;
-  opacity: 0.4;
-  margin: 0 1px;
+  font-size: 0.34rem;
+  letter-spacing: 0.03em;
 }
 </style>

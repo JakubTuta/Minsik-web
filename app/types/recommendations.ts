@@ -33,6 +33,7 @@ export interface RecommendationBookItem {
   author_slugs: string[]
   avg_rating: number
   rating_count: number
+  readers: number
   score: number
 }
 
@@ -42,6 +43,9 @@ export interface RecommendationAuthorItem {
   slug: string
   photo_url: string | null
   book_count: number
+  avg_rating: number
+  rating_count: number
+  readers: number
   score: number
 }
 

@@ -17,6 +17,9 @@ const bookPageStore = useBookPageStore()
 
 const coverUrl = computed(() => props.book.primary_cover_url || '/placeholder-book-lazy.jpg')
 
+const coverRef = ref<HTMLElement | null>(null)
+useParallax(coverRef)
+
 const detailsExpanded = ref(false)
 const statisticsExpanded = ref(false)
 
@@ -72,14 +75,16 @@ function formatSeriesPosition(position: number | null) {
         class="pa-6"
         align-self="start"
       >
-        <v-img
-          :src="coverUrl"
-          :alt="book.title"
-          aspect-ratio="0.67"
-          cover
-          eager
-          class="book-cover-shadow rounded"
-        />
+        <div ref="coverRef">
+          <v-img
+            :src="coverUrl"
+            :alt="book.title"
+            aspect-ratio="0.67"
+            cover
+            eager
+            class="book-cover-shadow rounded"
+          />
+        </div>
       </v-col>
 
       <!-- Book Info -->

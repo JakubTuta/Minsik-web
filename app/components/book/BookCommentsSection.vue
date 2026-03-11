@@ -1,6 +1,7 @@
 <script setup lang="ts">
 interface Props {
   slug: string
+  distribution?: Record<string, number>
 }
 
 const props = defineProps<Props>()
@@ -31,6 +32,10 @@ const sortOptions = [
 ]
 
 const selectedSort = ref('newest')
+const selectedRating = ref<number | null>(null)
+
+const hasDistribution = computed(() => props.distribution != null && Object.values(props.distribution).some(v => v > 0),
+)
 
 function getSortParams() {
   switch (selectedSort.value) {
@@ -55,10 +60,18 @@ const otherComments = computed(() => {
 })
 
 function fetchComments() {
-  bookPageStore.fetchComments(props.slug, {
+  const params: Record<string, any> = {
     ...getSortParams(),
     include_spoilers: true,
-  })
+  }
+  if (selectedRating.value !== null)
+    params.rating_filter = selectedRating.value
+  bookPageStore.fetchComments(props.slug, params)
+}
+
+function handleRatingSelect(rating: number | null) {
+  selectedRating.value = rating
+  fetchComments()
 }
 
 onMounted(() => fetchComments())
@@ -91,6 +104,37 @@ async function handleDeleteComment() {
 </script>
 
 <template>
+  <!-- Rating Distribution Chart -->
+  <div
+    v-if="hasDistribution"
+    class="mb-4"
+  >
+    <RatingDistributionChart
+      :distribution="props.distribution!"
+      :selected-rating="selectedRating"
+      @select="handleRatingSelect"
+    />
+
+    <div
+      v-if="selectedRating !== null"
+      class="d-flex align-center mt-2 gap-2"
+    >
+      <span class="text-body-2 text-medium-emphasis">
+        Showing {{ selectedRating }}-star reviews
+      </span>
+
+      <v-btn
+        size="x-small"
+        variant="text"
+        color="primary"
+        prepend-icon="mdi-close"
+        @click="handleRatingSelect(null)"
+      >
+        Clear filter
+      </v-btn>
+    </div>
+  </div>
+
   <div class="d-flex align-center justify-space-between mb-4">
     <h2 class="text-h6 font-weight-bold">
       Comments
@@ -169,57 +213,80 @@ async function handleDeleteComment() {
     </v-btn>
   </v-card>
 
-  <!-- Comments List -->
-  <div class="d-flex flex-column">
-    <BookCommentCard
-      v-for="comment in otherComments"
-      :key="comment.comment_id"
-      class="mb-4"
-      :comment="comment"
-    />
-  </div>
-
-  <!-- Loading -->
-  <div
-    v-if="bookPageStore.commentsLoading"
-    class="py-6 text-center"
+  <Transition
+    name="fade"
+    mode="out-in"
   >
-    <v-progress-circular
-      indeterminate
-      color="primary"
-    />
-  </div>
-
-  <!-- Load More -->
-  <div
-    v-if="bookPageStore.commentsHasMore && !bookPageStore.commentsLoading"
-    class="py-4 text-center"
-  >
-    <v-btn
-      variant="outlined"
-      color="primary"
-      @click="bookPageStore.loadMoreComments()"
+    <!-- Initial Loading -->
+    <div
+      v-if="bookPageStore.commentsLoading && otherComments.length === 0"
+      key="loading"
+      class="py-6 text-center"
     >
-      Load More Comments
-    </v-btn>
-  </div>
-
-  <!-- Empty State -->
-  <div
-    v-if="!bookPageStore.commentsLoading && otherComments.length === 0 && !bookPageStore.myComment"
-    class="py-8 text-center"
-  >
-    <v-icon
-      icon="mdi-comment-outline"
-      size="48"
-      color="secondary"
-      class="mb-3"
-    />
-
-    <div class="text-body-1 text-secondary">
-      No comments yet. Be the first to share your thoughts!
+      <v-progress-circular
+        indeterminate
+        color="primary"
+      />
     </div>
-  </div>
+
+    <!-- Content -->
+    <div
+      v-else
+      key="content"
+    >
+      <!-- Comments List -->
+      <div class="d-flex flex-column">
+        <BookCommentCard
+          v-for="comment in otherComments"
+          :key="comment.comment_id"
+          class="mb-4"
+          :comment="comment"
+        />
+      </div>
+
+      <!-- Load More Loading -->
+      <div
+        v-if="bookPageStore.commentsLoading"
+        class="py-6 text-center"
+      >
+        <v-progress-circular
+          indeterminate
+          color="primary"
+        />
+      </div>
+
+      <!-- Load More -->
+      <div
+        v-if="bookPageStore.commentsHasMore && !bookPageStore.commentsLoading"
+        class="py-4 text-center"
+      >
+        <v-btn
+          variant="outlined"
+          color="primary"
+          @click="bookPageStore.loadMoreComments()"
+        >
+          Load More Comments
+        </v-btn>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-if="!bookPageStore.commentsLoading && otherComments.length === 0 && !bookPageStore.myComment"
+        class="py-8 text-center"
+      >
+        <v-icon
+          icon="mdi-comment-outline"
+          size="48"
+          color="secondary"
+          class="mb-3"
+        />
+
+        <div class="text-body-1 text-secondary">
+          No comments yet. Be the first to share your thoughts!
+        </div>
+      </div>
+    </div>
+  </Transition>
 
   <!-- Confirm Delete Dialog -->
   <v-dialog
@@ -265,3 +332,15 @@ async function handleDeleteComment() {
     {{ snackbarText }}
   </v-snackbar>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

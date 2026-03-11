@@ -3,6 +3,7 @@ import type { OpenCaseData } from '~/types/case'
 import gsap from 'gsap'
 import { useDisplay } from 'vuetify'
 import { RARITY_COLORS } from '~/types/case'
+import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
   data: OpenCaseData
@@ -46,7 +47,7 @@ onMounted(async () => {
   )
 })
 
-function getItemStyle(rarity: string) {
+function getItemStyle(rarity: string | null | undefined) {
   const color = RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] ?? '#95A5A6'
 
   return {
@@ -55,7 +56,7 @@ function getItemStyle(rarity: string) {
   }
 }
 
-function getGlowStyle(rarity: string) {
+function getGlowStyle(rarity: string | null | undefined) {
   const color = RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] ?? '#95A5A6'
 
   return { background: `linear-gradient(to bottom, ${color}44, transparent 50%)` }
@@ -92,7 +93,7 @@ function getGlowStyle(rarity: string) {
           class="spinner-item"
           :style="{'width': `${ITEM_WIDTH}px`}"
         >
-          <v-card
+          <div
             class="item-card h-100"
             :style="getItemStyle(item.rarity)"
           >
@@ -102,30 +103,19 @@ function getGlowStyle(rarity: string) {
               :style="getGlowStyle(item.rarity)"
             />
 
-            <!-- Book cover -->
-            <div class="cover-container d-flex align-center justify-center">
-              <v-img
-                :src="item.primary_cover_url || '/placeholder-book-lazy.jpg'"
-                :alt="item.title"
-                lazy-src="/placeholder-book-lazy.jpg"
-                :width="ITEM_WIDTH - 32"
-                :height="(ITEM_WIDTH - 32) * 1.4"
-                cover
-                class="rounded"
-              />
-            </div>
-
-            <!-- Book info -->
-            <div class="item-info px-2 pb-2">
-              <div class="item-title text-caption font-weight-bold line-clamp-1">
-                {{ item.title }}
-              </div>
-
-              <div class="item-author text-caption text-medium-emphasis line-clamp-1">
-                {{ item.authors[0]?.name ?? '' }}
-              </div>
-            </div>
-          </v-card>
+            <!-- Book card -->
+            <BookPreviewCard
+              compact
+              :title="item.title"
+              :slug="item.slug"
+              :cover-url="item.primary_cover_url"
+              :author-names="item.authors.map(a => a.name)"
+              :author-slugs="item.authors.map(a => a.slug)"
+              :rating="weightedRating(item.avg_rating, item.rating_count, item.ol_avg_rating, item.ol_rating_count)"
+              :rating-count="totalRatingCount(item.rating_count, item.ol_rating_count)"
+              :readers="totalReaders(item.app_want_to_read_count, item.app_reading_count, item.app_read_count, item.ol_want_to_read_count, item.ol_currently_reading_count, item.ol_already_read_count)"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -202,17 +192,18 @@ function getGlowStyle(rarity: string) {
   padding: 8px 0;
   will-change: transform;
   align-items: stretch;
+  height: 100%;
 }
 
 .spinner-item {
   flex-shrink: 0;
+  height: 100%;
 }
 
 .item-card {
   position: relative;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  border-radius: 4px;
 }
 
 .rarity-glow {
@@ -223,24 +214,5 @@ function getGlowStyle(rarity: string) {
   height: 60px;
   pointer-events: none;
   z-index: 1;
-}
-
-.cover-container {
-  flex: 1;
-  position: relative;
-  z-index: 2;
-  padding: 12px 16px 8px;
-}
-
-.item-info {
-  position: relative;
-  z-index: 2;
-}
-
-.item-title,
-.item-author {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

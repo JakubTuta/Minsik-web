@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { EditFieldConfig } from '~/types/admin'
+import type { RecommendationSection } from '~/types/recommendations'
 
 const route = useRoute()
 const seriesStore = useSeriesStore()
 const authorsStore = useAuthorsStore()
 const authStore = useAuthStore()
 const adminStore = useAdminStore()
+const recommendationsStore = useRecommendationsStore()
 
 const slug = route.params.slug as string
 
@@ -144,6 +146,26 @@ async function handleSeriesEditSave(editedData: Record<string, any>) {
   }
 }
 
+const seriesRecommendations = ref<RecommendationSection[]>([])
+
+// Scroll reveal refs
+const revealHeader = ref<HTMLElement | null>(null)
+const revealDescription = ref<HTMLElement | null>(null)
+const revealBooks = ref<HTMLElement | null>(null)
+
+useScrollReveal(revealHeader)
+useScrollReveal(revealDescription, { delay: 0.1 })
+useScrollReveal(revealBooks, { delay: 0.15 })
+
+onMounted(async () => {
+  if (series.value?.series_id) {
+    try {
+      seriesRecommendations.value = await recommendationsStore.fetchSeriesRecommendations(series.value.series_id) ?? []
+    }
+    catch { /* Silently fail */ }
+  }
+})
+
 // Get book covers for collage (max 4)
 const collageCovers = computed(() => {
   if (!books.value || books.value.length === 0)
@@ -157,7 +179,7 @@ const collageCovers = computed(() => {
   <v-container v-if="series">
     <v-row>
       <v-col cols="12">
-        <v-card>
+        <v-card ref="revealHeader">
           <v-row no-gutters>
             <!-- Book Covers Collage -->
             <v-col
@@ -345,14 +367,17 @@ const collageCovers = computed(() => {
     <!-- Description Section -->
     <v-row class="mt-6">
       <v-col cols="12">
-        <DescriptionCard :description="series.description" />
+        <DescriptionCard
+          ref="revealDescription"
+          :description="series.description"
+        />
       </v-col>
     </v-row>
 
     <!-- Books List -->
     <v-row class="mt-6">
       <v-col cols="12">
-        <v-card>
+        <v-card ref="revealBooks">
           <v-card-text>
             <h2 class="text-h5 font-weight-bold mb-4">
               Books in this Series
@@ -367,6 +392,28 @@ const collageCovers = computed(() => {
         </v-card>
       </v-col>
     </v-row>
+    <!-- Series Recommendations -->
+    <ClientOnly>
+      <div
+        v-if="seriesRecommendations.length > 0 || recommendationsStore.isLoadingSeriesRecs"
+        class="mt-8"
+      >
+        <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingSeriesRecs" />
+
+        <template v-else>
+          <template
+            v-for="category in seriesRecommendations"
+            :key="category.key"
+          >
+            <RecommendationRow
+              v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+              :category="category"
+              hide-show-more
+            />
+          </template>
+        </template>
+      </div>
+    </ClientOnly>
   </v-container>
 
   <!-- Loading State -->

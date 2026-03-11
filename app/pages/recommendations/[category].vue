@@ -105,10 +105,15 @@ async function loadMore() {
           sm="4"
           md="3"
         >
-          <RecommendationAuthorCard
-            :author="item"
+          <AuthorPreviewCard
+            :name="item.name"
+            :slug="item.slug"
+            :photo-url="item.photo_url"
+            :book-count="item.book_count"
+            :rating="item.avg_rating"
+            :rating-count="item.rating_count"
+            :readers="item.readers"
             :eager="index < 2"
-            class="w-100"
           />
         </v-col>
       </template>
@@ -121,10 +126,16 @@ async function loadMore() {
           sm="4"
           md="3"
         >
-          <RecommendationBookCard
-            :book="item"
+          <BookPreviewCard
+            :title="item.title"
+            :slug="item.slug"
+            :cover-url="item.primary_cover_url"
+            :author-names="item.author_names"
+            :author-slugs="item.author_slugs"
+            :rating="item.avg_rating"
+            :rating-count="item.rating_count"
+            :readers="item.readers"
             :eager="index < 2"
-            class="w-100"
           />
         </v-col>
       </template>
