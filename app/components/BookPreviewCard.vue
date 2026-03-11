@@ -31,18 +31,9 @@ const cardLink = computed(() => props.linkTo ?? `/books/${props.slug}`)
 
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 
-const formattedRating = computed(() => (props.rating > 0
-  ? props.rating.toFixed(1)
-  : '0'))
-
-const formattedRatingCount = computed(() => (props.ratingCount > 0
-  ? `(${compactFmt.format(props.ratingCount)})`
-  : '0'))
-
-const formattedReaders = computed(() => (props.readers > 0
-  ? compactFmt.format(props.readers)
-  : '0'))
-
+const formattedRating = computed(() => props.rating.toFixed(1))
+const formattedRatingCount = computed(() => `(${compactFmt.format(props.ratingCount)})`)
+const formattedReaders = computed(() => compactFmt.format(props.readers))
 const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 </script>
 
@@ -53,6 +44,12 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
       ? 'compact'
       : 'full'"
   >
+    <!-- Full-card navigation overlay -->
+    <NuxtLink
+      :to="cardLink"
+      class="card-overlay-link"
+    />
+
     <v-card class="book-preview-card d-flex flex-column h-100">
       <!-- Badge -->
       <v-chip
@@ -61,7 +58,7 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
         size="x-small"
         class="card-badge position-absolute"
         variant="elevated"
-        style="z-index: 1; top: 8px; right: 8px;"
+        style="z-index: 2; top: 8px; right: 8px;"
       >
         {{ badge }}
       </v-chip>
@@ -80,15 +77,14 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
       <!-- Info zone -->
       <div class="info-zone d-flex flex-column px-3 pb-2 pt-2">
         <!-- Title -->
-        <NuxtLink
-          :to="cardLink"
-          class="card-title font-weight-bold text-body-2 title-link text-decoration-none"
+        <span
+          class="card-title font-weight-bold text-body-2 title-link"
           :class="compact
             ? 'line-clamp-1'
             : 'line-clamp-2'"
         >
           {{ title }}
-        </NuxtLink>
+        </span>
 
         <!-- Authors -->
         <div
@@ -141,6 +137,7 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 <style scoped>
 .book-preview-card-link {
   display: block;
+  position: relative;
 }
 
 .book-preview-card-link.full {
@@ -149,6 +146,12 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 
 .book-preview-card-link.compact {
   height: 100%;
+}
+
+.card-overlay-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 .book-preview-card {
@@ -199,14 +202,20 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
   height: 100%;
 }
 
-/* Link hover on title */
+/* Title hover (card hover drives it) */
 .title-link {
   color: inherit;
   transition: color 0.15s;
 }
 
-.title-link:hover {
+.book-preview-card-link:hover .title-link {
   color: rgb(var(--v-theme-primary));
+}
+
+/* Authors sit above the overlay link */
+.authors-row {
+  position: relative;
+  z-index: 2;
 }
 
 .author-link:hover {

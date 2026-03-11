@@ -24,23 +24,22 @@ const props = withDefaults(defineProps<Props>(), {
 
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 
-const formattedRating = computed(() => (props.rating > 0
-  ? props.rating.toFixed(1)
-  : '—'))
-const formattedRatingCount = computed(() => (props.ratingCount > 0
-  ? `(${compactFmt.format(props.ratingCount)})`
-  : ''))
-const formattedReaders = computed(() => (props.readers > 0
-  ? compactFmt.format(props.readers)
-  : '—'))
+const formattedRating = computed(() => props.rating.toFixed(1))
+const formattedRatingCount = computed(() => `(${compactFmt.format(props.ratingCount)})`)
+const formattedReaders = computed(() => compactFmt.format(props.readers))
 </script>
 
 <template>
-  <NuxtLink
-    :to="`/authors/${slug}`"
-    class="author-preview-card-link text-decoration-none d-block"
+  <div
+    class="author-preview-card-link d-block"
     style="height: 360px;"
   >
+    <!-- Full-card navigation overlay -->
+    <NuxtLink
+      :to="`/authors/${slug}`"
+      class="card-overlay-link"
+    />
+
     <v-card class="author-preview-card d-flex flex-column h-100">
       <!-- Badge -->
       <v-chip
@@ -49,7 +48,7 @@ const formattedReaders = computed(() => (props.readers > 0
         size="x-small"
         class="position-absolute"
         variant="elevated"
-        style="z-index: 1; top: 8px; right: 8px;"
+        style="z-index: 2; top: 8px; right: 8px;"
       >
         {{ badge }}
       </v-chip>
@@ -108,10 +107,20 @@ const formattedReaders = computed(() => (props.readers > 0
         </div>
       </div>
     </v-card>
-  </NuxtLink>
+  </div>
 </template>
 
 <style scoped>
+.author-preview-card-link {
+  position: relative;
+}
+
+.card-overlay-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
 .author-preview-card {
   position: relative;
 }
