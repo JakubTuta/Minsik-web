@@ -368,21 +368,6 @@ onUnmounted(() => {
           </v-card-text>
         </v-card>
 
-        <!-- Cover History -->
-        <v-card
-          v-if="book.cover_history && book.cover_history.length >= 2"
-          ref="revealCoverHistory"
-          class="mt-4"
-        >
-          <v-card-text>
-            <h2 class="text-h6 font-weight-bold mb-4">
-              Cover History
-            </h2>
-
-            <CoverHistorySection :covers="book.cover_history" />
-          </v-card-text>
-        </v-card>
-
         <!-- Rating -->
         <v-card
           ref="revealRating"

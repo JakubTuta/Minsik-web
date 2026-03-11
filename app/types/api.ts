@@ -55,14 +55,6 @@ export interface SubRatingStat {
   count: number
 }
 
-// Cover Types
-
-export interface CoverHistory {
-  year: number
-  cover_url: string
-  publisher: string
-}
-
 // Author Types
 
 export interface AuthorMinimal {
@@ -165,7 +157,6 @@ export interface Book {
   original_publication_year?: number | null
   formats: string[]
   primary_cover_url?: string | null
-  cover_history: CoverHistory[]
   rating_count: number
   avg_rating: number
   view_count: number
