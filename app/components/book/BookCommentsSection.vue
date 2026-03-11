@@ -1,10 +1,12 @@
 <script setup lang="ts">
 interface Props {
   slug: string
-  distribution?: Record<string, number>
+  selectedRating?: number | null
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  selectedRating: null,
+})
 
 const authStore = useAuthStore()
 const authDialogStore = useAuthDialogStore()
@@ -32,10 +34,6 @@ const sortOptions = [
 ]
 
 const selectedSort = ref('newest')
-const selectedRating = ref<number | null>(null)
-
-const hasDistribution = computed(() => props.distribution != null && Object.values(props.distribution).some(v => v > 0),
-)
 
 function getSortParams() {
   switch (selectedSort.value) {
@@ -64,20 +62,15 @@ function fetchComments() {
     ...getSortParams(),
     include_spoilers: true,
   }
-  if (selectedRating.value !== null)
-    params.rating_filter = selectedRating.value
+  if (props.selectedRating !== null)
+    params.rating_filter = props.selectedRating
   bookPageStore.fetchComments(props.slug, params)
-}
-
-function handleRatingSelect(rating: number | null) {
-  selectedRating.value = rating
-  fetchComments()
 }
 
 onMounted(() => fetchComments())
 
 watch(selectedSort, () => fetchComments())
-
+watch(() => props.selectedRating, () => fetchComments())
 watch(() => authStore.isAuthenticated, () => fetchComments())
 
 function handleCommentSaved() {
@@ -104,37 +97,6 @@ async function handleDeleteComment() {
 </script>
 
 <template>
-  <!-- Rating Distribution Chart -->
-  <div
-    v-if="hasDistribution"
-    class="mb-4"
-  >
-    <RatingDistributionChart
-      :distribution="props.distribution!"
-      :selected-rating="selectedRating"
-      @select="handleRatingSelect"
-    />
-
-    <div
-      v-if="selectedRating !== null"
-      class="d-flex align-center mt-2 gap-2"
-    >
-      <span class="text-body-2 text-medium-emphasis">
-        Showing {{ selectedRating }}-star reviews
-      </span>
-
-      <v-btn
-        size="x-small"
-        variant="text"
-        color="primary"
-        prepend-icon="mdi-close"
-        @click="handleRatingSelect(null)"
-      >
-        Clear filter
-      </v-btn>
-    </div>
-  </div>
-
   <div class="d-flex align-center justify-space-between mb-4">
     <h2 class="text-h6 font-weight-bold">
       Comments

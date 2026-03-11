@@ -9,118 +9,136 @@ const emit = defineEmits<{
   select: [rating: number | null]
 }>()
 
-const rows = [5, 4, 3, 2, 1]
+const rows = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
+const BAR_HEIGHT = 120
 
-const maxCount = computed(() => Math.max(1, ...Object.values(props.distribution)))
+const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
+
+const maxCount = computed(() => Math.max(1, ...rows.map(r => countFor(r))))
 
 function countFor(rating: number) {
-  return props.distribution[String(rating)] ?? 0
+  return props.distribution[rating.toFixed(1)]
+    ?? props.distribution[String(rating)]
+    ?? 0
 }
 
-function barWidth(rating: number) {
-  return `${(countFor(rating) / maxCount.value) * 100}%`
+function barHeight(rating: number) {
+  const pct = countFor(rating) / maxCount.value
+  return `${Math.max(pct * BAR_HEIGHT, pct > 0 ? 3 : 0)}px`
 }
 
 function toggle(rating: number) {
-  emit('select', props.selectedRating === rating
-    ? null
-    : rating)
+  emit('select', props.selectedRating === rating ? null : rating)
 }
 </script>
 
 <template>
-  <div class="rating-chart">
-    <div
-      v-for="rating in rows"
-      :key="rating"
-      class="rating-row"
-      :class="{'rating-row--selected': selectedRating === rating}"
-      role="button"
-      :aria-pressed="selectedRating === rating"
-      :aria-label="`Filter by ${rating} stars`"
-      @click="toggle(rating)"
-    >
-      <!-- Star label -->
-      <span class="rating-label text-body-2 text-medium-emphasis">
-        {{ rating }} <v-icon
-          size="12"
-          icon="mdi-star"
-          color="amber"
-        />
-      </span>
+  <div class="chart-wrap">
+    <div class="chart-columns">
+      <div
+        v-for="rating in rows"
+        :key="rating"
+        class="chart-col"
+        :class="{ 'chart-col--selected': selectedRating === rating }"
+        role="button"
+        :aria-pressed="selectedRating === rating"
+        :aria-label="`Filter by ${rating} stars`"
+        @click="toggle(rating)"
+      >
+        <!-- Bar grows from bottom up -->
+        <div class="bar-area">
+          <div
+            class="bar"
+            :class="{ 'bar--selected': selectedRating === rating }"
+            :style="{ height: barHeight(rating) }"
+          />
+        </div>
 
-      <!-- Bar track -->
-      <div class="bar-track">
-        <div
-          class="bar-fill"
-          :style="{'width': barWidth(rating)}"
-          :class="{'bar-fill--selected': selectedRating === rating}"
-        />
+        <!-- Labels below bar -->
+        <div class="col-labels">
+          <span class="rating-val">
+            {{ rating }}<v-icon
+              icon="mdi-star"
+              size="9"
+              color="amber"
+            />
+          </span>
+          <span class="rating-cnt">{{ compactFmt.format(countFor(rating)) }}</span>
+        </div>
       </div>
-
-      <!-- Count -->
-      <span class="rating-count text-body-2 text-medium-emphasis">
-        {{ countFor(rating).toLocaleString() }}
-      </span>
     </div>
   </div>
 </template>
 
 <style scoped>
-.rating-chart {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.chart-wrap {
+  max-width: 640px;
 }
 
-.rating-row {
+.chart-columns {
   display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.chart-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
   cursor: pointer;
   border-radius: 6px;
-  padding: 4px 6px;
+  padding: 6px 2px 4px;
   transition: background-color 0.15s ease;
 }
 
-.rating-row:hover {
+.chart-col:hover {
   background-color: rgba(var(--v-theme-on-surface), 0.06);
 }
 
-.rating-row--selected {
+.chart-col--selected {
   background-color: rgba(var(--v-theme-primary), 0.1);
 }
 
-.rating-label {
-  width: 44px;
-  flex-shrink: 0;
+.bar-area {
+  width: 100%;
+  height: v-bind('`${BAR_HEIGHT}px`');
   display: flex;
-  align-items: center;
-  gap: 2px;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
-.bar-track {
-  flex: 1;
-  height: 10px;
-  background-color: rgba(var(--v-theme-on-surface), 0.08);
-  border-radius: 5px;
-  overflow: hidden;
+.bar {
+  width: 100%;
+  background-color: rgba(var(--v-theme-primary), 0.45);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.3s ease, background-color 0.15s ease;
 }
 
-.bar-fill {
-  height: 100%;
-  background-color: rgba(var(--v-theme-primary), 0.5);
-  border-radius: 5px;
-  transition: width 0.3s ease, background-color 0.15s ease;
-}
-
-.bar-fill--selected {
+.bar--selected {
   background-color: rgb(var(--v-theme-primary));
 }
 
-.rating-count {
-  width: 40px;
-  flex-shrink: 0;
-  text-align: right;
+.col-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 5px;
+  gap: 1px;
+}
+
+.rating-val {
+  font-size: 0.68rem;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  color: rgba(var(--v-theme-on-surface), 0.8);
+}
+
+.rating-cnt {
+  font-size: 0.62rem;
+  color: rgba(var(--v-theme-on-surface), 0.55);
 }
 </style>

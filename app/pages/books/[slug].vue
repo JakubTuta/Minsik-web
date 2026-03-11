@@ -61,16 +61,22 @@ const personalizedBookRecs = ref<RecommendationSection[]>([])
 const descriptionExpanded = ref(false)
 const descriptionRef = ref<HTMLElement>()
 const expandedHeight = ref(0)
+const selectedRating = ref<number | null>(null)
+
+const hasDistribution = computed(() =>
+  book.value?.rating_distribution != null
+  && Object.values(book.value.rating_distribution).some(v => v > 0),
+)
 
 // Scroll reveal refs
 const revealDescription = ref<HTMLElement | null>(null)
-const revealCoverHistory = ref<HTMLElement | null>(null)
 const revealRating = ref<HTMLElement | null>(null)
+const revealDistribution = ref<HTMLElement | null>(null)
 const revealComments = ref<HTMLElement | null>(null)
 
 useScrollReveal(revealDescription)
-useScrollReveal(revealCoverHistory)
 useScrollReveal(revealRating)
+useScrollReveal(revealDistribution)
 useScrollReveal(revealComments)
 
 // Description truncation
@@ -425,6 +431,46 @@ onUnmounted(() => {
           </div>
         </ClientOnly>
 
+        <!-- Rating Distribution -->
+        <ClientOnly>
+          <v-card
+            v-if="hasDistribution"
+            ref="revealDistribution"
+            class="mt-4"
+          >
+            <v-card-text>
+              <h2 class="text-h6 font-weight-bold mb-4">
+                Rating Distribution
+              </h2>
+
+              <RatingDistributionChart
+                :distribution="book.rating_distribution"
+                :selected-rating="selectedRating"
+                @select="selectedRating = $event"
+              />
+
+              <div
+                v-if="selectedRating !== null"
+                class="d-flex align-center mt-3 gap-2"
+              >
+                <span class="text-body-2 text-medium-emphasis">
+                  Showing {{ selectedRating }}-star reviews
+                </span>
+
+                <v-btn
+                  size="x-small"
+                  variant="text"
+                  color="primary"
+                  prepend-icon="mdi-close"
+                  @click="selectedRating = null"
+                >
+                  Clear filter
+                </v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </ClientOnly>
+
         <!-- Comments Section -->
         <ClientOnly>
           <v-card
@@ -434,7 +480,7 @@ onUnmounted(() => {
             <v-card-text>
               <BookCommentsSection
                 :slug="slug"
-                :distribution="book.rating_distribution"
+                :selected-rating="selectedRating"
               />
             </v-card-text>
           </v-card>

@@ -31,9 +31,15 @@ const cardLink = computed(() => props.linkTo ?? `/books/${props.slug}`)
 
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 
-const formattedRating = computed(() => props.rating.toFixed(1))
-const formattedRatingCount = computed(() => `(${compactFmt.format(props.ratingCount)})`)
-const formattedReaders = computed(() => compactFmt.format(props.readers))
+const formattedRating = computed(() => (props.rating
+  ? props.rating.toFixed(1)
+  : '0.0'))
+const formattedRatingCount = computed(() => (props.ratingCount
+  ? `(${compactFmt.format(props.ratingCount)})`
+  : '(0)'))
+const formattedReaders = computed(() => (props.readers
+  ? compactFmt.format(props.readers)
+  : '0'))
 const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 </script>
 
@@ -44,12 +50,6 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
       ? 'compact'
       : 'full'"
   >
-    <!-- Full-card navigation overlay -->
-    <NuxtLink
-      :to="cardLink"
-      class="card-overlay-link"
-    />
-
     <v-card class="book-preview-card d-flex flex-column h-100">
       <!-- Badge -->
       <v-chip
@@ -77,14 +77,15 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
       <!-- Info zone -->
       <div class="info-zone d-flex flex-column px-3 pb-2 pt-2">
         <!-- Title -->
-        <span
+        <NuxtLink
+          :to="cardLink"
           class="card-title font-weight-bold text-body-2 title-link"
           :class="compact
             ? 'line-clamp-1'
             : 'line-clamp-2'"
         >
           {{ title }}
-        </span>
+        </NuxtLink>
 
         <!-- Authors -->
         <div
@@ -146,12 +147,6 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 
 .book-preview-card-link.compact {
   height: 100%;
-}
-
-.card-overlay-link {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
 }
 
 .book-preview-card {

@@ -24,9 +24,15 @@ const props = withDefaults(defineProps<Props>(), {
 
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 
-const formattedRating = computed(() => props.rating.toFixed(1))
-const formattedRatingCount = computed(() => `(${compactFmt.format(props.ratingCount)})`)
-const formattedReaders = computed(() => compactFmt.format(props.readers))
+const formattedRating = computed(() => (props.rating
+  ? props.rating.toFixed(1)
+  : '0.0'))
+const formattedRatingCount = computed(() => (props.ratingCount
+  ? `(${compactFmt.format(props.ratingCount)})`
+  : '(0)'))
+const formattedReaders = computed(() => (props.readers
+  ? compactFmt.format(props.readers)
+  : '0'))
 </script>
 
 <template>
@@ -34,12 +40,6 @@ const formattedReaders = computed(() => compactFmt.format(props.readers))
     class="author-preview-card-link d-block"
     style="height: 360px;"
   >
-    <!-- Full-card navigation overlay -->
-    <NuxtLink
-      :to="`/authors/${slug}`"
-      class="card-overlay-link"
-    />
-
     <v-card class="author-preview-card d-flex flex-column h-100">
       <!-- Badge -->
       <v-chip
@@ -71,9 +71,12 @@ const formattedReaders = computed(() => compactFmt.format(props.readers))
       <!-- Info zone -->
       <div class="info-zone d-flex flex-column align-center px-3 pb-2 pt-2 text-center">
         <!-- Name -->
-        <span class="card-name font-weight-bold text-body-2 name-link line-clamp-2">
+        <NuxtLink
+          :to="`/authors/${slug}`"
+          class="card-name font-weight-bold text-body-2 name-link line-clamp-2"
+        >
           {{ name }}
-        </span>
+        </NuxtLink>
 
         <!-- Spacer -->
         <div class="flex-grow-1" />
@@ -113,12 +116,6 @@ const formattedReaders = computed(() => compactFmt.format(props.readers))
 <style scoped>
 .author-preview-card-link {
   position: relative;
-}
-
-.card-overlay-link {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
 }
 
 .author-preview-card {
