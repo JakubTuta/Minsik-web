@@ -268,11 +268,9 @@ const personalizedAuthorRecs = ref<RecommendationSection[]>([])
 // Scroll reveal refs
 const revealSidebar = ref<HTMLElement | null>(null)
 const revealDescription = ref<HTMLElement | null>(null)
-const revealBooks = ref<HTMLElement | null>(null)
 
 useScrollReveal(revealSidebar, { delay: 0.05 })
 useScrollReveal(revealDescription, { delay: 0.1 })
-useScrollReveal(revealBooks, { delay: 0.15 })
 
 onMounted(async () => {
   if (author.value?.author_id) {
@@ -585,14 +583,14 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
         />
 
         <!-- Books Section -->
-        <v-card ref="revealBooks">
+        <v-card>
           <v-card-text>
-            <div class="d-flex align-center justify-space-between mb-4">
+            <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2">
               <h2 class="text-h5 font-weight-bold">
                 Books
               </h2>
 
-              <div class="d-flex align-center gap-4">
+              <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
                 <v-select
                   v-if="viewMode === 'list'"
                   v-model="sortBy"
@@ -622,7 +620,6 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
                     value="timeline"
                     size="small"
                     prepend-icon="mdi-timeline-outline"
-                    class="ml-2"
                   >
                     Timeline view
                   </v-btn>

@@ -12,11 +12,11 @@ export const useFavouritesStore = defineStore('favourites', () => {
   const currentSortBy = ref<string>('created_at')
   const currentOrder = ref<'asc' | 'desc'>('desc')
 
-  const hasMore = computed(() => items.value.length < total.value)
+  const hasMore = ref(false)
   const hasData = computed(() => items.value.length > 0)
   const isEmpty = computed(() => !isLoading.value && items.value.length === 0)
 
-  const LIMIT = 20
+  const LIMIT = 10
 
   const fetch = async (reset = true, sortBy: string = currentSortBy.value, order: 'asc' | 'desc' = currentOrder.value) => {
     if (isLoading.value)
@@ -25,6 +25,7 @@ export const useFavouritesStore = defineStore('favourites', () => {
     if (reset) {
       items.value = []
       total.value = 0
+      hasMore.value = false
       currentSortBy.value = sortBy
       currentOrder.value = order
     }
@@ -41,8 +42,10 @@ export const useFavouritesStore = defineStore('favourites', () => {
       )
 
       const data = response.data.data!
-      items.value = [...items.value, ...data.items]
+      const newItems = data.items
+      items.value = [...items.value, ...newItems]
       total.value = data.total
+      hasMore.value = data.has_more ?? (newItems.length >= LIMIT)
     }
     catch (error) {
       console.error('Failed to fetch favourites:', error)

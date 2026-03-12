@@ -1,64 +1,49 @@
-import type { Ref } from 'vue'
-import { onMounted, onUnmounted } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 
 interface InfiniteScrollOptions {
-  threshold?: number
-  enabled?: Ref<boolean>
-  debounce?: number
+  enabled?: Ref<boolean> | ComputedRef<boolean>
 }
 
 export function useInfiniteScroll(
   loadMore: () => void | Promise<void>,
   options: InfiniteScrollOptions = {},
 ) {
-  const {
-    threshold = 400,
-    enabled = ref(true),
-    debounce = 100,
-  } = options
-
-  let timeoutId: NodeJS.Timeout | null = null
+  const { enabled = ref(true) } = options
+  const sentinel = ref<HTMLElement | null>(null)
   const isExecuting = ref(false)
+  let observer: IntersectionObserver | null = null
 
-  const handleScroll = async () => {
+  async function attemptLoad() {
     if (!enabled.value || isExecuting.value)
       return
-
-    // Clear existing timeout
-    if (timeoutId) {
-      clearTimeout(timeoutId)
+    isExecuting.value = true
+    try {
+      await loadMore()
     }
-
-    // Debounce scroll events
-    timeoutId = setTimeout(async () => {
-      const scrollPosition = window.innerHeight + window.scrollY
-      const documentHeight = document.documentElement.scrollHeight
-
-      // Check if we're near the bottom
-      if (documentHeight - scrollPosition < threshold) {
-        isExecuting.value = true
-        try {
-          await loadMore()
-        }
-        finally {
-          isExecuting.value = false
-        }
-      }
-    }, debounce)
+    finally {
+      isExecuting.value = false
+    }
   }
 
-  onMounted(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true })
+  watch(sentinel, (el, old) => {
+    if (old)
+      observer?.unobserve(old)
+
+    if (el) {
+      if (!observer) {
+        observer = new IntersectionObserver(
+          ([entry]) => { if (entry.isIntersecting) attemptLoad() },
+          { rootMargin: '300px' },
+        )
+      }
+      observer.observe(el)
+    }
   })
 
   onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll)
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
+    observer?.disconnect()
+    observer = null
   })
 
-  return {
-    isExecuting,
-  }
+  return { sentinel, isExecuting }
 }

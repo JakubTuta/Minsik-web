@@ -16,9 +16,9 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
   const myItems = ref<BookshelfEntry[]>([])
   const myTotal = ref(0)
   const myIsLoading = ref(false)
+  const myHasMore = ref(false)
   const myCurrentParams = ref<BookshelfParams>({})
 
-  const myHasMore = computed(() => myItems.value.length < myTotal.value)
   const myHasData = computed(() => myItems.value.length > 0)
   const myIsEmpty = computed(() => !myIsLoading.value && myItems.value.length === 0)
 
@@ -26,14 +26,14 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
   const publicItems = ref<BookshelfEntry[]>([])
   const publicTotal = ref(0)
   const publicIsLoading = ref(false)
+  const publicHasMore = ref(false)
   const publicCurrentUsername = ref<string | null>(null)
   const publicCurrentParams = ref<BookshelfParams>({})
 
-  const publicHasMore = computed(() => publicItems.value.length < publicTotal.value)
   const publicHasData = computed(() => publicItems.value.length > 0)
   const publicIsEmpty = computed(() => !publicIsLoading.value && publicItems.value.length === 0)
 
-  const LIMIT = 20
+  const LIMIT = 10
 
   // My bookshelf
   const fetchMine = async (params: BookshelfParams = {}, reset = true) => {
@@ -43,6 +43,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     if (reset) {
       myItems.value = []
       myTotal.value = 0
+      myHasMore.value = false
     }
 
     myCurrentParams.value = params
@@ -58,8 +59,10 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
       )
 
       const data = response.data.data!
-      myItems.value = [...myItems.value, ...data.items]
+      const newItems = data.items
+      myItems.value = [...myItems.value, ...newItems]
       myTotal.value = data.total
+      myHasMore.value = data.has_more ?? (newItems.length >= LIMIT)
     }
     catch (error) {
       console.error('Failed to fetch bookshelf:', error)
@@ -83,6 +86,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     if (reset) {
       publicItems.value = []
       publicTotal.value = 0
+      publicHasMore.value = false
       publicCurrentUsername.value = username
     }
 
@@ -99,8 +103,10 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
       )
 
       const data = response.data.data!
-      publicItems.value = [...publicItems.value, ...data.items]
+      const newPublicItems = data.items
+      publicItems.value = [...publicItems.value, ...newPublicItems]
       publicTotal.value = data.total
+      publicHasMore.value = data.has_more ?? (newPublicItems.length >= LIMIT)
     }
     catch (error) {
       console.error('Failed to fetch public bookshelf:', error)

@@ -33,7 +33,8 @@ function toggle(rating: number) {
 </script>
 
 <template>
-  <div class="chart-wrap">
+  <div class="d-flex justify-center">
+    <div class="chart-wrap">
     <div class="chart-columns">
       <div
         v-for="rating in rows"
@@ -67,12 +68,14 @@ function toggle(rating: number) {
         </div>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .chart-wrap {
   max-width: 640px;
+  width: 100%;
 }
 
 .chart-columns {

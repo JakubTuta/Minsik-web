@@ -47,13 +47,14 @@ watch([sortBy, order], () => fetchWithFilters(true))
 
 onMounted(() => fetchWithFilters(true))
 
-useInfiniteScroll(
-  () => ratingsStore.loadMore(),
-  {
-    threshold: 400,
-    enabled: computed(() => ratingsStore.hasMore && !ratingsStore.isLoading),
-  },
-)
+const isLoadingMore = ref(false)
+
+async function onIntersectLoadMore(isIntersecting: boolean) {
+  if (!isIntersecting || isLoadingMore.value || !ratingsStore.hasMore || ratingsStore.isLoading) return
+  isLoadingMore.value = true
+  try { await ratingsStore.loadMore() }
+  finally { isLoadingMore.value = false }
+}
 </script>
 
 <template>
@@ -81,12 +82,16 @@ useInfiniteScroll(
         md="9"
       >
         <div class="d-flex flex-column gap-2">
-          <RatingItem
+          <div
             v-for="(entry, index) in filteredItems"
             :key="entry.book_id"
-            :entry="entry"
-            :eager="index < 2"
-          />
+            v-intersect="index === filteredItems.length - 3 ? onIntersectLoadMore : undefined"
+          >
+            <RatingItem
+              :entry="entry"
+              :eager="index < 2"
+            />
+          </div>
         </div>
 
         <div
@@ -129,6 +134,7 @@ useInfiniteScroll(
             Rate books while browsing to see them here
           </div>
         </div>
+
       </v-col>
     </v-row>
   </v-container>

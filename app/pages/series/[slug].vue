@@ -149,13 +149,9 @@ async function handleSeriesEditSave(editedData: Record<string, any>) {
 const seriesRecommendations = ref<RecommendationSection[]>([])
 
 // Scroll reveal refs
-const revealHeader = ref<HTMLElement | null>(null)
 const revealDescription = ref<HTMLElement | null>(null)
-const revealBooks = ref<HTMLElement | null>(null)
 
-useScrollReveal(revealHeader)
-useScrollReveal(revealDescription, { delay: 0.1 })
-useScrollReveal(revealBooks, { delay: 0.15 })
+useScrollReveal(revealDescription)
 
 onMounted(async () => {
   if (series.value?.series_id) {
@@ -179,7 +175,7 @@ const collageCovers = computed(() => {
   <v-container v-if="series">
     <v-row>
       <v-col cols="12">
-        <v-card ref="revealHeader">
+        <v-card>
           <v-row no-gutters>
             <!-- Book Covers Collage -->
             <v-col
@@ -377,7 +373,7 @@ const collageCovers = computed(() => {
     <!-- Books List -->
     <v-row class="mt-6">
       <v-col cols="12">
-        <v-card ref="revealBooks">
+        <v-card>
           <v-card-text>
             <h2 class="text-h5 font-weight-bold mb-4">
               Books in this Series

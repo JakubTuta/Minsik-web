@@ -24,13 +24,14 @@ watch(order, newOrder => favouritesStore.fetch(true, 'created_at', newOrder))
 
 onMounted(() => favouritesStore.fetch(true, 'created_at', order.value))
 
-useInfiniteScroll(
-  () => favouritesStore.loadMore(),
-  {
-    threshold: 400,
-    enabled: computed(() => favouritesStore.hasMore && !favouritesStore.isLoading),
-  },
-)
+const isLoadingMore = ref(false)
+
+async function onIntersectLoadMore(isIntersecting: boolean) {
+  if (!isIntersecting || isLoadingMore.value || !favouritesStore.hasMore || favouritesStore.isLoading) return
+  isLoadingMore.value = true
+  try { await favouritesStore.loadMore() }
+  finally { isLoadingMore.value = false }
+}
 </script>
 
 <template>
@@ -55,12 +56,16 @@ useInfiniteScroll(
         md="9"
       >
         <div class="d-flex flex-column gap-2">
-          <FavouriteItem
+          <div
             v-for="(entry, index) in filteredItems"
             :key="entry.book_id"
-            :entry="entry"
-            :eager="index < 2"
-          />
+            v-intersect="index === filteredItems.length - 3 ? onIntersectLoadMore : undefined"
+          >
+            <FavouriteItem
+              :entry="entry"
+              :eager="index < 2"
+            />
+          </div>
         </div>
 
         <div
@@ -103,6 +108,7 @@ useInfiniteScroll(
             Mark books as favourites while browsing
           </div>
         </div>
+
       </v-col>
     </v-row>
   </v-container>

@@ -10,6 +10,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const stats = ref<UserStats | null>(null)
   const isLoading = ref(false)
 
+  const publicStats = ref<UserStats | null>(null)
+  const publicIsLoading = ref(false)
+
   const fetchStats = async () => {
     const username = authStore.user?.username
     if (!username)
@@ -30,6 +33,22 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   }
 
+  const fetchStatsByUsername = async (username: string) => {
+    publicIsLoading.value = true
+    try {
+      const response = await client.value.get<APIResponse<{ stats: UserStats }>>(
+        `/api/v1/users/${username}/stats`,
+      )
+      publicStats.value = response.data.data!.stats
+    }
+    catch (error) {
+      console.error('Failed to fetch public stats:', error)
+    }
+    finally {
+      publicIsLoading.value = false
+    }
+  }
+
   const deleteAccount = async () => {
     await client.value.delete('/api/v1/users/me')
     await authStore.logout()
@@ -38,7 +57,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
   return {
     stats,
     isLoading,
+    publicStats,
+    publicIsLoading,
     fetchStats,
+    fetchStatsByUsername,
     deleteAccount,
   }
 })

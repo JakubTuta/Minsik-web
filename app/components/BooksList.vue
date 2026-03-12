@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
-useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
+const { sentinel } = useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
 
 function formatSeriesPosition(position: number | null | undefined) {
   if (!position)
@@ -146,7 +146,7 @@ function formatSeriesPosition(position: number | null | undefined) {
       {{ emptyMessage }}
     </v-alert>
 
-    <!-- Loading Books -->
+    <!-- Loading -->
     <Transition name="fade">
       <div
         v-if="loading"
@@ -158,6 +158,9 @@ function formatSeriesPosition(position: number | null | undefined) {
         />
       </div>
     </Transition>
+
+    <!-- Infinite scroll sentinel -->
+    <div ref="sentinel" />
   </div>
 </template>
 

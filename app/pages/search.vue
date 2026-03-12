@@ -48,10 +48,9 @@ watch(() => searchStore.query, (newQuery) => {
   })
 })
 
-useInfiniteScroll(
+const { sentinel } = useInfiniteScroll(
   () => searchStore.loadMore(),
   {
-    threshold: 400,
     enabled: computed(() => searchStore.hasMore && !searchStore.isLoading),
   },
 )
@@ -226,5 +225,7 @@ function resultRatingCount(result: SearchResult) {
         </div>
       </v-col>
     </v-row>
+
+    <div ref="sentinel" />
   </v-container>
 </template>

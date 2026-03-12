@@ -23,7 +23,7 @@ const booksWithYearMarkers = computed(() => {
 })
 
 const scrollEnabled = computed(() => props.hasMore && !props.loading)
-useInfiniteScroll(() => props.loadMore(), { enabled: scrollEnabled })
+const { sentinel } = useInfiniteScroll(() => props.loadMore(), { enabled: scrollEnabled })
 </script>
 
 <template>
@@ -149,6 +149,8 @@ useInfiniteScroll(() => props.loadMore(), { enabled: scrollEnabled })
         color="primary"
       />
     </div>
+
+    <div ref="sentinel" />
   </div>
 </template>
 

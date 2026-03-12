@@ -18,11 +18,11 @@ export const useRatingsStore = defineStore('ratings', () => {
   const isLoading = ref(false)
   const currentParams = ref<RatingsParams>({})
 
-  const hasMore = computed(() => items.value.length < total.value)
+  const hasMore = ref(false)
   const hasData = computed(() => items.value.length > 0)
   const isEmpty = computed(() => !isLoading.value && items.value.length === 0)
 
-  const LIMIT = 20
+  const LIMIT = 10
 
   const fetch = async (params: RatingsParams = {}, reset = true) => {
     if (isLoading.value)
@@ -31,6 +31,7 @@ export const useRatingsStore = defineStore('ratings', () => {
     if (reset) {
       items.value = []
       total.value = 0
+      hasMore.value = false
     }
 
     currentParams.value = params
@@ -49,8 +50,10 @@ export const useRatingsStore = defineStore('ratings', () => {
       )
 
       const data = response.data.data!
-      items.value = [...items.value, ...data.items]
+      const newItems = data.items
+      items.value = [...items.value, ...newItems]
       total.value = data.total
+      hasMore.value = data.has_more ?? (newItems.length >= LIMIT)
     }
     catch (error) {
       console.error('Failed to fetch ratings:', error)

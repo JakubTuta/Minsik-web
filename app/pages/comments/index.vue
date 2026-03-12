@@ -30,13 +30,14 @@ watch([sortBy, order], () => fetchWithFilters(true))
 
 onMounted(() => fetchWithFilters(true))
 
-useInfiniteScroll(
-  () => commentsStore.loadMore(),
-  {
-    threshold: 400,
-    enabled: computed(() => commentsStore.hasMore && !commentsStore.isLoading),
-  },
-)
+const isLoadingMore = ref(false)
+
+async function onIntersectLoadMore(isIntersecting: boolean) {
+  if (!isIntersecting || isLoadingMore.value || !commentsStore.hasMore || commentsStore.isLoading) return
+  isLoadingMore.value = true
+  try { await commentsStore.loadMore() }
+  finally { isLoadingMore.value = false }
+}
 </script>
 
 <template>
@@ -61,12 +62,16 @@ useInfiniteScroll(
         md="9"
       >
         <div class="d-flex flex-column gap-2">
-          <CommentItem
+          <div
             v-for="(entry, index) in filteredItems"
             :key="entry.comment_id"
-            :entry="entry"
-            :eager="index < 2"
-          />
+            v-intersect="index === filteredItems.length - 3 ? onIntersectLoadMore : undefined"
+          >
+            <CommentItem
+              :entry="entry"
+              :eager="index < 2"
+            />
+          </div>
         </div>
 
         <div
@@ -109,6 +114,7 @@ useInfiniteScroll(
             Comment on books while browsing to see them here
           </div>
         </div>
+
       </v-col>
     </v-row>
   </v-container>

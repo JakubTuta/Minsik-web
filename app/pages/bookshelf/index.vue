@@ -37,13 +37,15 @@ watch([sortBy, order, status], () => fetchWithFilters(true))
 
 onMounted(() => fetchWithFilters(true))
 
-useInfiniteScroll(
-  () => bookshelfStore.loadMoreMine(),
-  {
-    threshold: 400,
-    enabled: computed(() => bookshelfStore.myHasMore && !bookshelfStore.myIsLoading),
-  },
-)
+const isLoadingMore = ref(false)
+
+async function onIntersectLoadMore(isIntersecting: boolean) {
+  if (!isIntersecting || isLoadingMore.value || !bookshelfStore.myHasMore || bookshelfStore.myIsLoading)
+    return
+  isLoadingMore.value = true
+  try { await bookshelfStore.loadMoreMine() }
+  finally { isLoadingMore.value = false }
+}
 </script>
 
 <template>
@@ -71,13 +73,17 @@ useInfiniteScroll(
       >
         <!-- Book list -->
         <div class="d-flex flex-column gap-2">
-          <BookshelfItem
+          <div
             v-for="(entry, index) in filteredItems"
             :key="entry.book_id"
-            :entry="entry"
-            :is-public-profile="false"
-            :eager="index < 2"
-          />
+            v-intersect="index === filteredItems.length - 3 ? onIntersectLoadMore : undefined"
+          >
+            <BookshelfItem
+              :entry="entry"
+              :is-public-profile="false"
+              :eager="index < 2"
+            />
+          </div>
         </div>
 
         <div

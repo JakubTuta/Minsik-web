@@ -90,7 +90,7 @@ export const useAuthorsStore = defineStore('authors', () => {
     sortBy: 'publication_year' | 'combined_rating' | 'readers_count' = 'publication_year',
     order: 'asc' | 'desc' = 'desc',
     offset = 0,
-    limit = 20,
+    limit = 10,
   ): Promise<AuthorBooksResponse> => {
     isLoadingBooks.value = true
 
