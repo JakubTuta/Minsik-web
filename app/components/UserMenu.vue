@@ -72,6 +72,12 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       </template>
 
       <v-list-item
+        prepend-icon="mdi-fruit-cherries"
+        title="Play Slots"
+        to="/play-slots"
+      />
+
+      <v-list-item
         prepend-icon="mdi-treasure-chest"
         title="Open a Case"
         to="/open-case"

@@ -10,7 +10,7 @@ const authDialogStore = useAuthDialogStore()
         <!-- Brand column -->
         <v-col
           cols="12"
-          sm="4"
+          sm="3"
         >
           <div class="text-h6 font-weight-bold mb-2">
             Minsik
@@ -84,6 +84,39 @@ const authDialogStore = useAuthDialogStore()
               class="footer-link text-body-2"
             >
               Search
+            </NuxtLink>
+          </div>
+        </v-col>
+
+        <!-- Casino column -->
+        <v-col
+          cols="12"
+          sm="2"
+        >
+          <div class="text-subtitle-2 font-weight-bold text-uppercase mb-3">
+            Casino
+          </div>
+
+          <div class="d-flex flex-column ga-2">
+            <NuxtLink
+              to="/play-slots"
+              class="footer-link text-body-2"
+            >
+              Play Slots
+            </NuxtLink>
+
+            <NuxtLink
+              to="/open-case"
+              class="footer-link text-body-2"
+            >
+              Open a Case
+            </NuxtLink>
+
+            <NuxtLink
+              to="/open-pack"
+              class="footer-link text-body-2"
+            >
+              Open a Pack
             </NuxtLink>
           </div>
         </v-col>

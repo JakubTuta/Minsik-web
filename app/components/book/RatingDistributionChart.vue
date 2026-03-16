@@ -24,50 +24,56 @@ function countFor(rating: number) {
 
 function barHeight(rating: number) {
   const pct = countFor(rating) / maxCount.value
-  return `${Math.max(pct * BAR_HEIGHT, pct > 0 ? 3 : 0)}px`
+
+  return `${Math.max(pct * BAR_HEIGHT, pct > 0
+    ? 3
+    : 0)}px`
 }
 
 function toggle(rating: number) {
-  emit('select', props.selectedRating === rating ? null : rating)
+  emit('select', props.selectedRating === rating
+    ? null
+    : rating)
 }
 </script>
 
 <template>
   <div class="d-flex justify-center">
     <div class="chart-wrap">
-    <div class="chart-columns">
-      <div
-        v-for="rating in rows"
-        :key="rating"
-        class="chart-col"
-        :class="{ 'chart-col--selected': selectedRating === rating }"
-        role="button"
-        :aria-pressed="selectedRating === rating"
-        :aria-label="`Filter by ${rating} stars`"
-        @click="toggle(rating)"
-      >
-        <!-- Bar grows from bottom up -->
-        <div class="bar-area">
-          <div
-            class="bar"
-            :class="{ 'bar--selected': selectedRating === rating }"
-            :style="{ height: barHeight(rating) }"
-          />
-        </div>
-
-        <!-- Labels below bar -->
-        <div class="col-labels">
-          <span class="rating-val">
-            {{ rating }}<v-icon
-              icon="mdi-star"
-              size="9"
-              color="amber"
+      <div class="chart-columns">
+        <div
+          v-for="rating in rows"
+          :key="rating"
+          class="chart-col"
+          :class="{'chart-col--selected': selectedRating === rating}"
+          role="button"
+          :aria-pressed="selectedRating === rating"
+          :aria-label="`Filter by ${rating} stars`"
+          @click="toggle(rating)"
+        >
+          <!-- Bar grows from bottom up -->
+          <div class="bar-area">
+            <div
+              class="bar"
+              :class="{'bar--selected': selectedRating === rating}"
+              :style="{'height': barHeight(rating)}"
             />
-          </span>
-          <span class="rating-cnt">{{ compactFmt.format(countFor(rating)) }}</span>
+          </div>
+
+          <!-- Labels below bar -->
+          <div class="col-labels">
+            <span class="rating-val">
+              {{ rating }}<v-icon
+                icon="mdi-star"
+                size="9"
+                color="amber"
+              />
+            </span>
+
+            <span class="rating-cnt">{{ compactFmt.format(countFor(rating)) }}</span>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   </div>
 </template>

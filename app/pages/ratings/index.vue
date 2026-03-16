@@ -50,7 +50,8 @@ onMounted(() => fetchWithFilters(true))
 const isLoadingMore = ref(false)
 
 async function onIntersectLoadMore(isIntersecting: boolean) {
-  if (!isIntersecting || isLoadingMore.value || !ratingsStore.hasMore || ratingsStore.isLoading) return
+  if (!isIntersecting || isLoadingMore.value || !ratingsStore.hasMore || ratingsStore.isLoading)
+    return
   isLoadingMore.value = true
   try { await ratingsStore.loadMore() }
   finally { isLoadingMore.value = false }
@@ -85,7 +86,9 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           <div
             v-for="(entry, index) in filteredItems"
             :key="entry.book_id"
-            v-intersect="index === filteredItems.length - 3 ? onIntersectLoadMore : undefined"
+            v-intersect="index === filteredItems.length - 3
+              ? onIntersectLoadMore
+              : undefined"
           >
             <RatingItem
               :entry="entry"
@@ -134,7 +137,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
             Rate books while browsing to see them here
           </div>
         </div>
-
       </v-col>
     </v-row>
   </v-container>

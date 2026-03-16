@@ -76,7 +76,9 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           <div
             v-for="(entry, index) in filteredItems"
             :key="entry.book_id"
-            v-intersect="index === filteredItems.length - 3 ? onIntersectLoadMore : undefined"
+            v-intersect="index === filteredItems.length - 3
+              ? onIntersectLoadMore
+              : undefined"
           >
             <BookshelfItem
               :entry="entry"

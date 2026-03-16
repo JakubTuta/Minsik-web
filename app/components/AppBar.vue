@@ -78,6 +78,12 @@ const appBarSearchQuery = ref('')
 
       <v-list min-width="200">
         <v-list-item
+          prepend-icon="mdi-fruit-cherries"
+          title="Play Slots"
+          to="/play-slots"
+        />
+
+        <v-list-item
           prepend-icon="mdi-treasure-chest"
           title="Open a Case"
           to="/open-case"

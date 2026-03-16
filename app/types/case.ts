@@ -38,6 +38,13 @@ export interface OpenCaseData {
 
 export type CasePhase = 'idle' | 'opening' | 'spinning' | 'revealing'
 
+export interface SpinSlotsData {
+  items: Rarity[]
+  winner: BookSummary
+}
+
+export type SlotsPhase = 'idle' | 'pulling' | 'spinning' | 'revealing'
+
 export interface OpenPackData {
   items: BookSummary[]
 }

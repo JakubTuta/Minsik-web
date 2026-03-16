@@ -63,8 +63,7 @@ const descriptionRef = ref<HTMLElement>()
 const expandedHeight = ref(0)
 const selectedRating = ref<number | null>(null)
 
-const hasDistribution = computed(() =>
-  book.value?.rating_distribution != null
+const hasDistribution = computed(() => book.value?.rating_distribution != null
   && Object.values(book.value.rating_distribution).some(v => v > 0),
 )
 

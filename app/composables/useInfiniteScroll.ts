@@ -32,7 +32,10 @@ export function useInfiniteScroll(
     if (el) {
       if (!observer) {
         observer = new IntersectionObserver(
-          ([entry]) => { if (entry.isIntersecting) attemptLoad() },
+          ([entry]) => {
+            if (entry.isIntersecting)
+              attemptLoad()
+          },
           { rootMargin: '300px' },
         )
       }

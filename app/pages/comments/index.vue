@@ -33,7 +33,8 @@ onMounted(() => fetchWithFilters(true))
 const isLoadingMore = ref(false)
 
 async function onIntersectLoadMore(isIntersecting: boolean) {
-  if (!isIntersecting || isLoadingMore.value || !commentsStore.hasMore || commentsStore.isLoading) return
+  if (!isIntersecting || isLoadingMore.value || !commentsStore.hasMore || commentsStore.isLoading)
+    return
   isLoadingMore.value = true
   try { await commentsStore.loadMore() }
   finally { isLoadingMore.value = false }
@@ -65,7 +66,9 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           <div
             v-for="(entry, index) in filteredItems"
             :key="entry.comment_id"
-            v-intersect="index === filteredItems.length - 3 ? onIntersectLoadMore : undefined"
+            v-intersect="index === filteredItems.length - 3
+              ? onIntersectLoadMore
+              : undefined"
           >
             <CommentItem
               :entry="entry"
@@ -114,7 +117,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
             Comment on books while browsing to see them here
           </div>
         </div>
-
       </v-col>
     </v-row>
   </v-container>

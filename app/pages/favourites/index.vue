@@ -27,7 +27,8 @@ onMounted(() => favouritesStore.fetch(true, 'created_at', order.value))
 const isLoadingMore = ref(false)
 
 async function onIntersectLoadMore(isIntersecting: boolean) {
-  if (!isIntersecting || isLoadingMore.value || !favouritesStore.hasMore || favouritesStore.isLoading) return
+  if (!isIntersecting || isLoadingMore.value || !favouritesStore.hasMore || favouritesStore.isLoading)
+    return
   isLoadingMore.value = true
   try { await favouritesStore.loadMore() }
   finally { isLoadingMore.value = false }
@@ -59,7 +60,9 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           <div
             v-for="(entry, index) in filteredItems"
             :key="entry.book_id"
-            v-intersect="index === filteredItems.length - 3 ? onIntersectLoadMore : undefined"
+            v-intersect="index === filteredItems.length - 3
+              ? onIntersectLoadMore
+              : undefined"
           >
             <FavouriteItem
               :entry="entry"
@@ -108,7 +111,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
             Mark books as favourites while browsing
           </div>
         </div>
-
       </v-col>
     </v-row>
   </v-container>
