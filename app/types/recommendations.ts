@@ -33,8 +33,6 @@ export interface RecommendationBookItem {
   author_slugs: string[]
   avg_rating: number
   rating_count: number
-  ol_avg_rating: number
-  ol_rating_count: number
   readers: number
   score: number
 }
@@ -47,8 +45,6 @@ export interface RecommendationAuthorItem {
   book_count: number
   avg_rating: number
   rating_count: number
-  ol_avg_rating: number
-  ol_rating_count: number
   readers: number
   score: number
 }

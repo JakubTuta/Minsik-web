@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { RecommendationAuthorItem, RecommendationBookItem } from '~/types/recommendations'
-import { totalRatingCount, weightedRating } from '~/utils/format'
 
 const route = useRoute()
 const recommendationsStore = useRecommendationsStore()
@@ -111,8 +110,8 @@ async function loadMore() {
             :slug="item.slug"
             :photo-url="item.photo_url"
             :book-count="item.book_count"
-            :rating="weightedRating(item.avg_rating, item.rating_count, item.ol_avg_rating, item.ol_rating_count)"
-            :rating-count="totalRatingCount(item.rating_count, item.ol_rating_count)"
+            :rating="item.avg_rating"
+            :rating-count="item.rating_count"
             :readers="item.readers"
             :eager="index < 2"
           />
@@ -133,8 +132,8 @@ async function loadMore() {
             :cover-url="item.primary_cover_url"
             :author-names="item.author_names"
             :author-slugs="item.author_slugs"
-            :rating="weightedRating(item.avg_rating, item.rating_count, item.ol_avg_rating, item.ol_rating_count)"
-            :rating-count="totalRatingCount(item.rating_count, item.ol_rating_count)"
+            :rating="item.avg_rating"
+            :rating-count="item.rating_count"
             :readers="item.readers"
             :eager="index < 2"
           />

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { RecommendationSection } from '~/types/recommendations'
-import { totalRatingCount, weightedRating } from '~/utils/format'
 
 interface Props {
   category: RecommendationSection
@@ -119,8 +118,8 @@ onUnmounted(() => {
               :slug="author.slug"
               :photo-url="author.photo_url"
               :book-count="author.book_count"
-              :rating="weightedRating(author.avg_rating, author.rating_count, author.ol_avg_rating, author.ol_rating_count)"
-              :rating-count="totalRatingCount(author.rating_count, author.ol_rating_count)"
+              :rating="author.avg_rating"
+              :rating-count="author.rating_count"
               :readers="author.readers"
               :eager="index < 2"
             />
@@ -135,8 +134,8 @@ onUnmounted(() => {
               :cover-url="book.primary_cover_url"
               :author-names="book.author_names"
               :author-slugs="book.author_slugs"
-              :rating="weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count)"
-              :rating-count="totalRatingCount(book.rating_count, book.ol_rating_count)"
+              :rating="book.avg_rating"
+              :rating-count="book.rating_count"
               :readers="book.readers"
               :eager="index < 2"
             />

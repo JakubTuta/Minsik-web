@@ -1,4 +1,10 @@
-export function weightedRating(avgRating: number, ratingCount: number, olAvgRating: number, olRatingCount: number): number {
+export function weightedRating(avgRating: number | undefined, ratingCount: number | undefined, olAvgRating: number | undefined, olRatingCount: number | undefined): number {
+  if (avgRating === undefined || ratingCount === undefined)
+    return olAvgRating ?? 0
+
+  if (olAvgRating === undefined || olRatingCount === undefined)
+    return avgRating ?? 0
+
   const total = ratingCount + olRatingCount
   if (total === 0)
     return 0
@@ -6,8 +12,8 @@ export function weightedRating(avgRating: number, ratingCount: number, olAvgRati
   return ((avgRating * ratingCount) + (olAvgRating * olRatingCount)) / total
 }
 
-export function totalRatingCount(ratingCount: number, olRatingCount: number): number {
-  return ratingCount + olRatingCount
+export function totalRatingCount(ratingCount: number | undefined, olRatingCount: number | undefined): number {
+  return (ratingCount ?? 0) + (olRatingCount ?? 0)
 }
 
 export function totalReaders(appWantToRead?: number, appReading?: number, appRead?: number, olWantToRead?: number, olCurrentlyReading?: number, olAlreadyRead?: number): number {
