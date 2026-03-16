@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import type { OpenCaseData } from '~/types/case'
+import type { OpenCaseData, Rarity } from '~/types/case'
 import gsap from 'gsap'
 import { useDisplay } from 'vuetify'
 import { RARITY_COLORS } from '~/types/case'
-import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
   data: OpenCaseData
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits<{ 'spin-complete': [] }>()
+const emit = defineEmits<{ spinComplete: [] }>()
 
 const { mobile } = useDisplay()
 
@@ -23,13 +22,50 @@ const ITEM_WIDTH = computed(() => (mobile.value
 const ITEM_GAP = 12
 const SLOT_SIZE = computed(() => ITEM_WIDTH.value + ITEM_GAP)
 
+const ICONS: Record<Rarity, string> = {
+  legendary: 'mdi-snowflake',
+  ultra_rare: 'mdi-diamond-stone',
+  super_rare: 'mdi-star-shooting',
+  rare: 'mdi-star',
+  uncommon: 'mdi-shield-star',
+  common: 'mdi-circle',
+}
+
+function getRandomRarity(): Rarity {
+  const rand = Math.random()
+  if (rand < 0.015)
+    return 'legendary'
+  if (rand < 0.05)
+    return 'ultra_rare'
+  if (rand < 0.15)
+    return 'super_rare'
+  if (rand < 0.35)
+    return 'rare'
+  if (rand < 0.65)
+    return 'uncommon'
+
+  return 'common'
+}
+
+// Generate 40 items for a smooth long spin.
+// We will land on index 35.
+const generatedList = ref<Rarity[]>([])
+
+function initializeTrack() {
+  const list = Array.from({ length: 40 }, () => getRandomRarity())
+  // The winner is placed at our landing index
+  list[35] = props.data.winner.rarity as Rarity
+  generatedList.value = list
+}
+
 onMounted(async () => {
+  initializeTrack()
   await nextTick()
   if (!containerRef.value || !trackRef.value)
     return
 
   const viewportWidth = containerRef.value.offsetWidth
-  const winIdx = props.data.winning_index
+  const winIdx = 35 // Always land on index 35
 
   const targetX = -(winIdx * SLOT_SIZE.value + ITEM_WIDTH.value / 2 - viewportWidth / 2)
   const randomOffset = (Math.random() - 0.5) * (ITEM_WIDTH.value * 0.4)
@@ -42,22 +78,17 @@ onMounted(async () => {
       x: targetX + randomOffset,
       duration: 6.5,
       ease: 'power4.out',
-      onComplete: () => emit('spin-complete'),
+      onComplete: () => emit('spinComplete'),
     },
   )
 })
 
-function getItemStyle(rarity: string | null | undefined) {
-  const color = RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] ?? '#95A5A6'
-
-  return {
-    borderTop: `4px solid ${color}`,
-    boxShadow: `0 0 12px ${color}33`,
-  }
+function getIconColor(rarity: string | null | undefined) {
+  return RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] ?? '#95A5A6'
 }
 
 function getGlowStyle(rarity: string | null | undefined) {
-  const color = RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] ?? '#95A5A6'
+  const color = getIconColor(rarity)
 
   return { background: `linear-gradient(to bottom, ${color}44, transparent 50%)` }
 }
@@ -76,6 +107,7 @@ function getGlowStyle(rarity: string | null | undefined) {
     <div
       ref="containerRef"
       class="spinner-viewport"
+      :style="{'height': `${ITEM_WIDTH}px`}"
     >
       <!-- Gradient overlays for fade effect -->
       <div class="fade-left" />
@@ -88,34 +120,28 @@ function getGlowStyle(rarity: string | null | undefined) {
         class="spinner-track"
       >
         <div
-          v-for="(item, index) in data.display_list"
-          :key="`${item.book_id}-${index}`"
+          v-for="(rarity, index) in generatedList"
+          :key="index"
           class="spinner-item"
-          :style="{'width': `${ITEM_WIDTH}px`}"
+          :style="{
+            'width': `${ITEM_WIDTH}px`,
+            'borderColor': getIconColor(rarity),
+            'backgroundColor': `${getIconColor(rarity)}15`,
+          }"
         >
+          <!-- Rarity glow overlay -->
           <div
-            class="item-card h-100"
-            :style="getItemStyle(item.rarity)"
-          >
-            <!-- Rarity glow overlay -->
-            <div
-              class="rarity-glow"
-              :style="getGlowStyle(item.rarity)"
-            />
+            class="rarity-glow"
+            :style="getGlowStyle(rarity)"
+          />
 
-            <!-- Book card -->
-            <BookPreviewCard
-              compact
-              :title="item.title"
-              :slug="item.slug"
-              :cover-url="item.primary_cover_url"
-              :author-names="item.authors.map(a => a.name)"
-              :author-slugs="item.authors.map(a => a.slug)"
-              :rating="weightedRating(item.avg_rating, item.rating_count, item.ol_avg_rating, item.ol_rating_count)"
-              :rating-count="totalRatingCount(item.rating_count, item.ol_rating_count)"
-              :readers="totalReaders(item.app_want_to_read_count, item.app_reading_count, item.app_read_count, item.ol_want_to_read_count, item.ol_currently_reading_count, item.ol_already_read_count)"
-            />
-          </div>
+          <!-- Rarity Icon -->
+          <v-icon
+            :icon="ICONS[rarity as Rarity] || ICONS.common"
+            :color="getIconColor(rarity)"
+            :size="ITEM_WIDTH * 0.5"
+            class="slot-icon"
+          />
         </div>
       </div>
     </div>
@@ -161,9 +187,12 @@ function getGlowStyle(rarity: string | null | undefined) {
 
 .spinner-viewport {
   overflow: hidden;
-  height: 290px;
   position: relative;
   border-radius: 8px;
+  /* background matching slots */
+  background: #111;
+  border: 4px solid #333;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
 .fade-left,
@@ -171,39 +200,41 @@ function getGlowStyle(rarity: string | null | undefined) {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 120px;
+  width: 80px;
   z-index: 10;
   pointer-events: none;
 }
 
 .fade-left {
   left: 0;
-  background: linear-gradient(to right, rgb(var(--v-theme-surface)), transparent);
+  background: linear-gradient(to right, #111 0%, transparent 100%);
 }
 
 .fade-right {
   right: 0;
-  background: linear-gradient(to left, rgb(var(--v-theme-surface)), transparent);
+  background: linear-gradient(to left, #111 0%, transparent 100%);
 }
 
 .spinner-track {
   display: flex;
   gap: 12px;
-  padding: 8px 0;
+  padding: 0 12px;
   will-change: transform;
-  align-items: stretch;
+  align-items: center;
   height: 100%;
 }
 
 .spinner-item {
   flex-shrink: 0;
-  height: 100%;
-}
-
-.item-card {
+  height: calc(100% - 24px);
   position: relative;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 12px;
+  border: 2px solid;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .rarity-glow {
@@ -214,5 +245,10 @@ function getGlowStyle(rarity: string | null | undefined) {
   height: 60px;
   pointer-events: none;
   z-index: 1;
+}
+
+.slot-icon {
+  filter: drop-shadow(0 0 8px currentColor);
+  z-index: 2;
 }
 </style>

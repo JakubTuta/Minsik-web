@@ -139,6 +139,7 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 .book-preview-card-link {
   display: block;
   position: relative;
+  width: 100%;
 }
 
 .book-preview-card-link.full {
@@ -192,9 +193,21 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 }
 
 /* Cover image fills zone */
+.cover-zone {
+  position: relative;
+  width: 100%;
+}
+
 .cover-img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+}
+
+.cover-img :deep(img) {
+  object-fit: contain;
 }
 
 /* Title hover (card hover drives it) */

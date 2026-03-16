@@ -33,7 +33,10 @@ async function handleChestClick() {
     return
   }
 
-  await preloadImages(caseStore.caseData!.display_list.map(item => item.primary_cover_url))
+  // Preload winner image since we don't have display_list anymore
+  if (caseStore.caseData?.winner?.primary_cover_url) {
+    await preloadImages([caseStore.caseData.winner.primary_cover_url])
+  }
 
   caseStore.setPhase('spinning')
 }
@@ -150,7 +153,6 @@ onUnmounted(() => {
 
         <CaseWinnerReveal
           :winner="caseStore.caseData.winner"
-          :winner-detail="caseStore.caseData.winner_detail"
           @play-again="handlePlayAgain"
         />
       </div>

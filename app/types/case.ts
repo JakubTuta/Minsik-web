@@ -1,4 +1,4 @@
-import type { Book, BookSummary } from '~/types/api'
+import type { BookSummary } from '~/types/api'
 
 export type Rarity = 'legendary' | 'ultra_rare' | 'super_rare' | 'rare' | 'uncommon' | 'common'
 
@@ -30,10 +30,7 @@ export const RARITY_LABELS: Record<Rarity, string> = {
 }
 
 export interface OpenCaseData {
-  display_list: BookSummary[]
-  winning_index: number
   winner: BookSummary
-  winner_detail: Book
 }
 
 export type CasePhase = 'idle' | 'opening' | 'spinning' | 'revealing'
