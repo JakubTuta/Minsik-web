@@ -83,10 +83,18 @@ onMounted(async () => {
   gsap.set(reelsRef.value, { y: -TOTAL_ITEM_SIZE.value }) // Start with index 1 in the middle
 })
 
+watch(() => props.data, (newData) => {
+  if (props.spinning && newData) {
+    for (let c = 0; c < 3; c++) {
+      reelsContent.value[c][27] = newData.items[c]
+    }
+  }
+}, { deep: true })
+
 watch(() => props.spinning, async (isSpinning) => {
   if (isSpinning) {
     if (props.data) {
-      // Update target items
+      // Update target items just in case data is already present
       for (let c = 0; c < 3; c++) {
         reelsContent.value[c][27] = props.data.items[c]
       }

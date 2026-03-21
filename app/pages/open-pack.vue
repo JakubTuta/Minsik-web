@@ -40,7 +40,7 @@ async function handlePackClick() {
     return
   }
 
-  await preloadImages(packStore.packData!.items.map(item => item.primary_cover_url))
+  preloadImages(packStore.packData!.items.map(item => item.primary_cover_url))
   packStore.setPhase('glow')
 }
 

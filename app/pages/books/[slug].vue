@@ -387,6 +387,9 @@ onUnmounted(() => {
           </v-card-text>
         </v-card>
 
+        <!-- External Links -->
+        <ExternalLinksSection :book="book" />
+
         <!-- Book Recommendations -->
         <ClientOnly>
           <div
