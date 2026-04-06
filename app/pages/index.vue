@@ -45,7 +45,24 @@ if (import.meta.client) {
   <div>
     <HeroBanner />
 
+    <LandingMarquee />
+
     <v-container class="py-8">
+      <FeaturesShowcase />
+
+      <div class="mb-10 mt-16 text-center">
+        <h2 class="text-h3 font-weight-bold mb-4">
+          Trending Now
+        </h2>
+
+        <p
+          class="text-h6 text-medium-emphasis mx-auto"
+          style="max-width: 600px;"
+        >
+          See what the community is discovering this week.
+        </p>
+      </div>
+
       <ClientOnly>
         <div v-if="isLoadingPersonalized || personalizedCategories.length > 0">
           <RecommendationRowSkeleton v-if="isLoadingPersonalized" />
@@ -84,5 +101,7 @@ if (import.meta.client) {
         />
       </div>
     </v-container>
+
+    <LandingCta />
   </div>
 </template>

@@ -111,7 +111,10 @@ useScrollReveal(cardRef)
           v-for="(link, index) in links"
           :key="link.title"
         >
-          <v-list-item variant="elevated">
+          <v-list-item
+            variant="elevated"
+            class="my-1"
+          >
             <template #prepend>
               <v-icon
                 :color="link.color"

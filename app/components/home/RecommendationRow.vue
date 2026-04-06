@@ -205,7 +205,7 @@ onUnmounted(() => {
 .skeleton-card {
   width: calc((100% - 4 * 20px) / 5);
   min-width: 200px;
-  height: 380px;
+  height: 360px;
 }
 
 @media (max-width: 600px) {
