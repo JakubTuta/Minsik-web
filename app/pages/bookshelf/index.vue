@@ -83,7 +83,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
             <BookshelfItem
               :entry="entry"
               :is-public-profile="false"
-              :eager="index < 2"
             />
           </div>
         </div>

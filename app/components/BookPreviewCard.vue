@@ -8,7 +8,6 @@ interface Props {
   rating?: number
   ratingCount?: number
   readers?: number
-  eager?: boolean
   compact?: boolean
   badge?: string
   badgeColor?: string
@@ -68,7 +67,6 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
         <v-img
           :src="coverUrl || '/placeholder-book-lazy.jpg'"
           :alt="title"
-          :eager="eager"
           contain
           class="cover-img"
         />

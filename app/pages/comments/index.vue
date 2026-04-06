@@ -14,7 +14,7 @@ const filteredItems = computed(() => {
     return commentsStore.items
   const q = titleFilter.value.toLowerCase()
 
-  return commentsStore.items.filter(e => e.book.title.toLowerCase().includes(q))
+  return commentsStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
 const sortOptions = [
@@ -72,7 +72,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           >
             <CommentItem
               :entry="entry"
-              :eager="index < 2"
             />
           </div>
         </div>

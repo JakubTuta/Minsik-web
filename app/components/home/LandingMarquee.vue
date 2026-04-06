@@ -26,7 +26,7 @@ onMounted(() => {
     gsap.to(track, {
       xPercent: -50,
       ease: 'none',
-      duration: 25,
+      duration: 40,
       repeat: -1,
     })
   }

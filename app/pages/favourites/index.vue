@@ -66,7 +66,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           >
             <FavouriteItem
               :entry="entry"
-              :eager="index < 2"
             />
           </div>
         </div>

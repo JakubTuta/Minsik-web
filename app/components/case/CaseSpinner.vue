@@ -177,7 +177,7 @@ function getGlowStyle(rarity: string | null | undefined) {
 
 .pointer-line {
   width: 2px;
-  height: 285px;
+  height: 140px;
   background: linear-gradient(
     to bottom,
     rgb(var(--v-theme-primary)),

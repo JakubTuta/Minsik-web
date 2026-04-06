@@ -7,7 +7,6 @@ interface Props {
   rating?: number
   ratingCount?: number
   readers?: number
-  eager?: boolean
   badge?: string
   badgeColor?: string
 }
@@ -62,7 +61,6 @@ const formattedReaders = computed(() => (props.readers
           <v-img
             :src="photoUrl || '/placeholder-avatar-lazy.jpg'"
             :alt="name"
-            :eager="eager"
             cover
           />
         </v-avatar>

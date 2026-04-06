@@ -35,7 +35,7 @@ async function handleChestClick() {
 
   // Preload winner image since we don't have display_list anymore
   if (caseStore.caseData?.winner?.primary_cover_url) {
-    await preloadImages([caseStore.caseData.winner.primary_cover_url])
+    preloadImages([caseStore.caseData.winner.primary_cover_url])
   }
 
   caseStore.setPhase('spinning')

@@ -92,7 +92,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           >
             <RatingItem
               :entry="entry"
-              :eager="index < 2"
             />
           </div>
         </div>

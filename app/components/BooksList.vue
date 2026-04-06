@@ -35,7 +35,7 @@ function formatSeriesPosition(position: number | null | undefined) {
       class="books-list"
     >
       <NuxtLink
-        v-for="(book, index) in books"
+        v-for="book in books"
         :key="book.book_id"
         :to="`/books/${book.slug}`"
         class="book-item text-decoration-none"
@@ -54,7 +54,6 @@ function formatSeriesPosition(position: number | null | undefined) {
               width="120"
               height="180"
               cover
-              :eager="index < 2"
             />
 
             <v-badge
@@ -188,6 +187,7 @@ function formatSeriesPosition(position: number | null | undefined) {
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

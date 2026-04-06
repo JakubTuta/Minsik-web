@@ -121,7 +121,7 @@ function formatSeriesPosition(position: number | null) {
                 class="d-flex series-scroll gap-3"
               >
                 <NuxtLink
-                  v-for="(seriesBook, index) in seriesBooks"
+                  v-for="seriesBook in seriesBooks"
                   :key="seriesBook.book_id"
                   :to="`/books/${seriesBook.slug}`"
                   class="text-decoration-none flex-shrink-0"
@@ -135,7 +135,6 @@ function formatSeriesPosition(position: number | null) {
                       width="80"
                       cover
                       class="rounded"
-                      :eager="index < 2"
                       :class="{'opacity-75': seriesBook.book_id === book.book_id}"
                     />
 

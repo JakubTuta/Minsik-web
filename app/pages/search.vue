@@ -123,7 +123,7 @@ function resultRatingCount(result: SearchResult) {
     <!-- Results Grid -->
     <v-row v-if="searchStore.hasData">
       <v-col
-        v-for="(result, index) in searchStore.results"
+        v-for="result in searchStore.results"
         :key="`${result.type}-${result.id}`"
         cols="12"
         sm="6"
@@ -141,7 +141,6 @@ function resultRatingCount(result: SearchResult) {
           :rating-count="resultRatingCount(result)"
           :badge="resultBadgeLabel(result.type)"
           :badge-color="resultBadgeColor(result.type)"
-          :eager="index < 4"
         />
 
         <!-- Book / Series card -->
@@ -159,7 +158,6 @@ function resultRatingCount(result: SearchResult) {
           :rating-count="resultRatingCount(result)"
           :badge="resultBadgeLabel(result.type)"
           :badge-color="resultBadgeColor(result.type)"
-          :eager="index < 4"
         />
       </v-col>
     </v-row>

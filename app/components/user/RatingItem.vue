@@ -3,7 +3,6 @@ import type { RatingEntry } from '~/types/user'
 
 const props = defineProps<{
   entry: RatingEntry
-  eager?: boolean
 }>()
 
 const subRatingConfig = [
@@ -34,9 +33,6 @@ const subRatings = computed(() => {
     :cover-url="entry.book_cover_url"
     :author-names="entry.book_author_names"
     :author-slugs="entry.book_author_slugs"
-    :series-name="entry.book_series_name"
-    :series-slug="entry.book_series_slug"
-    :eager="eager"
   >
     <template #topRight>
       <div class="d-flex align-center flex-shrink-0 gap-1">

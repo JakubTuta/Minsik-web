@@ -3,7 +3,6 @@ import type { CommentEntry } from '~/types/user'
 
 defineProps<{
   entry: CommentEntry
-  eager?: boolean
 }>()
 </script>
 
@@ -16,7 +15,6 @@ defineProps<{
     :author-slugs="entry.book_author_slugs"
     :series-name="entry.book_series_name"
     :series-slug="entry.book_series_slug"
-    :eager="eager"
   >
     <template #topRight>
       <v-chip
@@ -34,7 +32,7 @@ defineProps<{
     <template #middle>
       <div
         class="text-body-2 text-medium-emphasis mt-2"
-        style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"
+        style="display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"
       >
         {{ entry.body }}
       </div>

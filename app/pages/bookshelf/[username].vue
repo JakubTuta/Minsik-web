@@ -140,11 +140,10 @@ const { sentinel } = useInfiniteScroll(
       >
         <div class="d-flex flex-column gap-2">
           <BookshelfItem
-            v-for="(entry, index) in filteredItems"
+            v-for="entry in filteredItems"
             :key="entry.book_id"
             :entry="entry"
             is-public-profile
-            :eager="index < 2"
           />
         </div>
 

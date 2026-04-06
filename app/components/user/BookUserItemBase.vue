@@ -7,7 +7,6 @@ interface Props {
   authorSlugs: string[]
   seriesName?: string | null
   seriesSlug?: string | null
-  eager?: boolean
 }
 
 defineProps<Props>()
@@ -31,7 +30,6 @@ defineProps<Props>()
           height="120"
           cover
           rounded="lg"
-          :eager="eager"
         />
       </div>
 

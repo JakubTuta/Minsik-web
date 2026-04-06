@@ -14,6 +14,8 @@ const emit = defineEmits<{
   backToFilters: []
 }>()
 
+const themeStore = useThemeStore()
+
 const cardInner = ref<HTMLElement | null>(null)
 const flipped = ref(false)
 
@@ -141,7 +143,9 @@ onMounted(async () => {
             <!-- Matching count -->
             <v-chip
               v-if="matchingCount !== null && matchingCount > 0"
-              variant="tonal"
+              :variant="themeStore.isDark
+                ? 'tonal'
+                : 'text'"
               color="primary"
               size="small"
               prepend-icon="mdi-book-search"
