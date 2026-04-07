@@ -38,7 +38,7 @@ useScrollReveal(ctaRef, { stagger: 0.1, y: 40 })
 
           <div class="d-flex ga-4 flex-wrap justify-center">
             <v-btn
-              to="/auth"
+              to="/dashboard"
               color="primary"
               size="x-large"
               variant="elevated"

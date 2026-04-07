@@ -8,6 +8,7 @@ defineProps<Props>()
 const authStore = useAuthStore()
 const authDialogStore = useAuthDialogStore()
 const themeStore = useThemeStore()
+const categoriesStore = useCategoriesStore()
 const { isAuthenticated, user } = storeToRefs(authStore)
 
 const userDisplayName = computed(() => user.value?.display_name || user.value?.username || 'User')
@@ -61,6 +62,29 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       title="Discover"
       to="/discover"
     />
+
+    <v-list-group value="categories">
+      <template #activator="{'props': groupProps}">
+        <v-list-item
+          v-bind="groupProps"
+          prepend-icon="mdi-shape"
+          title="Categories"
+        />
+      </template>
+
+      <v-list-item
+        v-if="categoriesStore.isLoading"
+        title="Loading..."
+        disabled
+      />
+
+      <v-list-item
+        v-for="cat in categoriesStore.categories"
+        :key="cat.slug"
+        :title="cat.name"
+        :to="`/categories?category=${cat.slug}`"
+      />
+    </v-list-group>
 
     <v-list-group value="casino">
       <template #activator="{'props': groupProps}">

@@ -13,7 +13,7 @@ const items = [
   { text: 'Unbox Mystery Cases', icon: 'mdi-treasure-chest', to: '/open-case' },
   { text: 'Play Book Slots', icon: 'mdi-slot-machine', to: '/play-slots' },
   { text: 'Open a Pack', icon: 'mdi-cards-outline', to: '/open-pack' },
-  { text: 'Join the Community', icon: 'mdi-account-group-outline', to: '/community' },
+  { text: 'Join the Community', icon: 'mdi-account-group-outline', to: '/dashboard' },
 ]
 
 onMounted(() => {

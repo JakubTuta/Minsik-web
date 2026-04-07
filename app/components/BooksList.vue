@@ -61,14 +61,37 @@ function formatSeriesPosition(position: number | null | undefined) {
               :content="formatSeriesPosition(book.series_position)"
               color="primary"
               class="position-absolute"
-              style="top: 10px; left: 15px;"
+              style="top: 20px; left: 20px;"
             />
           </div>
 
           <v-card-text class="flex-grow-1">
-            <h3 class="text-h6 font-weight-bold mb-2">
+            <h3 class="text-h6 font-weight-bold mb-1">
               {{ book.title }}
             </h3>
+
+            <div
+              v-if="book.authors && book.authors.length > 0"
+              class="mb-2"
+            >
+              <template
+                v-for="(author, index) in book.authors"
+                :key="author.author_id"
+              >
+                <NuxtLink
+                  :to="`/authors/${author.slug}`"
+                  class="text-body-2 text-medium-emphasis text-decoration-none author-link"
+                  @click.stop
+                >
+                  {{ author.name }}
+                </NuxtLink>
+
+                <span
+                  v-if="index < book.authors.length - 1"
+                  class="text-body-2 text-medium-emphasis"
+                >, </span>
+              </template>
+            </div>
 
             <div class="d-flex mb-3 flex-wrap gap-3">
               <div class="d-flex align-center gap-1">
@@ -126,7 +149,10 @@ function formatSeriesPosition(position: number | null | undefined) {
 
             <p
               v-if="book.description"
-              class="text-body-2 line-clamp-3"
+              class="text-body-2"
+              :class="book.authors && book.authors.length > 0
+                ? 'line-clamp-2'
+                : 'line-clamp-3'"
               style="white-space: pre-line;"
             >
               {{ book.description }}
@@ -182,6 +208,10 @@ function formatSeriesPosition(position: number | null | undefined) {
 
 .book-item {
   display: block;
+}
+
+.author-link:hover {
+  color: rgb(var(--v-theme-primary)) !important;
 }
 
 .line-clamp-3 {

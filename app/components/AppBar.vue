@@ -4,6 +4,12 @@ import { useDisplay } from 'vuetify'
 const { mobile } = useDisplay()
 const drawer = ref(false)
 const appBarSearchQuery = ref('')
+
+const categoriesStore = useCategoriesStore()
+
+onMounted(() => {
+  categoriesStore.fetchCategories()
+})
 </script>
 
 <template>
@@ -19,6 +25,7 @@ const appBarSearchQuery = ref('')
     <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title
       class="d-none d-md-block logo-container"
+      style="flex: 0 0 auto;"
     >
       <NuxtLink
         to="/"
@@ -33,6 +40,50 @@ const appBarSearchQuery = ref('')
         <span class="logo-text">Minsik</span>
       </NuxtLink>
     </v-app-bar-title>
+
+    <!-- Desktop: Categories menu — left side next to logo -->
+    <v-menu
+      class="d-none d-md-flex"
+      location="bottom"
+      open-on-hover
+    >
+      <template #activator="{'props': menuProps}">
+        <v-btn
+          class="d-none d-md-inline-flex ml-4"
+          variant="text"
+          prepend-icon="mdi-shape"
+          v-bind="menuProps"
+          to="/categories"
+        >
+          Categories
+
+          <template #append>
+            <v-icon
+              icon="mdi-menu-down"
+              size="x-large"
+            />
+          </template>
+        </v-btn>
+      </template>
+
+      <v-list
+        min-width="200"
+        bg-color="surface"
+      >
+        <v-list-item
+          v-if="categoriesStore.isLoading"
+          title="Loading..."
+          disabled
+        />
+
+        <v-list-item
+          v-for="cat in categoriesStore.categories"
+          :key="cat.slug"
+          :title="cat.name"
+          :to="`/categories?category=${cat.slug}`"
+        />
+      </v-list>
+    </v-menu>
 
     <!-- Search Bar (absolutely centered) -->
     <div class="search-container">
