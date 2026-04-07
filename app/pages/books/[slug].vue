@@ -67,17 +67,6 @@ const hasDistribution = computed(() => book.value?.rating_distribution != null
   && Object.values(book.value.rating_distribution).some(v => v > 0),
 )
 
-// Scroll reveal refs
-const revealDescription = ref<HTMLElement | null>(null)
-const revealRating = ref<HTMLElement | null>(null)
-const revealDistribution = ref<HTMLElement | null>(null)
-const revealComments = ref<HTMLElement | null>(null)
-
-useScrollReveal(revealDescription)
-useScrollReveal(revealRating)
-useScrollReveal(revealDistribution)
-useScrollReveal(revealComments)
-
 // Description truncation
 const DESCRIPTION_MAX_LENGTH = 500
 const TRUNCATION_WINDOW = 20
@@ -324,10 +313,7 @@ onUnmounted(() => {
         </ClientOnly>
 
         <!-- Description -->
-        <v-card
-          ref="revealDescription"
-          class="mt-4"
-        >
+        <v-card class="mt-4">
           <v-card-text>
             <h2 class="text-h6 font-weight-bold mb-3">
               Description
@@ -374,10 +360,7 @@ onUnmounted(() => {
         </v-card>
 
         <!-- Rating -->
-        <v-card
-          ref="revealRating"
-          class="mt-4"
-        >
+        <v-card class="mt-4">
           <v-card-text>
             <SubRatingSection
               :stats="bookPageStore.liveSubRatingStats ?? book.sub_rating_stats ?? {}"
@@ -437,7 +420,6 @@ onUnmounted(() => {
         <ClientOnly>
           <v-card
             v-if="hasDistribution"
-            ref="revealDistribution"
             class="mt-4"
           >
             <v-card-text>
@@ -475,10 +457,7 @@ onUnmounted(() => {
 
         <!-- Comments Section -->
         <ClientOnly>
-          <v-card
-            ref="revealComments"
-            class="mt-4"
-          >
+          <v-card class="mt-4">
             <v-card-text>
               <BookCommentsSection
                 :slug="slug"

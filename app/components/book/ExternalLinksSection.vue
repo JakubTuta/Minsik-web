@@ -90,15 +90,11 @@ const links = computed<ExternalLink[]>(() => {
 })
 
 const hasLinks = computed(() => links.value.length > 0)
-
-const cardRef = ref<HTMLElement | null>(null)
-useScrollReveal(cardRef)
 </script>
 
 <template>
   <v-card
     v-if="hasLinks"
-    ref="cardRef"
     class="mt-4"
   >
     <v-card-text>

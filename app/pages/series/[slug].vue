@@ -148,11 +148,6 @@ async function handleSeriesEditSave(editedData: Record<string, any>) {
 
 const seriesRecommendations = ref<RecommendationSection[]>([])
 
-// Scroll reveal refs
-const revealDescription = ref<HTMLElement | null>(null)
-
-useScrollReveal(revealDescription)
-
 onMounted(async () => {
   if (series.value?.series_id) {
     try {
@@ -363,10 +358,7 @@ const collageCovers = computed(() => {
     <!-- Description Section -->
     <v-row class="mt-6">
       <v-col cols="12">
-        <DescriptionCard
-          ref="revealDescription"
-          :description="series.description"
-        />
+        <DescriptionCard :description="series.description" />
       </v-col>
     </v-row>
 

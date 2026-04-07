@@ -265,13 +265,6 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
 const authorRecommendations = ref<RecommendationSection[]>([])
 const personalizedAuthorRecs = ref<RecommendationSection[]>([])
 
-// Scroll reveal refs
-const revealSidebar = ref<HTMLElement | null>(null)
-const revealDescription = ref<HTMLElement | null>(null)
-
-useScrollReveal(revealSidebar, { delay: 0.05 })
-useScrollReveal(revealDescription, { delay: 0.1 })
-
 onMounted(async () => {
   if (author.value?.author_id) {
     try {
@@ -398,7 +391,7 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
         cols="12"
         md="3"
       >
-        <v-card ref="revealSidebar">
+        <v-card>
           <v-card-text>
             <h2 class="text-h6 font-weight-bold mb-4">
               Personal Information
@@ -577,7 +570,6 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
       >
         <!-- Description Section -->
         <DescriptionCard
-          ref="revealDescription"
           :description="author.bio"
           class="mb-6"
         />
