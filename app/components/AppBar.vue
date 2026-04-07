@@ -108,6 +108,7 @@ onMounted(() => {
     <v-menu
       class="d-none d-md-flex"
       location="bottom"
+      open-on-hover
     >
       <template #activator="{'props': menuProps}">
         <v-btn

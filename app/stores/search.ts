@@ -106,7 +106,7 @@ export const useSearchStore = defineStore('search', () => {
     finally {
       isLoading.value = false
     }
-  }, 500) // 500ms debounce
+  }, 300) // 300ms debounce
 
   // Main search method
   const search = async (force = false) => {
