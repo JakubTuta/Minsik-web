@@ -78,6 +78,7 @@ onMounted(() => {
           :key="cat.slug"
           :title="cat.name"
           :to="`/categories?category=${cat.slug}`"
+          :active="false"
         />
       </v-list>
     </v-menu>

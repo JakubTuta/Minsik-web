@@ -20,6 +20,7 @@ export const useCategoriesStore = defineStore('categories', () => {
   const isCacheFresh = () => {
     if (!categoriesLastFetch.value)
       return false
+
     return Date.now() - categoriesLastFetch.value < CACHE_TTL
   }
 
@@ -38,10 +39,12 @@ export const useCategoriesStore = defineStore('categories', () => {
       const response = await apiStore.client.get<APIResponse<{ categories: Category[] }>>('/api/v1/categories')
       categories.value = response.data.data!.categories
       categoriesLastFetch.value = Date.now()
+
       return categories.value
     }
     catch (error) {
       console.error('Error fetching categories:', error)
+
       return []
     }
     finally {
