@@ -4,7 +4,6 @@ import type { Category } from '~/types/categories'
 interface Props {
   categories: Category[]
   selectedSlug: string | null
-  selectedSubGenre: string | null
   loading?: boolean
 }
 
@@ -31,50 +30,16 @@ withDefaults(defineProps<Props>(), {
       <v-list
         v-else
         nav
-        :opened="selectedSlug ? [selectedSlug] : []"
       >
-        <template
+        <v-list-item
           v-for="category in categories"
           :key="category.slug"
-        >
-          <!-- Category with sub-genres -->
-          <v-list-group
-            v-if="category.sub_genres.length > 0"
-            :value="category.slug"
-          >
-            <template #activator="{ props: groupProps }">
-              <v-list-item
-                v-bind="groupProps"
-                :to="`/categories?category=${category.slug}`"
-                :active="selectedSlug === category.slug"
-                :title="category.name"
-                color="primary"
-                min-height="48"
-              />
-            </template>
-
-            <v-list-item
-              v-for="sub in category.sub_genres"
-              :key="sub.slug"
-              :to="`/categories?category=${category.slug}&sub_genre=${sub.slug}`"
-              :active="selectedSlug === category.slug && selectedSubGenre === sub.slug"
-              :title="sub.name"
-              color="primary"
-              class="pl-4"
-              min-height="44"
-            />
-          </v-list-group>
-
-          <!-- Category without sub-genres -->
-          <v-list-item
-            v-else
-            :to="`/categories?category=${category.slug}`"
-            :active="selectedSlug === category.slug"
-            :title="category.name"
-            color="primary"
-            min-height="48"
-          />
-        </template>
+          :to="`/categories?category=${category.slug}`"
+          :active="selectedSlug === category.slug"
+          :title="category.name"
+          color="primary"
+          min-height="48"
+        />
       </v-list>
     </v-card-text>
   </v-card>
@@ -104,48 +69,16 @@ withDefaults(defineProps<Props>(), {
         <v-list
           v-else
           nav
-          :opened="selectedSlug ? [selectedSlug] : []"
         >
-          <template
+          <v-list-item
             v-for="category in categories"
             :key="category.slug"
-          >
-            <v-list-group
-              v-if="category.sub_genres.length > 0"
-              :value="category.slug"
-            >
-              <template #activator="{ props: groupProps }">
-                <v-list-item
-                  v-bind="groupProps"
-                  :to="`/categories?category=${category.slug}`"
-                  :active="selectedSlug === category.slug"
-                  :title="category.name"
-                  color="primary"
-                  min-height="48"
-                />
-              </template>
-
-              <v-list-item
-                v-for="sub in category.sub_genres"
-                :key="sub.slug"
-                :to="`/categories?category=${category.slug}&sub_genre=${sub.slug}`"
-                :active="selectedSlug === category.slug && selectedSubGenre === sub.slug"
-                :title="sub.name"
-                color="primary"
-                class="pl-4"
-                min-height="44"
-              />
-            </v-list-group>
-
-            <v-list-item
-              v-else
-              :to="`/categories?category=${category.slug}`"
-              :active="selectedSlug === category.slug"
-              :title="category.name"
-              color="primary"
-              min-height="48"
-            />
-          </template>
+            :to="`/categories?category=${category.slug}`"
+            :active="selectedSlug === category.slug"
+            :title="category.name"
+            color="primary"
+            min-height="48"
+          />
         </v-list>
       </v-expansion-panel-text>
     </v-expansion-panel>

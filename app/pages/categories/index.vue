@@ -5,7 +5,6 @@ const route = useRoute()
 const categoriesStore = useCategoriesStore()
 
 const selectedSlug = computed(() => route.query.category as string | null ?? null)
-const selectedSubGenre = computed(() => route.query.sub_genre as string | null ?? null)
 
 const sortBy = ref<'popularity' | 'rating'>('popularity')
 const sortOptions = [
@@ -24,8 +23,8 @@ const booksOffset = ref(0)
 const booksTotalCount = ref(0)
 const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.value)
 
-async function loadBooks(slug: string, subGenre: string | null, sort: 'popularity' | 'rating', offset: number) {
-  return categoriesStore.fetchCategoryBooksPage(slug, subGenre, sort, 'desc', offset, 20)
+async function loadBooks(slug: string, sort: 'popularity' | 'rating', offset: number) {
+  return categoriesStore.fetchCategoryBooksPage(slug, sort, 'desc', offset, 20)
 }
 
 async function resetAndFetch() {
@@ -36,7 +35,7 @@ async function resetAndFetch() {
   booksTotalCount.value = 0
   booksOffset.value = 0
 
-  const result = await loadBooks(selectedSlug.value, selectedSubGenre.value, sortBy.value, 0)
+  const result = await loadBooks(selectedSlug.value, sortBy.value, 0)
   allBooks.value = result.books
   booksTotalCount.value = result.total_count
   booksOffset.value = result.books.length
@@ -45,8 +44,8 @@ async function resetAndFetch() {
 // Initial fetch when a category is selected
 if (selectedSlug.value) {
   const { data: initialBooksData } = await useAsyncData(
-    `category-books-${selectedSlug.value}-${selectedSubGenre.value ?? 'all'}-${sortBy.value}`,
-    () => loadBooks(selectedSlug.value!, selectedSubGenre.value, sortBy.value, 0),
+    `category-books-${selectedSlug.value}-${sortBy.value}`,
+    () => loadBooks(selectedSlug.value!, sortBy.value, 0),
   )
 
   if (initialBooksData.value) {
@@ -57,28 +56,23 @@ if (selectedSlug.value) {
 }
 
 watch(selectedSlug, resetAndFetch)
-watch(selectedSubGenre, resetAndFetch)
 watch(sortBy, resetAndFetch)
 
 async function loadMoreBooks() {
   if (!hasMoreBooks.value || !selectedSlug.value)
     return
 
-  const result = await loadBooks(selectedSlug.value, selectedSubGenre.value, sortBy.value, booksOffset.value)
+  const result = await loadBooks(selectedSlug.value, sortBy.value, booksOffset.value)
   allBooks.value.push(...result.books)
   booksTotalCount.value = result.total_count
   booksOffset.value += result.books.length
 }
 
-const currentCategory = computed(() => selectedSlug.value ? categoriesStore.getCategoryBySlug(selectedSlug.value) : null)
+const currentCategory = computed(() => (selectedSlug.value
+  ? categoriesStore.getCategoryBySlug(selectedSlug.value)
+  : null))
 
-const pageTitle = computed(() => {
-  if (selectedSubGenre.value && currentCategory.value) {
-    const sub = currentCategory.value.sub_genres.find(s => s.slug === selectedSubGenre.value)
-    return sub ? `${sub.name} — ${currentCategory.value.name}` : currentCategory.value.name
-  }
-  return currentCategory.value?.name ?? 'Browse Categories'
-})
+const pageTitle = computed(() => currentCategory.value?.name ?? 'Browse Categories')
 
 useSeo({
   title: pageTitle.value,
@@ -100,7 +94,7 @@ useSeo({
 
       <div
         v-if="categoriesStore.isLoading"
-        class="text-center py-12"
+        class="py-12 text-center"
       >
         <v-progress-circular
           indeterminate
@@ -131,11 +125,7 @@ useSeo({
                   {{ category.name }}
                 </h2>
 
-                <span class="text-body-2 text-medium-emphasis">
-                  {{ category.sub_genres.length > 0
-                    ? `${category.sub_genres.length} sub-genres`
-                    : 'Browse books' }}
-                </span>
+                <span class="text-body-2 text-medium-emphasis">Browse books</span>
               </v-card-text>
             </v-card>
           </NuxtLink>
@@ -152,7 +142,6 @@ useSeo({
         <CategorySidebar
           :categories="categoriesData ?? []"
           :selected-slug="selectedSlug"
-          :selected-sub-genre="selectedSubGenre"
           :loading="categoriesStore.isLoading"
         />
       </v-col>

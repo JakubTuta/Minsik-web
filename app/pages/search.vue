@@ -130,7 +130,6 @@ function resultRatingCount(result: SearchResult) {
         md="4"
         lg="3"
       >
-        {{ result }}
         <!-- Author card -->
         <AuthorPreviewCard
           v-if="result.type === 'author'"

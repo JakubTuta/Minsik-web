@@ -66,10 +66,7 @@ onMounted(() => {
         </v-btn>
       </template>
 
-      <v-list
-        min-width="200"
-        bg-color="surface"
-      >
+      <v-list min-width="200">
         <v-list-item
           v-if="categoriesStore.isLoading"
           title="Loading..."

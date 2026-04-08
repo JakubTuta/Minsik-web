@@ -51,7 +51,6 @@ export const useCategoriesStore = defineStore('categories', () => {
 
   const fetchCategoryBooksPage = async (
     slug: string,
-    subGenre?: string | null,
     sortBy: 'popularity' | 'rating' = 'popularity',
     order: 'asc' | 'desc' = 'desc',
     offset = 0,
@@ -61,8 +60,6 @@ export const useCategoriesStore = defineStore('categories', () => {
 
     try {
       const params: Record<string, any> = { limit, offset, sort_by: sortBy, order }
-      if (subGenre)
-        params.sub_genre = subGenre
 
       const response = await apiStore.client.get<APIResponse<CategoryBooksData>>(
         `/api/v1/categories/${slug}/books`,

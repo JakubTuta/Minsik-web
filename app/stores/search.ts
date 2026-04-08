@@ -23,6 +23,15 @@ export const useSearchStore = defineStore('search', () => {
   const hasMore = computed(() => results.value.length < total.value)
   const isEmpty = computed(() => !isLoading.value && !hasData.value && query.value.length > 0)
 
+  // Clear search
+  const clear = () => {
+    query.value = ''
+    results.value = []
+    offset.value = 0
+    total.value = 0
+    isLoading.value = false
+  }
+
   // Generate cache key
   const getCacheKey = (q: string, t: SearchType, off: number) => {
     return `${q}_${t}_${off}`
@@ -113,6 +122,13 @@ export const useSearchStore = defineStore('search', () => {
     await searchDebounced(force)
   }
 
+  // Refresh (force reload)
+  const refresh = async () => {
+    offset.value = 0
+    results.value = []
+    await search(true)
+  }
+
   // Load more for infinite scroll
   const loadMore = async () => {
     if (isLoading.value || !hasMore.value)
@@ -150,22 +166,6 @@ export const useSearchStore = defineStore('search', () => {
     }
   }
 
-  // Clear search
-  const clear = () => {
-    query.value = ''
-    results.value = []
-    offset.value = 0
-    total.value = 0
-    isLoading.value = false
-  }
-
-  // Refresh (force reload)
-  const refresh = async () => {
-    offset.value = 0
-    results.value = []
-    await search(true)
-  }
-
   return {
     // State
     query,
@@ -183,11 +183,11 @@ export const useSearchStore = defineStore('search', () => {
     isEmpty,
 
     // Actions
+    clear,
     search,
+    refresh,
     loadMore,
     setType,
     setQuery,
-    clear,
-    refresh,
   }
 })
