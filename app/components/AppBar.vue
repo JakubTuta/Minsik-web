@@ -41,7 +41,17 @@ onMounted(() => {
       </NuxtLink>
     </v-app-bar-title>
 
-    <!-- Desktop: Categories menu — left side next to logo -->
+    <!-- Search Bar (absolutely centered) -->
+    <div class="search-container">
+      <SearchBar
+        v-model="appBarSearchQuery"
+        variant="appbar"
+      />
+    </div>
+
+    <v-spacer />
+
+    <!-- Desktop: Categories menu — right side before Discover -->
     <v-menu
       class="d-none d-md-flex"
       location="bottom"
@@ -49,11 +59,10 @@ onMounted(() => {
     >
       <template #activator="{'props': menuProps}">
         <v-btn
-          class="d-none d-md-inline-flex ml-4"
+          class="d-none d-md-inline-flex"
           variant="text"
           prepend-icon="mdi-shape"
           v-bind="menuProps"
-          to="/categories"
         >
           Categories
 
@@ -82,16 +91,6 @@ onMounted(() => {
         />
       </v-list>
     </v-menu>
-
-    <!-- Search Bar (absolutely centered) -->
-    <div class="search-container">
-      <SearchBar
-        v-model="appBarSearchQuery"
-        variant="appbar"
-      />
-    </div>
-
-    <v-spacer />
 
     <!-- Desktop: Theme Toggle & User Menu -->
     <v-btn

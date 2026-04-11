@@ -41,6 +41,11 @@ async function resetAndFetch() {
   booksOffset.value = result.books.length
 }
 
+// Redirect to home when no category is selected
+if (!selectedSlug.value) {
+  await navigateTo('/')
+}
+
 // Initial fetch when a category is selected
 if (selectedSlug.value) {
   const { data: initialBooksData } = await useAsyncData(
@@ -82,59 +87,7 @@ useSeo({
 
 <template>
   <v-container>
-    <!-- No category selected: show grid overview -->
-    <template v-if="!selectedSlug">
-      <h1 class="text-h4 font-weight-bold mb-2">
-        Browse Categories
-      </h1>
-
-      <p class="text-body-1 text-medium-emphasis mb-6">
-        Explore books by genre and discover your next read
-      </p>
-
-      <div
-        v-if="categoriesStore.isLoading"
-        class="py-12 text-center"
-      >
-        <v-progress-circular
-          indeterminate
-          color="primary"
-        />
-      </div>
-
-      <v-row v-else>
-        <v-col
-          v-for="category in categoriesData"
-          :key="category.slug"
-          cols="12"
-          sm="6"
-          md="4"
-          lg="3"
-        >
-          <NuxtLink
-            :to="`/categories?category=${category.slug}`"
-            class="text-decoration-none"
-          >
-            <v-card
-              hover
-              height="120"
-              class="d-flex flex-column justify-center"
-            >
-              <v-card-text>
-                <h2 class="text-h6 font-weight-bold mb-1">
-                  {{ category.name }}
-                </h2>
-
-                <span class="text-body-2 text-medium-emphasis">Browse books</span>
-              </v-card-text>
-            </v-card>
-          </NuxtLink>
-        </v-col>
-      </v-row>
-    </template>
-
-    <!-- Category selected: 2-column layout -->
-    <v-row v-else>
+    <v-row>
       <v-col
         cols="12"
         md="3"

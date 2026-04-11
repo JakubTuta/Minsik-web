@@ -16,8 +16,10 @@ Minsik is a web app for people who love books. Track what you're reading, rate b
 
 **Discovery**
 - Full-text search across books, authors, and series with type filters and infinite scroll
+- Browse books by genre via the Categories dropdown (navbar)
 - Rich author pages with biography, portrait, and sortable bibliography
 - Series pages with cover collage, book list, and complete author info
+- Discover page with filters for book length, mood, era, and quality threshold
 
 **Your Reading Life**
 - Personal bookshelf with four reading statuses: *Want to Read*, *Reading*, *Read*, *Abandoned*
@@ -27,7 +29,12 @@ Minsik is a web app for people who love books. Track what you're reading, rate b
 **Ratings & Reviews**
 - Overall star rating plus 8 sub-dimensions: Pacing, Emotional Impact, Intellectual Depth, Writing Quality, Rereadability, Readability, Plot Complexity, and Humor
 - Comments with optional spoiler flag — readers choose when to reveal the contents
-- Dashboard with personal reading stats
+- Dashboard with personal reading stats and personalized recommendations
+
+**Casino**
+- Play Slots — spin a slot machine to discover random book recommendations
+- Open a Case — reveal a random book with collectible rarity tiers (Common → Legendary)
+- Open a Pack — open a themed pack of books to find your next read
 
 **Content & SEO**
 - Server-side rendered book, author, and series pages with JSON-LD structured data

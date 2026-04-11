@@ -194,7 +194,10 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
   </template>
 
   <!-- Desktop Mode -->
-  <v-menu v-else>
+  <v-menu
+    v-else
+    open-on-hover
+  >
     <template #activator="{props}">
       <v-btn
         icon

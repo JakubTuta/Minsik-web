@@ -189,6 +189,28 @@ useSeoMeta({
               </p>
             </v-card>
           </v-col>
+
+          <v-col
+            cols="12"
+            sm="6"
+          >
+            <v-card
+              variant="tonal"
+              class="h-100 pa-5"
+            >
+              <div class="d-flex align-center mb-2 gap-3">
+                <v-icon color="orange">
+                  mdi-slot-machine
+                </v-icon>
+
+                <span class="text-subtitle-1 font-weight-bold">Casino</span>
+              </div>
+
+              <p class="text-body-2 text-medium-emphasis">
+                Try your luck with three game modes: spin the slots for a random recommendation, open a mystery case to reveal a book with collectible rarity tiers, or crack open a themed pack.
+              </p>
+            </v-card>
+          </v-col>
         </v-row>
 
         <!-- Ratings -->
@@ -303,6 +325,14 @@ useSeoMeta({
               prepend-icon="mdi-compass"
             >
               Discover a Book
+            </v-btn>
+
+            <v-btn
+              variant="outlined"
+              to="/play-slots"
+              prepend-icon="mdi-slot-machine"
+            >
+              Try the Casino
             </v-btn>
           </div>
         </v-card>
