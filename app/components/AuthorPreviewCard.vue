@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { hashColor } from '~/utils/coverColor'
+
 interface Props {
   name: string
   slug: string
@@ -32,6 +34,8 @@ const formattedRatingCount = computed(() => (props.ratingCount
 const formattedReaders = computed(() => (props.readers
   ? compactFmt.format(props.readers)
   : '0'))
+
+const photoBg = computed(() => hashColor(props.name))
 </script>
 
 <template>
@@ -53,16 +57,22 @@ const formattedReaders = computed(() => (props.readers
       </v-chip>
 
       <!-- Avatar zone -->
-      <div class="avatar-zone bg-surface-variant d-flex align-center justify-center">
+      <div
+        class="avatar-zone d-flex align-center justify-center"
+      >
         <v-avatar
           size="140"
           class="author-avatar"
         >
           <v-img
-            :src="photoUrl || '/placeholder-avatar-lazy.jpg'"
+            :src="photoUrl || undefined"
             :alt="name"
             cover
-          />
+          >
+            <template #placeholder>
+              <HashedFill :color="photoBg" />
+            </template>
+          </v-img>
         </v-avatar>
       </div>
 

@@ -1,5 +1,6 @@
 import type {
   AvailableCategoriesResponse,
+  BookOfTheWeek,
   CategoryInfo,
   HomePageResponse,
   RecommendationListResponse,
@@ -20,6 +21,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   const personalizedHomeCategories = ref<RecommendationSection[]>([])
   const personalizedBookRecommendations = ref(new Map<number, RecommendationSection[]>())
   const personalizedAuthorRecommendations = ref(new Map<number, RecommendationSection[]>())
+  const bookOfTheWeek = ref<BookOfTheWeek | null>(null)
   const lastFetchTime = ref(new Map<string, number>())
   const isLoading = ref(false)
   const isLoadingCategory = ref(false)
@@ -289,6 +291,25 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
+  async function fetchBookOfTheWeek(force = false): Promise<BookOfTheWeek | null> {
+    const cacheKey = 'book-of-the-week'
+    if (!force && bookOfTheWeek.value && isCacheFresh(cacheKey))
+      return bookOfTheWeek.value
+
+    try {
+      const response = await apiStore.client.get<{ success: boolean, data: BookOfTheWeek }>(
+        '/api/v1/recommendations/book-of-the-week',
+      )
+      bookOfTheWeek.value = response.data.data!
+      lastFetchTime.value.set(cacheKey, Date.now())
+      return bookOfTheWeek.value
+    }
+    catch (error) {
+      console.error('Error fetching book of the week:', error)
+      return null
+    }
+  }
+
   // Find display name for a category key (from home data or available categories)
   function getCategoryDisplayName(category: string) {
     const fromHome = homeCategories.value.find(c => c.key === category)
@@ -308,6 +329,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     personalizedHomeCategories.value = []
     personalizedBookRecommendations.value.clear()
     personalizedAuthorRecommendations.value.clear()
+    bookOfTheWeek.value = null
     lastFetchTime.value.clear()
   }
 
@@ -322,6 +344,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     personalizedHomeCategories,
     personalizedBookRecommendations,
     personalizedAuthorRecommendations,
+    bookOfTheWeek,
     isLoading,
     isLoadingCategory,
     isLoadingBookRecs,
@@ -344,6 +367,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     fetchPersonalizedAuthorRecommendations,
     fetchSeriesRecommendations,
     fetchAvailableCategories,
+    fetchBookOfTheWeek,
     getCategoryDisplayName,
     clearCache,
   }

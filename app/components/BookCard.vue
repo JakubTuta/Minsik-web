@@ -15,7 +15,8 @@ const props = withDefaults(defineProps<Props>(), {
 const bookLink = computed(() => (props.book
   ? `/books/${props.book.slug}`
   : ''))
-const coverUrl = computed(() => props.book?.primary_cover_url || '/placeholder-book-lazy.jpg')
+const coverUrl = computed(() => props.book?.primary_cover_url || undefined)
+const coverBg = computed(() => coverColor(props.book))
 const title = computed(() => props.book?.title || '')
 
 function formatSeriesPosition(position: number | null | undefined) {
@@ -57,8 +58,11 @@ const seriesText = computed(() => {
         :alt="title"
         height="320"
         cover
-        class="bg-surface-variant"
-      />
+      >
+        <template #placeholder>
+          <HashedFill :color="coverBg" />
+        </template>
+      </v-img>
 
       <v-card-text class="pa-4">
         <div class="text-h6 font-weight-bold line-clamp-2 mb-2">

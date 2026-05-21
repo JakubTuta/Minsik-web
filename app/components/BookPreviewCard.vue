@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { hashColor } from '~/utils/coverColor'
+
 interface Props {
   title: string
   slug: string
@@ -40,6 +42,7 @@ const formattedReaders = computed(() => (props.readers
   ? compactFmt.format(props.readers)
   : '0'))
 const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
+const coverBg = computed(() => hashColor(props.title, props.authorNames.join(',')))
 </script>
 
 <template>
@@ -63,13 +66,20 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
       </v-chip>
 
       <!-- Cover zone -->
-      <div class="cover-zone bg-surface-variant d-flex align-center justify-center">
+      <div
+        class="cover-zone d-flex align-center justify-center"
+      >
         <v-img
-          :src="coverUrl || '/placeholder-book-lazy.jpg'"
+          v-if="coverUrl"
+          :src="coverUrl"
           :alt="title"
           contain
           class="cover-img"
-        />
+        >
+          <template #placeholder>
+            <HashedFill :color="coverBg" />
+          </template>
+        </v-img>
       </div>
 
       <!-- Info zone -->

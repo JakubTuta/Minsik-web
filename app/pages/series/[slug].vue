@@ -162,7 +162,7 @@ const collageCovers = computed(() => {
   if (!books.value || books.value.length === 0)
     return []
 
-  return books.value.slice(0, 4).map(book => book.primary_cover_url || '/placeholder-book-lazy.jpg')
+  return books.value.slice(0, 4).map(book => book.primary_cover_url || coverColor(book))
 })
 </script>
 

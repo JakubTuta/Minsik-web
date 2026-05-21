@@ -1,5 +1,5 @@
 import type { APIResponse } from '~/types/api'
-import type { Category, CategoryBooksData } from '~/types/categories'
+import type { Category, CategoryBooksData, PopularCategory } from '~/types/categories'
 import { defineStore } from 'pinia'
 
 export const useCategoriesStore = defineStore('categories', () => {
@@ -7,9 +7,11 @@ export const useCategoriesStore = defineStore('categories', () => {
 
   // State
   const categories = ref<Category[]>([])
+  const popularCategories = ref<PopularCategory[]>([])
   const isLoading = ref(false)
   const isLoadingBooks = ref(false)
   const categoriesLastFetch = ref(0)
+  const popularCategoriesLastFetch = ref(0)
 
   // Cache TTL
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
@@ -52,6 +54,26 @@ export const useCategoriesStore = defineStore('categories', () => {
     }
   }
 
+  const fetchPopularCategories = async (limit = 12, force = false): Promise<PopularCategory[]> => {
+    const isFresh = popularCategoriesLastFetch.value && Date.now() - popularCategoriesLastFetch.value < CACHE_TTL
+    if (!force && popularCategories.value.length > 0 && isFresh)
+      return popularCategories.value
+
+    try {
+      const response = await apiStore.client.get<APIResponse<{ categories: PopularCategory[] }>>(
+        '/api/v1/categories/popular',
+        { params: { limit } },
+      )
+      popularCategories.value = response.data.data!.categories
+      popularCategoriesLastFetch.value = Date.now()
+      return popularCategories.value
+    }
+    catch (error) {
+      console.error('Error fetching popular categories:', error)
+      return []
+    }
+  }
+
   const fetchCategoryBooksPage = async (
     slug: string,
     sortBy: 'popularity' | 'rating' = 'popularity',
@@ -89,10 +111,12 @@ export const useCategoriesStore = defineStore('categories', () => {
 
   return {
     categories,
+    popularCategories,
     isLoading,
     isLoadingBooks,
     hasCategories,
     fetchCategories,
+    fetchPopularCategories,
     fetchCategoryBooksPage,
     getCategoryBySlug,
   }

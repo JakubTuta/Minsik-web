@@ -2,6 +2,7 @@
 import type { EditFieldConfig } from '~/types/admin'
 import type { BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
+import { hashColor } from '~/utils/coverColor'
 import { formatDisplayDate } from '~/utils/format'
 
 const route = useRoute()
@@ -135,7 +136,8 @@ useAuthorStructuredData({
   deathDate: author.value.death_date,
 })
 
-const photoUrl = computed(() => author.value?.photo_url || '/placeholder-avatar-lazy.jpg')
+const photoUrl = computed(() => author.value?.photo_url || undefined)
+const photoBg = computed(() => hashColor(author.value?.name))
 
 // Calculate age
 const age = computed(() => {
@@ -292,14 +294,17 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
       >
         <v-avatar
           size="200"
-          color="surface-variant"
           class="mb-4"
         >
           <v-img
             :src="photoUrl"
             :alt="author.name"
             eager
-          />
+          >
+            <template #placeholder>
+              <HashedFill :color="photoBg" />
+            </template>
+          </v-img>
         </v-avatar>
 
         <h1 class="text-h3 font-weight-bold">

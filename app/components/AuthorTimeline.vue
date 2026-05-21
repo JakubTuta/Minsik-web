@@ -74,17 +74,21 @@ const { sentinel } = useInfiniteScroll(() => props.loadMore(), { enabled: scroll
               class="d-flex flex-row overflow-hidden"
             >
               <div
-                class="bg-surface-variant d-flex align-center flex-shrink-0 justify-center"
-                style="width: 80px; min-width: 80px; height: 120px;"
+                class="d-flex align-center flex-shrink-0 justify-center"
+                :style="{ width: '80px', minWidth: '80px', height: '120px' }"
               >
                 <v-img
-                  :src="entry.book.primary_cover_url || '/placeholder-book-lazy.jpg'"
-                  lazy-src="/placeholder-book-lazy.jpg"
+                  v-if="entry.book.primary_cover_url"
+                  :src="entry.book.primary_cover_url"
                   :alt="entry.book.title"
                   max-width="80"
                   max-height="120"
                   contain
-                />
+                >
+                  <template #placeholder>
+                    <HashedFill :color="coverColor(entry.book)" />
+                  </template>
+                </v-img>
               </div>
 
               <div

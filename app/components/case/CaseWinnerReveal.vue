@@ -62,14 +62,17 @@ const authorsList = computed(() => props.winner.authors)
             :style="{'boxShadow': `0 8px 40px ${rarityColor}55`}"
           >
             <v-img
-              :src="winner.primary_cover_url || '/placeholder-book-lazy.jpg'"
+              :src="winner.primary_cover_url || undefined"
               :alt="winner.title"
-              lazy-src="/placeholder-book-lazy.jpg"
               width="160"
               height="234"
               cover
               class="rounded"
-            />
+            >
+              <template #placeholder>
+                <HashedFill :color="coverColor(winner)" />
+              </template>
+            </v-img>
           </div>
 
           <!-- Title -->

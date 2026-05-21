@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { hashColor } from '~/utils/coverColor'
+
 interface Props {
   slug: string
   title: string
@@ -9,7 +11,9 @@ interface Props {
   seriesSlug?: string | null
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','), props.seriesName))
 </script>
 
 <template>
@@ -24,13 +28,17 @@ defineProps<Props>()
         style="width: 90px; height: 120px;"
       >
         <v-img
-          :src="coverUrl || '/placeholder-book-lazy.jpg'"
+          :src="coverUrl || undefined"
           :alt="title"
           width="90"
           height="120"
           cover
           rounded="lg"
-        />
+        >
+          <template #placeholder>
+            <HashedFill :color="coverBg" />
+          </template>
+        </v-img>
       </div>
 
       <!-- Content -->

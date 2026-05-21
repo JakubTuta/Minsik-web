@@ -18,6 +18,18 @@ export const useApiStore = defineStore('api', () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        paramsSerializer: (params) => {
+          const usp = new URLSearchParams()
+          for (const [key, value] of Object.entries(params)) {
+            if (Array.isArray(value)) {
+              value.forEach(v => usp.append(key, String(v)))
+            }
+            else if (value !== null && value !== undefined) {
+              usp.append(key, String(value))
+            }
+          }
+          return usp.toString()
+        },
       })
 
       // Request interceptor

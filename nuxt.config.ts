@@ -40,7 +40,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'preconnect', href: 'https://covers.openlibrary.org' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400;1,8..60,500;1,8..60,600&display=swap' },
       ],
     },
   },
@@ -97,5 +97,9 @@ export default defineNuxtConfig({
     '/comments': { ssr: false },
     '/open-case': { ssr: true },
     '/discover': { ssr: true },
+  },
+
+  nitro: {
+    preset: 'bun',
   },
 })

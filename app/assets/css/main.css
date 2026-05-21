@@ -20,3 +20,13 @@ body {
   font-family: 'Montserrat', sans-serif !important;
   line-height: 1.67 !important;
 }
+
+/* Serif accent — first sentences, pull quotes, blockquotes */
+.font-serif,
+.text-serif,
+.v-application .font-serif,
+.v-application .text-serif,
+.v-application blockquote,
+.v-application q {
+  font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif !important;
+}

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import type { Author } from '~/types/api'
+import { hashColor } from '~/utils/coverColor'
 
 interface Props {
   author: Author
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const photoBg = computed(() => hashColor(props.author.name))
 </script>
 
 <template>
@@ -24,14 +27,17 @@ defineProps<Props>()
 
       <div class="d-flex flex-column align-center min-h-0 overflow-hidden text-center">
         <v-avatar
-          v-if="author.photo_url"
           size="120"
           class="author-avatar-shadow mb-3 flex-shrink-0"
         >
           <v-img
-            :src="author.photo_url"
+            :src="author.photo_url || undefined"
             :alt="author.name"
-          />
+          >
+            <template #placeholder>
+              <HashedFill :color="photoBg" />
+            </template>
+          </v-img>
         </v-avatar>
 
         <NuxtLink

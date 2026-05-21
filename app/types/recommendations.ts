@@ -76,6 +76,33 @@ export interface RecommendationListResponse {
   error?: { code: string, message: string } | null
 }
 
+// Book of the Week
+
+export interface BookOfTheWeekAuthor {
+  author_id: number
+  name: string
+  slug: string
+}
+
+export interface BookOfTheWeekCategory {
+  genre_id: number
+  name: string
+  slug: string
+}
+
+export interface BookOfTheWeek {
+  book_id: number
+  title: string
+  slug: string
+  language: string
+  primary_cover_url: string
+  first_sentence: string
+  weighted_avg_rating: number
+  rating_count: number
+  authors: BookOfTheWeekAuthor[]
+  categories: BookOfTheWeekCategory[]
+}
+
 // Category info (from /recommendations/categories)
 
 export interface CategoryInfo {

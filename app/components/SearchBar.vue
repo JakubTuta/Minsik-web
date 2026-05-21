@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { SearchResult } from '~/types/api'
+import type { SuggestItem } from '~/types/api'
+import { hashColor } from '~/utils/coverColor'
 import { totalRatingCount, weightedRating } from '~/utils/format'
 
 interface Props {
@@ -97,7 +98,7 @@ const debouncedSearch = useDebounceFn(async (query: string) => {
     // Full mode: use the search store (for search page)
     searchStore.setQuery(query)
   }
-}, 500)
+}, 200)
 
 watch(localQuery, (newQuery) => {
   emit('update:modelValue', newQuery)
@@ -154,18 +155,11 @@ const groupedResults = computed(() => {
     return null
 
   const results = quickSearchStore.results
-  const byRatingCount = (a: SearchResult, b: SearchResult) => {
-    const countA = totalRatingCount(a.app_rating_count, a.ol_rating_count)
-    const countB = totalRatingCount(b.app_rating_count, b.ol_rating_count)
-    if (countA === 0 && countB === 0)
-      return b.relevance_score - a.relevance_score
+  const byScore = (a: SuggestItem, b: SuggestItem) => b.score - a.score
 
-    return countB - countA
-  }
-
-  const books = results.filter(r => r.type === 'book').sort(byRatingCount).slice(0, 10)
-  const series = results.filter(r => r.type === 'series').sort(byRatingCount).slice(0, 10)
-  const authors = results.filter(r => r.type === 'author').sort(byRatingCount).slice(0, 10)
+  const books = results.filter(r => r.type === 'book').sort(byScore).slice(0, 10)
+  const series = results.filter(r => r.type === 'series').sort(byScore).slice(0, 10)
+  const authors = results.filter(r => r.type === 'author').sort(byScore).slice(0, 10)
 
   return { books, series, authors }
 })
@@ -220,78 +214,36 @@ const isEmpty = computed(() => {
   return quickSearchStore.isEmpty
 })
 
-// Format subtitle parts for each result type
+// Format subtitle for each suggest result type
 interface SubtitlePart {
   text: string
-  type: 'authors' | 'rating' | 'rating_count' | 'books' | 'separator'
+  type: 'authors' | 'rating' | 'readers' | 'separator'
 }
 
-function getSubtitleParts(result: SearchResult): SubtitlePart[] {
-  const parts: SubtitlePart[] = []
-  const avg = weightedRating(result.app_avg_rating, result.app_rating_count, result.ol_avg_rating, result.ol_rating_count)
-  const count = totalRatingCount(result.app_rating_count, result.ol_rating_count)
+const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 
-  if (result.type === 'book') {
-    // Book: author name · average rating (amount of ratings)
-    if (result.authors && result.authors.length > 0) {
-      parts.push({ text: result.authors.join(', '), type: 'authors' })
-    }
-    if (count > 0) {
-      if (parts.length > 0)
-        parts.push({ text: '', type: 'separator' })
-      parts.push({ text: avg.toFixed(1), type: 'rating' })
-      parts.push({ text: ` (${count})`, type: 'rating_count' })
-    }
+function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
+  const parts: SubtitlePart[] = []
+  const ratingCount = totalRatingCount(result.app_rating_count, result.ol_rating_count)
+  const avg = weightedRating(result.app_avg_rating, result.app_rating_count, result.ol_avg_rating, result.ol_rating_count)
+
+  if (result.authors && result.authors.length > 0) {
+    parts.push({ text: result.authors.join(', '), type: 'authors' })
   }
-  else if (result.type === 'series') {
-    // Series: author name · average rating (amount of ratings) · amount of books
-    if (result.authors && result.authors.length > 0) {
-      parts.push({ text: result.authors.join(', '), type: 'authors' })
-    }
-    if (count > 0) {
-      if (parts.length > 0)
-        parts.push({ text: '', type: 'separator' })
-      parts.push({ text: avg.toFixed(1), type: 'rating' })
-      parts.push({ text: ` (${count})`, type: 'rating_count' })
-    }
-    if (result.book_count != null) {
-      if (parts.length > 0)
-        parts.push({ text: '', type: 'separator' })
-      parts.push({
-        text: `${result.book_count} ${result.book_count === 1
-          ? 'book'
-          : 'books'}`,
-        type: 'books',
-      })
-    }
+
+  if (ratingCount > 0) {
+    if (parts.length > 0)
+      parts.push({ text: '', type: 'separator' })
+    parts.push({ text: `${avg.toFixed(1)} (${compactFmt.format(ratingCount)})`, type: 'rating' })
   }
-  else if (result.type === 'author') {
-    // Author: average rating (amount of ratings) · amount of books
-    if (count > 0) {
-      parts.push({ text: avg.toFixed(1), type: 'rating' })
-      parts.push({ text: ` (${count})`, type: 'rating_count' })
-    }
-    if (result.book_count != null) {
-      if (parts.length > 0)
-        parts.push({ text: '', type: 'separator' })
-      parts.push({
-        text: `${result.book_count} ${result.book_count === 1
-          ? 'book'
-          : 'books'}`,
-        type: 'books',
-      })
-    }
+
+  if (result.readers > 0) {
+    if (parts.length > 0)
+      parts.push({ text: '', type: 'separator' })
+    parts.push({ text: compactFmt.format(result.readers), type: 'readers' })
   }
 
   return parts
-}
-
-function getPartStyle(partType: SubtitlePart['type']) {
-  if (partType === 'rating') {
-    return { 'font-size': '1.1em' }
-  }
-
-  return {}
 }
 </script>
 
@@ -394,7 +346,11 @@ function getPartStyle(partType: SubtitlePart['type']) {
                           v-if="result.cover_url"
                           :src="result.cover_url"
                           :alt="result.title"
-                        />
+                        >
+                          <template #placeholder>
+                            <HashedFill :color="hashColor(result.title)" />
+                          </template>
+                        </v-img>
 
                         <v-icon
                           v-else
@@ -404,41 +360,47 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     </template>
 
                     <template #subtitle>
-                      <template
-                        v-for="(part, index) in getSubtitleParts(result)"
-                        :key="index"
-                      >
-                        <v-icon
-                          v-if="part.type === 'separator'"
-                          icon="mdi-dots-vertical"
-                          color="secondary"
-                          size="small"
-                          class="mx-1"
-                        />
-
-                        <template v-else-if="part.type === 'rating'">
+                      <span class="d-inline-flex align-center flex-wrap">
+                        <template
+                          v-for="(part, index) in getSubtitleParts(result)"
+                          :key="index"
+                        >
                           <v-icon
-                            icon="mdi-star"
-                            color="amber"
-                            size="x-small"
-                            class="mr-1"
+                            v-if="part.type === 'separator'"
+                            icon="mdi-circle-small"
+                            color="secondary"
+                            size="small"
                           />
 
                           <span
-                            class="font-weight-bold text-amber"
-                            :style="getPartStyle(part.type)"
+                            v-else-if="part.type === 'rating'"
+                            class="d-inline-flex align-center"
                           >
+                            <v-icon
+                              icon="mdi-star"
+                              color="amber"
+                              size="x-small"
+                              class="mr-1"
+                            />
                             {{ part.text }}
                           </span>
-                        </template>
 
-                        <span
-                          v-else
-                          :style="getPartStyle(part.type)"
-                        >
-                          {{ part.text }}
-                        </span>
-                      </template>
+                          <span
+                            v-else-if="part.type === 'readers'"
+                            class="d-inline-flex align-center"
+                          >
+                            <v-icon
+                              icon="mdi-account-multiple"
+                              color="info"
+                              size="x-small"
+                              class="mr-1"
+                            />
+                            {{ part.text }}
+                          </span>
+
+                          <span v-else>{{ part.text }}</span>
+                        </template>
+                      </span>
                     </template>
                   </v-list-item>
                 </v-list>
@@ -473,41 +435,47 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     </template>
 
                     <template #subtitle>
-                      <template
-                        v-for="(part, index) in getSubtitleParts(result)"
-                        :key="index"
-                      >
-                        <v-icon
-                          v-if="part.type === 'separator'"
-                          icon="mdi-dots-vertical"
-                          color="secondary"
-                          size="small"
-                          class="mx-1"
-                        />
-
-                        <template v-else-if="part.type === 'rating'">
+                      <span class="d-inline-flex align-center flex-wrap">
+                        <template
+                          v-for="(part, index) in getSubtitleParts(result)"
+                          :key="index"
+                        >
                           <v-icon
-                            icon="mdi-star"
-                            color="amber"
-                            size="x-small"
-                            class="mr-1"
+                            v-if="part.type === 'separator'"
+                            icon="mdi-circle-small"
+                            color="secondary"
+                            size="small"
                           />
 
                           <span
-                            class="font-weight-bold text-amber"
-                            :style="getPartStyle(part.type)"
+                            v-else-if="part.type === 'rating'"
+                            class="d-inline-flex align-center"
                           >
+                            <v-icon
+                              icon="mdi-star"
+                              color="amber"
+                              size="x-small"
+                              class="mr-1"
+                            />
                             {{ part.text }}
                           </span>
-                        </template>
 
-                        <span
-                          v-else
-                          :style="getPartStyle(part.type)"
-                        >
-                          {{ part.text }}
-                        </span>
-                      </template>
+                          <span
+                            v-else-if="part.type === 'readers'"
+                            class="d-inline-flex align-center"
+                          >
+                            <v-icon
+                              icon="mdi-account-multiple"
+                              color="info"
+                              size="x-small"
+                              class="mr-1"
+                            />
+                            {{ part.text }}
+                          </span>
+
+                          <span v-else>{{ part.text }}</span>
+                        </template>
+                      </span>
                     </template>
                   </v-list-item>
                 </v-list>
@@ -538,12 +506,18 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     @click="showResults = false"
                   >
                     <template #prepend>
-                      <v-avatar size="40">
+                      <v-avatar
+                        size="40"
+                      >
                         <v-img
                           v-if="result.cover_url"
                           :src="result.cover_url"
                           :alt="result.title"
-                        />
+                        >
+                          <template #placeholder>
+                            <HashedFill :color="hashColor(result.title)" />
+                          </template>
+                        </v-img>
 
                         <v-icon
                           v-else
@@ -553,41 +527,47 @@ function getPartStyle(partType: SubtitlePart['type']) {
                     </template>
 
                     <template #subtitle>
-                      <template
-                        v-for="(part, index) in getSubtitleParts(result)"
-                        :key="index"
-                      >
-                        <v-icon
-                          v-if="part.type === 'separator'"
-                          icon="mdi-dots-vertical"
-                          color="secondary"
-                          size="small"
-                          class="mx-1"
-                        />
-
-                        <template v-else-if="part.type === 'rating'">
+                      <span class="d-inline-flex align-center flex-wrap">
+                        <template
+                          v-for="(part, index) in getSubtitleParts(result)"
+                          :key="index"
+                        >
                           <v-icon
-                            icon="mdi-star"
-                            color="amber"
-                            size="x-small"
-                            class="mr-1"
+                            v-if="part.type === 'separator'"
+                            icon="mdi-circle-small"
+                            color="secondary"
+                            size="small"
                           />
 
                           <span
-                            class="font-weight-bold text-amber"
-                            :style="getPartStyle(part.type)"
+                            v-else-if="part.type === 'rating'"
+                            class="d-inline-flex align-center"
                           >
+                            <v-icon
+                              icon="mdi-star"
+                              color="amber"
+                              size="x-small"
+                              class="mr-1"
+                            />
                             {{ part.text }}
                           </span>
-                        </template>
 
-                        <span
-                          v-else
-                          :style="getPartStyle(part.type)"
-                        >
-                          {{ part.text }}
-                        </span>
-                      </template>
+                          <span
+                            v-else-if="part.type === 'readers'"
+                            class="d-inline-flex align-center"
+                          >
+                            <v-icon
+                              icon="mdi-account-multiple"
+                              color="info"
+                              size="x-small"
+                              class="mr-1"
+                            />
+                            {{ part.text }}
+                          </span>
+
+                          <span v-else>{{ part.text }}</span>
+                        </template>
+                      </span>
                     </template>
                   </v-list-item>
                 </v-list>

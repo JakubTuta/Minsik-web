@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Author, Book, BookSummary } from '~/types/api'
+import { hashColor } from '~/utils/coverColor'
 
 interface Props {
   book: Book
@@ -15,13 +16,37 @@ const props = withDefaults(defineProps<Props>(), {
 
 const bookPageStore = useBookPageStore()
 
-const coverUrl = computed(() => props.book.primary_cover_url || '/placeholder-book-lazy.jpg')
+const coverUrl = computed(() => props.book.primary_cover_url || undefined)
+const coverBg = computed(() => coverColor(props.book))
 
 const coverRef = ref<HTMLElement | null>(null)
 useParallax(coverRef)
 
+const lightboxOpen = ref(false)
 const detailsExpanded = ref(false)
 const statisticsExpanded = ref(false)
+
+const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
+const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
+
+const languageDisplay = computed(() => {
+  const lang = props.book.language
+  if (!lang)
+    return null
+
+  try {
+    return languageNames.of(lang) || lang
+  }
+  catch {
+    return lang
+  }
+})
+
+const combinedReaders = computed(() => props.book.app_want_to_read_count + props.book.app_reading_count + props.book.app_read_count
+  + props.book.ol_want_to_read_count + props.book.ol_currently_reading_count + props.book.ol_already_read_count,
+)
+
+const combinedReadersFormatted = computed(() => compactFmt.format(combinedReaders.value))
 
 function toggleDetails() {
   detailsExpanded.value = !detailsExpanded.value
@@ -75,7 +100,11 @@ function formatSeriesPosition(position: number | null) {
         class="pa-6"
         align-self="start"
       >
-        <div ref="coverRef">
+        <div
+          ref="coverRef"
+          class="cursor-pointer"
+          @click="lightboxOpen = true"
+        >
           <v-img
             :src="coverUrl"
             :alt="book.title"
@@ -83,8 +112,30 @@ function formatSeriesPosition(position: number | null) {
             cover
             eager
             class="book-cover-shadow rounded"
-          />
+          >
+            <template #placeholder>
+              <HashedFill :color="coverBg" />
+            </template>
+          </v-img>
         </div>
+
+        <v-dialog
+          v-model="lightboxOpen"
+          max-width="600"
+        >
+          <v-img
+            :src="coverUrl"
+            :alt="book.title"
+            contain
+            max-height="90vh"
+            class="rounded"
+            @click="lightboxOpen = false"
+          >
+            <template #placeholder>
+              <HashedFill :color="coverBg" />
+            </template>
+          </v-img>
+        </v-dialog>
       </v-col>
 
       <!-- Book Info -->
@@ -129,14 +180,18 @@ function formatSeriesPosition(position: number | null) {
                 >
                   <div class="position-relative">
                     <v-img
-                      :src="seriesBook.primary_cover_url || '/placeholder-book-lazy.jpg'"
+                      :src="seriesBook.primary_cover_url || undefined"
                       :alt="seriesBook.title"
                       aspect-ratio="0.67"
                       width="80"
                       cover
                       class="rounded"
                       :class="{'opacity-75': seriesBook.book_id === book.book_id}"
-                    />
+                    >
+                      <template #placeholder>
+                        <HashedFill :color="hashColor(seriesBook.title, book.series?.name)" />
+                      </template>
+                    </v-img>
 
                     <!-- Series Position Badge -->
                     <v-badge
@@ -175,43 +230,115 @@ function formatSeriesPosition(position: number | null) {
               </div>
             </div>
 
-            <!-- Rating -->
-            <div class="text-secondary mb-1 mt-6">
-              Minsik users reviews
-            </div>
-
-            <RatingDisplay
-              :rating="bookPageStore.liveAvgRating ?? book.avg_rating"
-              :rating-count="bookPageStore.liveRatingCount ?? book.rating_count ?? 0"
-            />
-
-            <!-- Other Platform Ratings -->
-            <div class="mt-4">
-              <div class="text-secondary mb-1">
-                Other platforms reviews
-              </div>
-
-              <RatingDisplay
-                :rating="book.ol_avg_rating"
-                :rating-count="book.ol_rating_count"
-                size="small"
-              />
-            </div>
-
-            <!-- First Sentence -->
-            <div
-              v-if="book.first_sentence"
+            <!-- Ratings Card -->
+            <v-card
               class="mt-6"
+              flat
+              color="background"
             >
-              <div class="text-secondary mb-1">
-                First Sentence
+              <v-card-text class="pa-3">
+                <div class="d-flex align-stretch">
+                  <div class="d-flex flex-column align-center flex-1 pa-2 text-center">
+                    <div class="text-caption text-secondary mb-1">
+                      Minsik readers
+                    </div>
+
+                    <div class="text-h4 font-weight-bold text-primary">
+                      {{ (bookPageStore.liveAvgRating ?? book.avg_rating).toFixed(1) }}
+                    </div>
+
+                    <v-rating
+                      :model-value="Math.floor((bookPageStore.liveAvgRating ?? book.avg_rating) * 2) / 2"
+                      readonly
+                      half-increments
+                      color="warning"
+                      active-color="warning"
+                      density="compact"
+                      size="small"
+                    />
+
+                    <div class="text-caption text-secondary mt-1">
+                      {{ (bookPageStore.liveRatingCount ?? book.rating_count ?? 0).toLocaleString() }} ratings
+                    </div>
+                  </div>
+
+                  <v-divider vertical />
+
+                  <div class="d-flex flex-column align-center flex-1 pa-2 text-center">
+                    <div class="text-caption text-secondary mb-1">
+                      Other platforms
+                    </div>
+
+                    <div class="text-h4 font-weight-bold text-primary">
+                      {{ book.ol_avg_rating.toFixed(1) }}
+                    </div>
+
+                    <v-rating
+                      :model-value="Math.floor(book.ol_avg_rating * 2) / 2"
+                      readonly
+                      half-increments
+                      color="warning"
+                      active-color="warning"
+                      density="compact"
+                      size="small"
+                    />
+
+                    <div class="text-caption text-secondary mt-1">
+                      {{ book.ol_rating_count.toLocaleString() }} ratings
+                    </div>
+                  </div>
+                </div>
+              </v-card-text>
+            </v-card>
+
+            <!-- Stats Row -->
+            <div class="d-flex text-medium-emphasis mt-4 flex-wrap gap-4">
+              <div
+                v-if="book.number_of_pages > 0"
+                class="d-flex align-center gap-1"
+              >
+                <v-icon
+                  icon="mdi-book-open-page-variant"
+                  size="small"
+                />
+
+                <span class="text-body-2">{{ book.number_of_pages }} pages</span>
               </div>
 
               <div
-                class="text-body-1 font-italic"
-                style="border-left: 3px solid rgb(var(--v-theme-primary)); padding-left: 12px;"
+                v-if="readingTime"
+                class="d-flex align-center gap-1"
               >
-                "{{ book.first_sentence }}"
+                <v-icon
+                  icon="mdi-clock-outline"
+                  size="small"
+                />
+
+                <span class="text-body-2">~{{ readingTime }}</span>
+              </div>
+
+              <div
+                v-if="languageDisplay"
+                class="d-flex align-center gap-1"
+              >
+                <v-icon
+                  icon="mdi-translate"
+                  size="small"
+                />
+
+                <span class="text-body-2">{{ languageDisplay }}</span>
+              </div>
+
+              <div
+                v-if="combinedReaders > 0"
+                class="d-flex align-center gap-1"
+              >
+                <v-icon
+                  icon="mdi-account-multiple"
+                  size="small"
+                />
+
+                <span class="text-body-2">{{ combinedReadersFormatted }} readers</span>
               </div>
             </div>
 
@@ -228,40 +355,6 @@ function formatSeriesPosition(position: number | null) {
                 class="mt-6"
               />
             </ClientOnly>
-
-            <!-- Pages & Reading Time -->
-            <div
-              v-if="book.number_of_pages > 0"
-              class="d-flex align-center mt-6 gap-4"
-            >
-              <div class="d-flex align-center text-body-2 text-medium-emphasis gap-1">
-                <v-icon
-                  icon="mdi-book-open-page-variant"
-                  size="small"
-                />
-
-                <span>{{ book.number_of_pages }} pages</span>
-              </div>
-
-              <div
-                v-if="readingTime"
-                class="d-flex align-center text-body-2 text-medium-emphasis gap-1"
-              >
-                <v-icon
-                  icon="mdi-clock-outline"
-                  size="small"
-                />
-
-                <span>~{{ readingTime }} to read</span>
-
-                <v-tooltip
-                  activator="parent"
-                  location="bottom"
-                >
-                  Based on an average reading speed of 1 page per minute.
-                </v-tooltip>
-              </div>
-            </div>
           </div>
 
           <!-- Details / Statistics Toggles -->

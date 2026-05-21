@@ -86,14 +86,17 @@ onMounted(async () => {
             <!-- Book cover -->
             <div class="cover-wrapper mb-4">
               <v-img
-                :src="book.primary_cover_url || '/placeholder-book-lazy.jpg'"
+                :src="book.primary_cover_url || undefined"
                 :alt="book.title"
-                lazy-src="/placeholder-book-lazy.jpg"
                 width="160"
                 height="234"
                 cover
                 class="rounded"
-              />
+              >
+                <template #placeholder>
+                  <HashedFill :color="coverColor(book)" />
+                </template>
+              </v-img>
             </div>
 
             <!-- Title -->

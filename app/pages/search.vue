@@ -139,6 +139,7 @@ function resultRatingCount(result: SearchResult) {
           :book-count="result.book_count"
           :rating="resultRating(result)"
           :rating-count="resultRatingCount(result)"
+          :readers="result.readers"
           :badge="resultBadgeLabel(result.type)"
           :badge-color="resultBadgeColor(result.type)"
         />
@@ -156,6 +157,7 @@ function resultRatingCount(result: SearchResult) {
           :author-slugs="result.author_slugs"
           :rating="resultRating(result)"
           :rating-count="resultRatingCount(result)"
+          :readers="result.readers"
           :badge="resultBadgeLabel(result.type)"
           :badge-color="resultBadgeColor(result.type)"
         />

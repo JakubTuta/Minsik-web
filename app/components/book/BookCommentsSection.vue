@@ -1,11 +1,11 @@
 <script setup lang="ts">
 interface Props {
   slug: string
-  selectedRating?: number | null
+  selectedRatingFilters?: number[] | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  selectedRating: null,
+  selectedRatingFilters: null,
 })
 
 const authStore = useAuthStore()
@@ -62,15 +62,15 @@ function fetchComments() {
     ...getSortParams(),
     include_spoilers: true,
   }
-  if (props.selectedRating !== null)
-    params.rating_filter = props.selectedRating
+  if (props.selectedRatingFilters?.length)
+    params.rating_filter = props.selectedRatingFilters
   bookPageStore.fetchComments(props.slug, params)
 }
 
 onMounted(() => fetchComments())
 
 watch(selectedSort, () => fetchComments())
-watch(() => props.selectedRating, () => fetchComments())
+watch(() => props.selectedRatingFilters, () => fetchComments())
 watch(() => authStore.isAuthenticated, () => fetchComments())
 
 function handleCommentSaved() {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Author } from '~/types/api'
+import { hashColor } from '~/utils/coverColor'
 
 interface Props {
   author?: Author
@@ -15,8 +16,9 @@ const props = withDefaults(defineProps<Props>(), {
 const authorLink = computed(() => (props.author
   ? `/authors/${props.author.slug}`
   : ''))
-const photoUrl = computed(() => props.author?.photo_url || '/placeholder-avatar-lazy.jpg')
+const photoUrl = computed(() => props.author?.photo_url || undefined)
 const name = computed(() => props.author?.name || '')
+const photoBg = computed(() => hashColor(name.value))
 const biography = computed(() => {
   if (!props.author?.bio)
     return ''
@@ -42,13 +44,16 @@ const biography = computed(() => {
       <v-card-text class="d-flex flex-column align-center flex-grow-1 pa-4 text-center">
         <v-avatar
           size="120"
-          color="surface-variant"
           class="mb-4"
         >
           <v-img
             :src="photoUrl"
             :alt="name"
-          />
+          >
+            <template #placeholder>
+              <HashedFill :color="photoBg" />
+            </template>
+          </v-img>
         </v-avatar>
 
         <div class="text-h6 font-weight-bold mb-2">

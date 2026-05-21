@@ -49,12 +49,16 @@ function formatSeriesPosition(position: number | null | undefined) {
             style="width: 120px; height: 180px;"
           >
             <v-img
-              :src="book.primary_cover_url || '/placeholder-book-lazy.jpg'"
+              :src="book.primary_cover_url || undefined"
               :alt="book.title"
               width="120"
               height="180"
               cover
-            />
+            >
+              <template #placeholder>
+                <HashedFill :color="coverColor(book)" />
+              </template>
+            </v-img>
 
             <v-badge
               v-if="book.series_position"

@@ -1,11 +1,11 @@
-import type { SearchResponse, SearchResult } from '~/types/api'
+import type { SuggestItem, SuggestResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useQuickSearchStore = defineStore('quickSearch', () => {
   const apiStore = useApiStore()
 
   // State
-  const results = ref<SearchResult[]>([])
+  const results = ref<SuggestItem[]>([])
   const isLoading = ref(false)
   const isEmpty = ref(false)
   const lastQuery = ref('')
@@ -13,7 +13,6 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
   // Computed
   const hasResults = computed(() => results.value.length > 0)
 
-  // Quick search function (no caching, always fresh)
   const search = async (query: string) => {
     if (!query.trim()) {
       clear()
@@ -26,15 +25,13 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
     isEmpty.value = false
 
     try {
-      const response = await apiStore.client.get<SearchResponse>('/api/v1/search', {
+      const response = await apiStore.client.get<SuggestResponse>('/api/v1/search/suggest', {
         params: {
           q: query,
-          type: 'all',
           limit: 20,
-          offset: 0,
         },
       })
-      results.value = response.data.data.results || []
+      results.value = response.data.data.items || []
       isEmpty.value = results.value.length === 0
     }
     catch (error) {
@@ -47,7 +44,6 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
     }
   }
 
-  // Clear search
   const clear = () => {
     results.value = []
     isLoading.value = false

@@ -50,6 +50,8 @@ if (import.meta.client) {
     <v-container class="py-8">
       <FeaturesShowcase />
 
+      <PopularCategoriesGrid />
+
       <div class="mb-10 mt-16 text-center">
         <h2 class="text-h3 font-weight-bold mb-4">
           Trending Now

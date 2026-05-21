@@ -63,9 +63,57 @@ const descriptionRef = ref<HTMLElement>()
 const expandedHeight = ref(0)
 const selectedRating = ref<number | null>(null)
 
-const hasDistribution = computed(() => book.value?.rating_distribution != null
-  && Object.values(book.value.rating_distribution).some(v => v > 0),
+function distributionCount(star: number): number {
+  const dist = book.value?.rating_distribution
+  if (!dist)
+    return 0
+
+  const full = dist[`${star}.0`] ?? dist[String(star)] ?? 0
+  const half = star < 5
+    ? (dist[`${star}.5`] ?? 0)
+    : 0
+
+  return full + half
+}
+
+const totalDistributionCount = computed(
+  () => [1, 2, 3, 4, 5].reduce((sum, star) => sum + distributionCount(star), 0),
 )
+
+function distributionPercent(star: number): number {
+  const total = totalDistributionCount.value
+  if (total === 0)
+    return 0
+
+  return (distributionCount(star) / total) * 100
+}
+
+const avgRating = computed(() => bookPageStore.liveAvgRating ?? book.value?.avg_rating ?? 0)
+const roundedAvgRating = computed(() => Math.floor(avgRating.value * 2) / 2)
+const totalRatingCount = computed(() => bookPageStore.liveRatingCount ?? book.value?.rating_count ?? 0)
+
+const selectedRatingFilters = computed<number[] | null>(() => {
+  if (selectedRating.value === null)
+    return null
+
+  const n = selectedRating.value
+
+  return n === 5
+    ? [5.0]
+    : [n, n + 0.5]
+})
+
+const TRAILING_DOTS_RE = /\.+$/
+
+function formatFirstSentence(sentence: string): string {
+  const trimmed = sentence.trim()
+  const existingDots = (trimmed.match(TRAILING_DOTS_RE) || [''])[0].length
+
+  if (existingDots >= 3)
+    return trimmed
+
+  return trimmed + '.'.repeat(3 - existingDots)
+}
 
 // Description truncation
 const DESCRIPTION_MAX_LENGTH = 500
@@ -312,52 +360,89 @@ onUnmounted(() => {
           </v-dialog>
         </ClientOnly>
 
-        <!-- Description -->
-        <v-card class="mt-4">
-          <v-card-text>
+        <!-- First Sentence -->
+        <v-card
+          v-if="book.first_sentence"
+          class="mt-4"
+        >
+          <v-card-text class="pa-6">
             <h2 class="text-h6 font-weight-bold mb-3">
-              Description
+              First sentence
             </h2>
 
-            <template v-if="book.description">
-              <div
-                ref="descriptionRef"
-                class="description-content"
-                :class="{'description-collapsed': descriptionNeedsTruncation && !descriptionExpanded}"
-                :style="descriptionNeedsTruncation && descriptionExpanded && expandedHeight
-                  ? {'maxHeight': `${expandedHeight}px`}
-                  : undefined"
-              >
-                <p
-                  class="text-body-1 mb-0"
-                  style="white-space: pre-line;"
-                >
-                  {{ book.description }}
-                </p>
-              </div>
-
-              <v-btn
-                v-if="descriptionNeedsTruncation"
-                variant="text"
-                color="secondary"
-                size="small"
-                class="mt-2"
-                @click="toggleDescription"
-              >
-                {{ descriptionExpanded
-                  ? 'Read less'
-                  : 'Read more' }}
-              </v-btn>
-            </template>
-
-            <p
-              v-else
-              class="text-body-1 text-medium-emphasis mb-0 font-italic"
-            >
-              There is no description yet, we will add it soon.
-            </p>
+            <div style="max-width: 60%;">
+              <p class="text-h5 mb-0 font-serif font-italic">
+                {{ formatFirstSentence(book.first_sentence) }}
+              </p>
+            </div>
           </v-card-text>
         </v-card>
+
+        <!-- Description + External Links -->
+        <v-row class="mt-4">
+          <v-col
+            cols="12"
+            md="8"
+            class="d-flex flex-column"
+          >
+            <v-card class="flex-1">
+              <v-card-text>
+                <h2 class="text-h6 font-weight-bold mb-3">
+                  Description
+                </h2>
+
+                <template v-if="book.description">
+                  <div
+                    ref="descriptionRef"
+                    class="description-content"
+                    :class="{'description-collapsed': descriptionNeedsTruncation && !descriptionExpanded}"
+                    :style="descriptionNeedsTruncation && descriptionExpanded && expandedHeight
+                      ? {'maxHeight': `${expandedHeight}px`}
+                      : undefined"
+                  >
+                    <p
+                      class="text-body-1 mb-0"
+                      style="white-space: pre-line;"
+                    >
+                      {{ book.description }}
+                    </p>
+                  </div>
+
+                  <v-btn
+                    v-if="descriptionNeedsTruncation"
+                    variant="text"
+                    color="secondary"
+                    size="small"
+                    class="mt-2"
+                    @click="toggleDescription"
+                  >
+                    {{ descriptionExpanded
+                      ? 'Read less'
+                      : 'Read more' }}
+                  </v-btn>
+                </template>
+
+                <p
+                  v-else
+                  class="text-body-1 text-medium-emphasis mb-0 font-italic"
+                >
+                  There is no description yet, we will add it soon.
+                </p>
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <v-col
+            cols="12"
+            md="4"
+            class="d-flex flex-column"
+          >
+            <ExternalLinksSection
+              :book="book"
+              class="flex-1"
+            />
+          </v-col>
+        </v-row>
 
         <!-- Rating -->
         <v-card class="mt-4">
@@ -369,9 +454,6 @@ onUnmounted(() => {
             />
           </v-card-text>
         </v-card>
-
-        <!-- External Links -->
-        <ExternalLinksSection :book="book" />
 
         <!-- Book Recommendations -->
         <ClientOnly>
@@ -418,39 +500,88 @@ onUnmounted(() => {
 
         <!-- Rating Distribution -->
         <ClientOnly>
-          <v-card
-            v-if="hasDistribution"
-            class="mt-4"
-          >
+          <v-card class="mt-4">
             <v-card-text>
               <h2 class="text-h6 font-weight-bold mb-4">
                 Rating Distribution
               </h2>
 
-              <RatingDistributionChart
-                :distribution="book.rating_distribution"
-                :selected-rating="selectedRating"
-                @select="selectedRating = $event"
-              />
-
-              <div
-                v-if="selectedRating !== null"
-                class="d-flex align-center mt-3 gap-2"
-              >
-                <span class="text-body-2 text-medium-emphasis">
-                  Showing {{ selectedRating }}-star reviews
-                </span>
-
-                <v-btn
-                  size="x-small"
-                  variant="text"
-                  color="primary"
-                  prepend-icon="mdi-close"
-                  @click="selectedRating = null"
+              <v-row align="center">
+                <!-- Left: avg + stars + count -->
+                <v-col
+                  cols="12"
+                  sm="4"
+                  class="d-flex flex-column align-center text-center"
                 >
-                  Clear filter
-                </v-btn>
-              </div>
+                  <div class="text-h2 font-weight-bold text-primary">
+                    {{ avgRating.toFixed(1) }}
+                  </div>
+
+                  <v-rating
+                    :model-value="roundedAvgRating"
+                    readonly
+                    half-increments
+                    color="warning"
+                    active-color="warning"
+                    density="compact"
+                  />
+
+                  <div class="text-body-2 text-secondary mt-1">
+                    with {{ totalRatingCount.toLocaleString() }} ratings
+                  </div>
+                </v-col>
+
+                <!-- Right: horizontal bar rows 5→1 -->
+                <v-col
+                  cols="12"
+                  sm="8"
+                >
+                  <div
+                    v-for="star in [
+                      5,
+                      4,
+                      3,
+                      2,
+                      1,
+                    ]"
+                    :key="star"
+                    class="d-flex align-center mb-2 cursor-pointer gap-2 rounded pa-1"
+                    :class="{'bg-primary-lighten-4': selectedRating === star}"
+                    @click="selectedRating = selectedRating === star
+                      ? null
+                      : star"
+                  >
+                    <span
+                      class="text-body-2 font-weight-bold"
+                      style="min-width: 10px; text-align: right;"
+                    >{{ star }}</span>
+
+                    <v-icon
+                      icon="mdi-star"
+                      size="small"
+                      color="warning"
+                    />
+
+                    <v-progress-linear
+                      :model-value="distributionPercent(star)"
+                      color="primary"
+                      rounded
+                      height="10"
+                      class="flex-1"
+                    />
+
+                    <span
+                      class="text-body-2"
+                      style="min-width: 40px; text-align: right;"
+                    >{{ distributionCount(star).toLocaleString() }}</span>
+
+                    <span
+                      class="text-caption text-secondary"
+                      style="min-width: 36px; text-align: right;"
+                    >{{ distributionPercent(star).toFixed(0) }}%</span>
+                  </div>
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
         </ClientOnly>
@@ -461,7 +592,7 @@ onUnmounted(() => {
             <v-card-text>
               <BookCommentsSection
                 :slug="slug"
-                :selected-rating="selectedRating"
+                :selected-rating-filters="selectedRatingFilters"
               />
             </v-card-text>
           </v-card>

@@ -217,6 +217,7 @@ export interface SearchResult {
   ol_avg_rating: number
   ol_rating_count: number
   book_count: number
+  readers: number
 }
 
 export interface SearchResultsData {
@@ -229,6 +230,35 @@ export interface SearchResultsData {
 export interface SearchResponse {
   success: boolean
   data: SearchResultsData
+  error?: {
+    code: string
+    message: string
+    details?: any
+  } | null
+}
+
+export interface SuggestItem {
+  type: 'book' | 'author' | 'series'
+  id: number
+  title: string
+  slug: string
+  cover_url: string
+  authors: string[]
+  score: number
+  readers: number
+  app_avg_rating: number
+  app_rating_count: number
+  ol_avg_rating: number
+  ol_rating_count: number
+}
+
+export interface SuggestResultsData {
+  items: SuggestItem[]
+}
+
+export interface SuggestResponse {
+  success: boolean
+  data: SuggestResultsData
   error?: {
     code: string
     message: string
