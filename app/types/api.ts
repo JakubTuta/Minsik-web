@@ -33,6 +33,17 @@ export interface AuthorBooksResponse {
   offset: number
 }
 
+export interface AuthorQuote {
+  first_sentence: string
+  book_title: string
+  book_slug: string
+  publication_year?: number | null
+}
+
+export interface AuthorTopBooksResponse {
+  books: BookSummary[]
+}
+
 export interface SeriesBooksResponse {
   books: BookSummary[]
   total_count: number

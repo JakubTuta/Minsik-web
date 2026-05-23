@@ -1,4 +1,4 @@
-import type { APIResponse, Author, AuthorBooksResponse, Book } from '~/types/api'
+import type { APIResponse, Author, AuthorBooksResponse, AuthorQuote, AuthorTopBooksResponse, Book, BookSummary } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useAuthorsStore = defineStore('authors', () => {
@@ -151,6 +151,41 @@ export const useAuthorsStore = defineStore('authors', () => {
     }
   }
 
+  const authorQuoteCache = ref(new Map<string, { data: AuthorQuote | null, timestamp: number }>())
+  const authorTopBooksCache = ref(new Map<string, { data: BookSummary[], timestamp: number }>())
+
+  const fetchAuthorQuote = async (slug: string, force = false): Promise<AuthorQuote | null> => {
+    const cached = authorQuoteCache.value.get(slug)
+    if (!force && cached && Date.now() - cached.timestamp < CACHE_TTL)
+      return cached.data
+
+    try {
+      const response = await apiStore.client.get<APIResponse<AuthorQuote>>(`/api/v1/authors/${slug}/quote`)
+      const data = response.data.data ?? null
+      authorQuoteCache.value.set(slug, { data, timestamp: Date.now() })
+      return data
+    }
+    catch {
+      return null
+    }
+  }
+
+  const fetchAuthorTopBooks = async (slug: string, force = false): Promise<BookSummary[]> => {
+    const cached = authorTopBooksCache.value.get(slug)
+    if (!force && cached && Date.now() - cached.timestamp < CACHE_TTL)
+      return cached.data
+
+    try {
+      const response = await apiStore.client.get<APIResponse<AuthorTopBooksResponse>>(`/api/v1/authors/${slug}/top-books`)
+      const books = response.data.data?.books ?? []
+      authorTopBooksCache.value.set(slug, { data: books, timestamp: Date.now() })
+      return books
+    }
+    catch {
+      return []
+    }
+  }
+
   // Cache an author
   const cacheAuthor = (author: Author) => {
     computeDisplayDates(author)
@@ -197,6 +232,8 @@ export const useAuthorsStore = defineStore('authors', () => {
     fetchAuthor,
     fetchAuthorBooks,
     fetchAuthorBooksPage,
+    fetchAuthorQuote,
+    fetchAuthorTopBooks,
     cacheAuthor,
     getAuthor,
     hasAuthor,

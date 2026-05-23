@@ -1,4 +1,4 @@
-import type { CoverageStats, ImportDumpResult, IngestionResult, IngestionSource } from '~/types/admin'
+import type { CoverageStats, ImportDumpResult, JobTriggerResult } from '~/types/admin'
 import type { APIResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
@@ -24,14 +24,14 @@ export const useAdminStore = defineStore('admin', () => {
   const { client } = storeToRefs(apiStore)
 
   const coverage = ref<CoverageStats | null>(null)
-  const ingestionResult = ref<IngestionResult | null>(null)
-  const searchResults = ref<any[]>([])
   const importResult = ref<ImportDumpResult | null>(null)
+  const cleanupResult = ref<JobTriggerResult | null>(null)
+  const reindexResult = ref<JobTriggerResult | null>(null)
 
   const isCoverageLoading = ref(false)
-  const isIngestionLoading = ref(false)
-  const isSearchLoading = ref(false)
   const isImportLoading = ref(false)
+  const isCleanupLoading = ref(false)
+  const isReindexLoading = ref(false)
 
   const errors = ref<Record<string, string>>({})
   const isUpdateLoading = ref(false)
@@ -55,45 +55,6 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
-  const triggerIngestion = async (totalBooks: number, source: IngestionSource, language: string) => {
-    isIngestionLoading.value = true
-    try {
-      const response = await client.value.post<APIResponse<IngestionResult>>(
-        '/api/v1/admin/ingestion/trigger',
-        { total_books: totalBooks, source, language },
-      )
-      ingestionResult.value = response.data.data!
-      errors.value.ingestion = ''
-    }
-    catch (error) {
-      console.error('Failed to trigger ingestion:', error)
-      errors.value.ingestion = 'Failed to trigger ingestion'
-    }
-    finally {
-      isIngestionLoading.value = false
-    }
-  }
-
-  const searchBooks = async (title: string, author: string, source: IngestionSource, limit: number) => {
-    isSearchLoading.value = true
-    try {
-      const response = await client.value.post<APIResponse<{ results: any[], total_count: number, limit: number, offset: number }>>(
-        '/api/v1/admin/books/search',
-        { title, author: author || undefined, source, limit },
-      )
-      searchResults.value = response.data.data!.results || []
-      errors.value.search = ''
-    }
-    catch (error) {
-      console.error('Failed to search books:', error)
-      errors.value.search = 'Failed to search books'
-      searchResults.value = []
-    }
-    finally {
-      isSearchLoading.value = false
-    }
-  }
-
   const importDump = async () => {
     isImportLoading.value = true
     try {
@@ -109,6 +70,42 @@ export const useAdminStore = defineStore('admin', () => {
     }
     finally {
       isImportLoading.value = false
+    }
+  }
+
+  const runCleanup = async () => {
+    isCleanupLoading.value = true
+    try {
+      const response = await client.value.post<APIResponse<JobTriggerResult>>(
+        '/api/v1/admin/jobs/cleanup',
+      )
+      cleanupResult.value = response.data.data!
+      errors.value.cleanup = ''
+    }
+    catch (error) {
+      console.error('Failed to trigger cleanup:', error)
+      errors.value.cleanup = 'Failed to start cleanup job'
+    }
+    finally {
+      isCleanupLoading.value = false
+    }
+  }
+
+  const runReindex = async () => {
+    isReindexLoading.value = true
+    try {
+      const response = await client.value.post<APIResponse<JobTriggerResult>>(
+        '/api/v1/admin/jobs/reindex',
+      )
+      reindexResult.value = response.data.data!
+      errors.value.reindex = ''
+    }
+    catch (error) {
+      console.error('Failed to trigger reindex:', error)
+      errors.value.reindex = 'Failed to start reindex job'
+    }
+    finally {
+      isReindexLoading.value = false
     }
   }
 
@@ -262,20 +259,20 @@ export const useAdminStore = defineStore('admin', () => {
 
   return {
     coverage,
-    ingestionResult,
-    searchResults,
     importResult,
+    cleanupResult,
+    reindexResult,
     isCoverageLoading,
-    isIngestionLoading,
-    isSearchLoading,
     isImportLoading,
+    isCleanupLoading,
+    isReindexLoading,
     isUpdateLoading,
     isDeleteLoading,
     errors,
     fetchCoverage,
-    triggerIngestion,
-    searchBooks,
     importDump,
+    runCleanup,
+    runReindex,
     updateBook,
     updateAuthor,
     updateSeries,

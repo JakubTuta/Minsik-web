@@ -218,6 +218,11 @@ function formatSeriesPosition(position: number | null | undefined) {
   color: rgb(var(--v-theme-primary)) !important;
 }
 
+.book-item:hover h3 {
+  color: rgb(var(--v-theme-primary));
+  transition: color 0.15s ease;
+}
+
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;

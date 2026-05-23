@@ -1,15 +1,11 @@
 <script setup lang="ts">
-import type { EditFieldConfig } from '~/types/admin'
-import type { BookSummary } from '~/types/api'
+import type { AuthorQuote, BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
-import { hashColor } from '~/utils/coverColor'
-import { formatDisplayDate } from '~/utils/format'
 
 const route = useRoute()
 const authorsStore = useAuthorsStore()
 const recommendationsStore = useRecommendationsStore()
 const authStore = useAuthStore()
-const adminStore = useAdminStore()
 
 const slug = route.params.slug as string
 
@@ -25,7 +21,6 @@ const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'reader
 
 function getSortParams() {
   const [field = 'date', direction = 'desc'] = sortBy.value.split('-')
-
   return {
     apiSortBy: sortByMap[field] as 'publication_year' | 'combined_rating' | 'readers_count',
     apiOrder: direction as 'asc' | 'desc',
@@ -37,6 +32,11 @@ const { data: author, error: authorError } = await useAsyncData(
   `author-${slug}`,
   () => authorsStore.fetchAuthor(slug),
 )
+
+// Handle 404 early
+if (authorError.value || !author.value) {
+  throw createError({ statusCode: 404, message: 'Author not found' })
+}
 
 // Pagination state
 const allBooks = ref<BookSummary[]>([])
@@ -56,10 +56,21 @@ if (initialBooksData.value) {
   booksOffset.value = initialBooksData.value.books.length
 }
 
+// Fetch quote and top books (SSR-safe)
+const { data: authorQuote } = await useAsyncData(
+  `author-quote-${slug}`,
+  () => authorsStore.fetchAuthorQuote(slug),
+)
+
+const { data: topBooks } = await useAsyncData(
+  `author-top-books-${slug}`,
+  () => authorsStore.fetchAuthorTopBooks(slug),
+)
+
 // View mode: list or timeline
 const viewMode = ref<'list' | 'timeline'>('list')
 
-// Reset and refetch when sort changes (only relevant in list mode)
+// Reset and refetch when sort changes
 watch(sortBy, async () => {
   if (viewMode.value !== 'list')
     return
@@ -90,7 +101,6 @@ watch(viewMode, async (mode) => {
   booksOffset.value = result.books.length
 })
 
-// Load next page
 async function loadMoreBooks() {
   if (!hasMoreBooks.value)
     return
@@ -103,14 +113,6 @@ async function loadMoreBooks() {
   allBooks.value.push(...result.books)
   booksTotalCount.value = result.total_count
   booksOffset.value += result.books.length
-}
-
-// Handle 404
-if (authorError.value || !author.value) {
-  throw createError({
-    statusCode: 404,
-    message: 'Author not found',
-  })
 }
 
 // SEO
@@ -126,7 +128,6 @@ useSeo({
   author: author.value.name,
 })
 
-// Structured data
 useAuthorStructuredData({
   name: author.value.name,
   description: author.value.bio,
@@ -136,28 +137,7 @@ useAuthorStructuredData({
   deathDate: author.value.death_date,
 })
 
-const photoUrl = computed(() => author.value?.photo_url || undefined)
-const photoBg = computed(() => hashColor(author.value?.name))
-
-// Calculate age
-const age = computed(() => {
-  if (!author.value?.birth_date)
-    return null
-
-  const birthDate = new Date(author.value.birth_date)
-  const endDate = author.value.death_date
-    ? new Date(author.value.death_date)
-    : new Date()
-
-  let age = endDate.getFullYear() - birthDate.getFullYear()
-  const monthDiff = endDate.getMonth() - birthDate.getMonth()
-
-  if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate())) {
-    age--
-  }
-
-  return age
-})
+const isAdmin = computed(() => authStore.user?.role === 'admin')
 
 const sortOptions = [
   { value: 'date-desc', title: 'Newest First' },
@@ -167,102 +147,6 @@ const sortOptions = [
   { value: 'readers-desc', title: 'Most Readers' },
   { value: 'readers-asc', title: 'Least Readers' },
 ]
-
-// Weighted rating across app + OL
-const weightedRating = computed(() => {
-  const appRating = author.value?.books_avg_rating ?? 0
-  const appCount = author.value?.books_total_ratings ?? 0
-  const olRating = author.value?.books_ol_avg_rating ?? 0
-  const olCount = author.value?.books_ol_total_ratings ?? 0
-  const total = appCount + olCount
-
-  if (total === 0)
-    return 0
-
-  return (appRating * appCount + olRating * olCount) / total
-})
-
-const totalRatings = computed(() => (author.value?.books_total_ratings ?? 0) + (author.value?.books_ol_total_ratings ?? 0),
-)
-
-// Readers across app + OL
-const appReaders = computed(() => (author.value?.app_want_to_read_count ?? 0)
-  + (author.value?.app_reading_count ?? 0)
-  + (author.value?.app_read_count ?? 0),
-)
-
-const olReaders = computed(() => (author.value?.ol_want_to_read_count ?? 0)
-  + (author.value?.ol_currently_reading_count ?? 0)
-  + (author.value?.ol_already_read_count ?? 0),
-)
-
-const totalReaders = computed(() => appReaders.value + olReaders.value)
-
-const isAdmin = computed(() => authStore.user?.role === 'admin')
-const editDialogOpen = ref(false)
-const editError = ref('')
-const deleteDialogOpen = ref(false)
-const deleteError = ref('')
-
-const authorEditFields: EditFieldConfig[] = [
-  { key: 'name', label: 'Name', type: 'text' },
-  { key: 'slug', label: 'Slug', type: 'text' },
-  { key: 'bio', label: 'Biography', type: 'textarea' },
-  { key: 'birth_date', label: 'Birth Date (YYYY-MM-DD)', type: 'text' },
-  { key: 'death_date', label: 'Death Date (YYYY-MM-DD)', type: 'text' },
-  { key: 'birth_place', label: 'Birth Place', type: 'text' },
-  { key: 'nationality', label: 'Nationality', type: 'text' },
-  { key: 'photo_url', label: 'Photo URL', type: 'text' },
-  { key: 'wikipedia_url', label: 'Wikipedia URL', type: 'text' },
-  { key: 'wikidata_id', label: 'Wikidata ID', type: 'text' },
-  { key: 'open_library_id', label: 'Open Library ID', type: 'text' },
-  { key: 'alternate_names', label: 'Alternate Names', type: 'array' },
-]
-
-const authorEditOriginalData = computed(() => ({
-  name: author.value?.name ?? null,
-  slug: author.value?.slug ?? null,
-  bio: author.value?.bio ?? null,
-  birth_date: author.value?.birth_date ?? null,
-  death_date: author.value?.death_date ?? null,
-  birth_place: author.value?.birth_place ?? null,
-  nationality: author.value?.nationality ?? null,
-  photo_url: author.value?.photo_url ?? null,
-  wikipedia_url: author.value?.wikipedia_url ?? null,
-  wikidata_id: author.value?.wikidata_id ?? null,
-  open_library_id: author.value?.open_library_id ?? null,
-  alternate_names: author.value?.alternate_names ?? [],
-}))
-
-async function handleAuthorDelete() {
-  deleteError.value = ''
-  const result = await adminStore.deleteAuthor(author.value!.author_id)
-  if (result.success) {
-    deleteDialogOpen.value = false
-    await navigateTo('/')
-  }
-  else {
-    deleteError.value = (result as any).error || 'Delete failed'
-  }
-}
-
-async function handleAuthorEditSave(editedData: Record<string, any>) {
-  editError.value = ''
-  const result = await adminStore.updateAuthor(author.value!.author_id, authorEditOriginalData.value, editedData)
-  if (result.success) {
-    editDialogOpen.value = false
-    const newSlug = editedData.slug && editedData.slug !== slug
-      ? editedData.slug
-      : slug
-    await authorsStore.fetchAuthor(newSlug, true)
-    if (newSlug !== slug) {
-      await navigateTo(`/authors/${newSlug}`)
-    }
-  }
-  else {
-    editError.value = (result as any).error || 'Update failed'
-  }
-}
 
 const authorRecommendations = ref<RecommendationSection[]>([])
 const personalizedAuthorRecs = ref<RecommendationSection[]>([])
@@ -282,370 +166,96 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
   else
     personalizedAuthorRecs.value = []
 }, { immediate: true })
+
+async function handleAuthorDelete() {
+  await navigateTo('/')
+}
 </script>
 
 <template>
   <v-container v-if="author">
-    <!-- Author Header Section -->
-    <v-row class="mb-6 justify-center">
-      <v-col
-        cols="12"
-        class="text-center"
-      >
-        <v-avatar
-          size="200"
-          class="mb-4"
-        >
-          <v-img
-            :src="photoUrl"
-            :alt="author.name"
-            eager
-          >
-            <template #placeholder>
-              <HashedFill :color="photoBg" />
-            </template>
-          </v-img>
-        </v-avatar>
+    <!-- Header -->
+    <AuthorHeader
+      :author="author"
+      :is-admin="isAdmin"
+      @delete="handleAuthorDelete"
+    />
 
-        <h1 class="text-h3 font-weight-bold">
-          {{ author.name }}
-        </h1>
+    <!-- Quote -->
+    <AuthorQuoteCard :quote="(authorQuote as AuthorQuote | null)" />
 
-        <ClientOnly>
-          <v-btn
-            v-if="isAdmin"
-            prepend-icon="mdi-pencil"
-            variant="text"
-            size="small"
-            color="secondary"
-            class="mt-2"
-            @click="editDialogOpen = true"
-          >
-            Edit Author
-          </v-btn>
+    <!-- Top 3 Books (podium) -->
+    <AuthorTopBooks
+      :books="(topBooks as BookSummary[] | null) ?? []"
+      :loading="authorsStore.isLoadingBooks && !topBooks"
+      :books-count="author.books_count"
+    />
 
-          <v-btn
-            v-if="isAdmin"
-            prepend-icon="mdi-delete"
-            variant="text"
-            size="small"
-            color="error"
-            class="mt-2"
-            @click="deleteDialogOpen = true"
-          >
-            Delete Author
-          </v-btn>
+    <!-- Books Section -->
+    <v-card id="books-list">
+      <v-card-text>
+        <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2">
+          <h2 class="text-h5 font-weight-bold">
+            Books
+          </h2>
 
-          <AdminEditDialog
-            v-model="editDialogOpen"
-            title="Edit Author"
-            :fields="authorEditFields"
-            :original-data="authorEditOriginalData"
-            :loading="adminStore.isUpdateLoading"
-            :error="editError"
-            @save="handleAuthorEditSave"
-          />
-
-          <v-dialog
-            v-model="deleteDialogOpen"
-            max-width="400"
-          >
-            <v-card>
-              <v-card-title>Delete Author?</v-card-title>
-
-              <v-card-text>
-                This action cannot be undone. Are you sure you want to delete "{{ author?.name }}"?
-                <v-alert
-                  v-if="deleteError"
-                  type="error"
-                  class="mt-3"
-                >
-                  {{ deleteError }}
-                </v-alert>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer />
-
-                <v-btn
-                  variant="text"
-                  @click="deleteDialogOpen = false"
-                >
-                  Cancel
-                </v-btn>
-
-                <v-btn
-                  color="error"
-                  variant="flat"
-                  :loading="adminStore.isDeleteLoading"
-                  @click="handleAuthorDelete"
-                >
-                  Delete
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-        </ClientOnly>
-      </v-col>
-    </v-row>
-
-    <!-- Content Grid -->
-    <v-row>
-      <!-- Personal Information Sidebar -->
-      <v-col
-        cols="12"
-        md="3"
-      >
-        <v-card>
-          <v-card-text>
-            <h2 class="text-h6 font-weight-bold mb-4">
-              Personal Information
-            </h2>
-
-            <v-list
+          <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
+            <v-select
+              v-if="viewMode === 'list'"
+              v-model="sortBy"
+              :items="sortOptions"
               density="compact"
-              class="bg-transparent"
+              variant="outlined"
+              hide-details
+              style="max-width: 200px;"
+            />
+
+            <v-btn-toggle
+              v-model="viewMode"
+              mandatory
+              density="compact"
+              variant="outlined"
+              color="primary"
             >
-              <v-list-item v-if="author.birth_date">
-                <template #prepend>
-                  <v-icon icon="mdi-cake-variant" />
-                </template>
+              <v-btn
+                value="list"
+                size="small"
+                prepend-icon="mdi-view-list"
+              >
+                List view
+              </v-btn>
 
-                <v-list-item-title class="text-wrap">
-                  Born {{ formatDisplayDate(author.birth_date) }}
-                  <span v-if="age && !author.death_date"> ({{ age }} years old)</span>
-                </v-list-item-title>
-              </v-list-item>
+              <v-btn
+                value="timeline"
+                size="small"
+                prepend-icon="mdi-timeline-outline"
+              >
+                Timeline view
+              </v-btn>
+            </v-btn-toggle>
+          </div>
+        </div>
 
-              <v-list-item v-if="author.death_date">
-                <template #prepend>
-                  <v-icon icon="mdi-calendar-remove" />
-                </template>
-
-                <v-list-item-title class="text-wrap">
-                  Died {{ formatDisplayDate(author.death_date) }}
-                  <span v-if="age"> ({{ age }} years old)</span>
-                </v-list-item-title>
-              </v-list-item>
-
-              <v-list-item v-if="author.birth_place || author.nationality">
-                <template #prepend>
-                  <v-icon icon="mdi-map-marker" />
-                </template>
-
-                <v-list-item-title class="text-wrap">
-                  {{ [
-                    author.birth_place,
-                    author.nationality,
-                  ].filter(Boolean).join(', ') }}
-                </v-list-item-title>
-              </v-list-item>
-
-              <v-list-item v-if="author.alternate_names && author.alternate_names.length > 0">
-                <template #prepend>
-                  <v-icon icon="mdi-account-convert" />
-                </template>
-
-                <v-list-item-title class="text-wrap">
-                  Also known as: {{ author.alternate_names.slice(0, 2).join(', ') }}
-                </v-list-item-title>
-              </v-list-item>
-
-              <v-list-item v-if="author.wikipedia_url">
-                <template #prepend>
-                  <v-icon icon="mdi-wikipedia" />
-                </template>
-
-                <v-list-item-title>
-                  <a
-                    :href="author.wikipedia_url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-primary text-decoration-none"
-                  >
-                    Wikipedia
-                    <v-icon
-                      icon="mdi-open-in-new"
-                      size="x-small"
-                    />
-                  </a>
-                </v-list-item-title>
-              </v-list-item>
-
-              <v-divider
-                v-if="author.birth_date || author.death_date || author.birth_place || author.nationality || author.alternate_names && author.alternate_names.length > 0 || author.wikipedia_url"
-                class="my-3"
-              />
-
-              <v-list-item>
-                <template #prepend>
-                  <v-icon icon="mdi-book-multiple" />
-                </template>
-
-                <v-list-item-title>
-                  {{ author.books_count }} {{ author.books_count === 1
-                    ? 'book'
-                    : 'books' }}
-                </v-list-item-title>
-              </v-list-item>
-
-              <v-list-item>
-                <template #prepend>
-                  <v-icon icon="mdi-star" />
-                </template>
-
-                <v-list-item-title>
-                  <span>
-                    {{ weightedRating.toFixed(1) }} ({{ totalRatings.toLocaleString() }})
-                    <v-tooltip
-                      activator="parent"
-                      location="bottom"
-                    >
-                      <div>
-                        Minsik: {{ author.books_avg_rating
-                          ? author.books_avg_rating.toFixed(1)
-                          : '0.0' }} ({{ author.books_total_ratings
-                          ? author.books_total_ratings.toLocaleString()
-                          : '0' }} ratings)
-                      </div>
-
-                      <div class="mt-1">
-                        Open Library: {{ author.books_ol_avg_rating
-                          ? author.books_ol_avg_rating.toFixed(1)
-                          : '0.0' }} ({{ author.books_ol_total_ratings
-                          ? author.books_ol_total_ratings.toLocaleString()
-                          : '0' }} ratings)
-                      </div>
-                    </v-tooltip>
-                  </span>
-                </v-list-item-title>
-              </v-list-item>
-
-              <v-list-item>
-                <template #prepend>
-                  <v-icon icon="mdi-account-multiple" />
-                </template>
-
-                <v-list-item-title>
-                  <span>
-                    {{ totalReaders.toLocaleString() }} readers
-                    <v-tooltip
-                      activator="parent"
-                      location="bottom"
-                    >
-                      <div>Minsik - Want to Read: {{ (author.app_want_to_read_count ?? 0).toLocaleString() }}</div>
-
-                      <div>Minsik - Reading: {{ (author.app_reading_count ?? 0).toLocaleString() }}</div>
-
-                      <div>Minsik - Read: {{ (author.app_read_count ?? 0).toLocaleString() }}</div>
-
-                      <div class="mt-1">
-                        Open Library - Want to Read: {{ (author.ol_want_to_read_count ?? 0).toLocaleString() }}
-                      </div>
-
-                      <div>Open Library - Reading: {{ (author.ol_currently_reading_count ?? 0).toLocaleString() }}</div>
-
-                      <div>Open Library - Read: {{ (author.ol_already_read_count ?? 0).toLocaleString() }}</div>
-                    </v-tooltip>
-                  </span>
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-
-            <!-- Book Categories -->
-            <div
-              v-if="author.book_categories && author.book_categories.length > 0"
-              class="px-4 pb-4"
-            >
-              <v-divider class="mb-3" />
-
-              <CategoriesChips
-                :categories="author.book_categories"
-                :max-visible="3"
-              />
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- Main Content -->
-      <v-col
-        cols="12"
-        md="9"
-      >
-        <!-- Description Section -->
-        <DescriptionCard
-          :description="author.bio"
-          class="mb-6"
+        <BooksList
+          v-if="viewMode === 'list'"
+          :books="allBooks"
+          :loading="authorsStore.isLoadingBooks"
+          :load-more="loadMoreBooks"
+          :has-more="hasMoreBooks"
+          empty-message="No books found for this author."
         />
 
-        <!-- Books Section -->
-        <v-card>
-          <v-card-text>
-            <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2">
-              <h2 class="text-h5 font-weight-bold">
-                Books
-              </h2>
+        <AuthorTimeline
+          v-else
+          :books="allBooks"
+          :loading="authorsStore.isLoadingBooks"
+          :has-more="hasMoreBooks"
+          :load-more="loadMoreBooks"
+        />
+      </v-card-text>
+    </v-card>
 
-              <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
-                <v-select
-                  v-if="viewMode === 'list'"
-                  v-model="sortBy"
-                  :items="sortOptions"
-                  density="compact"
-                  variant="outlined"
-                  hide-details
-                  style="max-width: 200px;"
-                />
-
-                <v-btn-toggle
-                  v-model="viewMode"
-                  mandatory
-                  density="compact"
-                  variant="outlined"
-                  color="primary"
-                >
-                  <v-btn
-                    value="list"
-                    size="small"
-                    prepend-icon="mdi-view-list"
-                  >
-                    List view
-                  </v-btn>
-
-                  <v-btn
-                    value="timeline"
-                    size="small"
-                    prepend-icon="mdi-timeline-outline"
-                  >
-                    Timeline view
-                  </v-btn>
-                </v-btn-toggle>
-              </div>
-            </div>
-
-            <BooksList
-              v-if="viewMode === 'list'"
-              :books="allBooks"
-              :loading="authorsStore.isLoadingBooks"
-              :load-more="loadMoreBooks"
-              :has-more="hasMoreBooks"
-              empty-message="No books found for this author."
-            />
-
-            <AuthorTimeline
-              v-else
-              :books="allBooks"
-              :loading="authorsStore.isLoadingBooks"
-              :has-more="hasMoreBooks"
-              :load-more="loadMoreBooks"
-            />
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Author Recommendations -->
+    <!-- Recommendations -->
     <ClientOnly>
       <div
         v-if="personalizedAuthorRecs.length > 0 || recommendationsStore.isLoadingPersonalizedAuthorRecs"
