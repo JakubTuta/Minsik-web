@@ -1,4 +1,4 @@
-import type { CoverageStats, ImportDumpResult, JobTriggerResult } from '~/types/admin'
+import type { CoverageStats, ImportDumpResult, JobTriggerResult, RecommendationsRefreshResult } from '~/types/admin'
 import type { APIResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
@@ -27,11 +27,23 @@ export const useAdminStore = defineStore('admin', () => {
   const importResult = ref<ImportDumpResult | null>(null)
   const cleanupResult = ref<JobTriggerResult | null>(null)
   const reindexResult = ref<JobTriggerResult | null>(null)
+  const recommendationsRefreshResult = ref<RecommendationsRefreshResult | null>(null)
+  const personalRecommendationsRefreshResult = ref<RecommendationsRefreshResult | null>(null)
+  const userPersonalRecommendationsRefreshResult = ref<RecommendationsRefreshResult | null>(null)
+  const contextualRecommendationsRefreshResult = ref<RecommendationsRefreshResult | null>(null)
+  const contextualInvalidateResult = ref<RecommendationsRefreshResult | null>(null)
+  const bookOfTheWeekRefreshResult = ref<RecommendationsRefreshResult | null>(null)
 
   const isCoverageLoading = ref(false)
   const isImportLoading = ref(false)
   const isCleanupLoading = ref(false)
   const isReindexLoading = ref(false)
+  const isRecommendationsRefreshLoading = ref(false)
+  const isPersonalRecommendationsRefreshLoading = ref(false)
+  const isUserPersonalRecommendationsRefreshLoading = ref(false)
+  const isContextualRecommendationsRefreshLoading = ref(false)
+  const isContextualInvalidateLoading = ref(false)
+  const isBookOfTheWeekRefreshLoading = ref(false)
 
   const errors = ref<Record<string, string>>({})
   const isUpdateLoading = ref(false)
@@ -106,6 +118,118 @@ export const useAdminStore = defineStore('admin', () => {
     }
     finally {
       isReindexLoading.value = false
+    }
+  }
+
+  const refreshRecommendations = async () => {
+    isRecommendationsRefreshLoading.value = true
+    try {
+      const response = await client.value.post<APIResponse<RecommendationsRefreshResult>>(
+        '/api/v1/admin/recommendations/refresh',
+      )
+      recommendationsRefreshResult.value = response.data.data!
+      errors.value.recommendationsRefresh = ''
+    }
+    catch (error) {
+      console.error('Failed to refresh recommendations:', error)
+      errors.value.recommendationsRefresh = 'Failed to refresh recommendations'
+    }
+    finally {
+      isRecommendationsRefreshLoading.value = false
+    }
+  }
+
+  const refreshPersonalRecommendations = async () => {
+    isPersonalRecommendationsRefreshLoading.value = true
+    try {
+      const response = await client.value.post<APIResponse<RecommendationsRefreshResult>>(
+        '/api/v1/admin/recommendations/personal/refresh',
+      )
+      personalRecommendationsRefreshResult.value = response.data.data!
+      errors.value.personalRecommendationsRefresh = ''
+    }
+    catch (error) {
+      console.error('Failed to refresh personal recommendations:', error)
+      errors.value.personalRecommendationsRefresh = 'Failed to refresh personal recommendations'
+    }
+    finally {
+      isPersonalRecommendationsRefreshLoading.value = false
+    }
+  }
+
+  const refreshUserPersonalRecommendations = async (username: string) => {
+    isUserPersonalRecommendationsRefreshLoading.value = true
+    try {
+      const response = await client.value.post<APIResponse<RecommendationsRefreshResult>>(
+        `/api/v1/admin/recommendations/personal/refresh/${encodeURIComponent(username)}`,
+      )
+      userPersonalRecommendationsRefreshResult.value = response.data.data!
+      errors.value.userPersonalRecommendationsRefresh = ''
+    }
+    catch (error: any) {
+      console.error('Failed to refresh personal recommendations for user:', error)
+      errors.value.userPersonalRecommendationsRefresh
+        = error?.response?.data?.error?.message
+          || 'Failed to refresh personal recommendations for user'
+    }
+    finally {
+      isUserPersonalRecommendationsRefreshLoading.value = false
+    }
+  }
+
+  const refreshContextualRecommendations = async () => {
+    isContextualRecommendationsRefreshLoading.value = true
+    try {
+      const response = await client.value.post<APIResponse<RecommendationsRefreshResult>>(
+        '/api/v1/admin/recommendations/contextual/refresh',
+      )
+      contextualRecommendationsRefreshResult.value = response.data.data!
+      errors.value.contextualRecommendationsRefresh = ''
+    }
+    catch (error) {
+      console.error('Failed to refresh contextual recommendations:', error)
+      errors.value.contextualRecommendationsRefresh = 'Failed to refresh contextual recommendations'
+    }
+    finally {
+      isContextualRecommendationsRefreshLoading.value = false
+    }
+  }
+
+  const invalidateContextualCache = async (entityType: 'book' | 'author' | 'series', slug: string) => {
+    isContextualInvalidateLoading.value = true
+    try {
+      const response = await client.value.post<APIResponse<RecommendationsRefreshResult>>(
+        `/api/v1/admin/recommendations/contextual/invalidate/${entityType}/${encodeURIComponent(slug)}`,
+      )
+      contextualInvalidateResult.value = response.data.data!
+      errors.value.contextualInvalidate = ''
+    }
+    catch (error: any) {
+      console.error('Failed to invalidate contextual cache:', error)
+      errors.value.contextualInvalidate
+        = error?.response?.data?.error?.message
+          || 'Failed to invalidate contextual cache'
+    }
+    finally {
+      isContextualInvalidateLoading.value = false
+    }
+  }
+
+  const refreshBookOfTheWeek = async () => {
+    isBookOfTheWeekRefreshLoading.value = true
+    try {
+      const response = await client.value.post<APIResponse<RecommendationsRefreshResult>>(
+        '/api/v1/admin/recommendations/book-of-the-week/refresh',
+      )
+      bookOfTheWeekRefreshResult.value = response.data.data!
+      errors.value.bookOfTheWeekRefresh = ''
+    }
+    catch (error) {
+      console.error('Failed to refresh book of the week:', error)
+      errors.value.bookOfTheWeekRefresh = 'Failed to refresh book of the week'
+    }
+    finally {
+      isBookOfTheWeekRefreshLoading.value = false
     }
   }
 
@@ -262,10 +386,22 @@ export const useAdminStore = defineStore('admin', () => {
     importResult,
     cleanupResult,
     reindexResult,
+    recommendationsRefreshResult,
+    personalRecommendationsRefreshResult,
+    userPersonalRecommendationsRefreshResult,
+    contextualRecommendationsRefreshResult,
+    contextualInvalidateResult,
+    bookOfTheWeekRefreshResult,
     isCoverageLoading,
     isImportLoading,
     isCleanupLoading,
     isReindexLoading,
+    isRecommendationsRefreshLoading,
+    isPersonalRecommendationsRefreshLoading,
+    isUserPersonalRecommendationsRefreshLoading,
+    isContextualRecommendationsRefreshLoading,
+    isContextualInvalidateLoading,
+    isBookOfTheWeekRefreshLoading,
     isUpdateLoading,
     isDeleteLoading,
     errors,
@@ -273,6 +409,12 @@ export const useAdminStore = defineStore('admin', () => {
     importDump,
     runCleanup,
     runReindex,
+    refreshRecommendations,
+    refreshPersonalRecommendations,
+    refreshUserPersonalRecommendations,
+    refreshContextualRecommendations,
+    invalidateContextualCache,
+    refreshBookOfTheWeek,
     updateBook,
     updateAuthor,
     updateSeries,

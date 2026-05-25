@@ -3,7 +3,7 @@ interface Props {
   description?: string | null
   emptyMessage?: string
   collapsible?: boolean
-  maxChars?: number
+  maxLines?: number
   hideCard?: boolean
 }
 
@@ -11,22 +11,17 @@ const props = withDefaults(defineProps<Props>(), {
   description: null,
   emptyMessage: 'There is no description yet, we will add it soon.',
   collapsible: false,
-  maxChars: 400,
+  maxLines: 5,
   hideCard: false,
 })
 
 const expanded = ref(false)
+const contentRef = ref<HTMLElement | null>(null)
+const needsCollapse = ref(false)
 
-const needsCollapse = computed(() =>
-  props.collapsible && !!props.description && props.description.length > props.maxChars,
-)
-
-const displayText = computed(() => {
-  if (!props.description)
-    return null
-  if (needsCollapse.value && !expanded.value)
-    return `${props.description.slice(0, props.maxChars)}...`
-  return props.description
+onMounted(() => {
+  if (contentRef.value)
+    needsCollapse.value = props.collapsible && contentRef.value.scrollHeight > contentRef.value.clientHeight + 4
 })
 </script>
 
@@ -38,11 +33,14 @@ const displayText = computed(() => {
       </h2>
 
       <p
-        v-if="displayText"
+        v-if="description"
+        ref="contentRef"
         class="text-body-1"
-        style="white-space: pre-line;"
+        :style="!expanded && collapsible
+          ? `-webkit-line-clamp: ${maxLines}; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line;`
+          : 'white-space: pre-line;'"
       >
-        {{ displayText }}
+        {{ description }}
       </p>
 
       <p
@@ -56,6 +54,7 @@ const displayText = computed(() => {
         v-if="needsCollapse"
         variant="text"
         size="small"
+        color="secondary"
         class="mt-1 px-0"
         @click="expanded = !expanded"
       >
@@ -66,11 +65,14 @@ const displayText = computed(() => {
 
   <div v-else>
     <p
-      v-if="displayText"
+      v-if="description"
+      ref="contentRef"
       class="text-body-1"
-      style="white-space: pre-line;"
+      :style="!expanded && collapsible
+        ? `-webkit-line-clamp: ${maxLines}; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line;`
+        : 'white-space: pre-line;'"
     >
-      {{ displayText }}
+      {{ description }}
     </p>
 
     <p
@@ -84,6 +86,7 @@ const displayText = computed(() => {
       v-if="needsCollapse"
       variant="text"
       size="small"
+      color="secondary"
       class="mt-1 px-0"
       @click="expanded = !expanded"
     >

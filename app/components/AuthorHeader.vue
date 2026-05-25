@@ -4,6 +4,10 @@ import type { Author } from '~/types/api'
 import { hashColor } from '~/utils/coverColor'
 import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
+function formatShortDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
 interface Props {
   author: Author
   isAdmin?: boolean
@@ -41,13 +45,18 @@ const age = computed(() => {
   return years
 })
 
-const birthYear = computed(() =>
-  props.author.birth_date ? new Date(props.author.birth_date).getFullYear() : null,
+const birthDateFormatted = computed(() =>
+  props.author.birth_date ? formatShortDate(props.author.birth_date) : null,
 )
 
-const deathYear = computed(() =>
-  props.author.death_date ? new Date(props.author.death_date).getFullYear() : null,
+const deathDateFormatted = computed(() =>
+  props.author.death_date ? formatShortDate(props.author.death_date) : null,
 )
+
+const birthPlace = computed(() => {
+  const parts = [props.author.birth_place, props.author.nationality].filter(Boolean)
+  return parts.length ? parts.join(', ') : null
+})
 
 const authorWeightedRating = computed(() =>
   weightedRating(
@@ -72,6 +81,37 @@ const authorTotalReaders = computed(() =>
     props.author.ol_already_read_count,
   ),
 )
+
+const authorStats = computed(() => [
+  {
+    icon: 'mdi-book-multiple',
+    value: props.author.books_count,
+    label: 'BOOKS',
+  },
+  {
+    icon: 'mdi-star',
+    iconColor: 'warning',
+    value: `${authorWeightedRating.value.toFixed(1)}`,
+    label: `AVG RATING (${authorTotalRatings.value.toLocaleString()})`,
+    tooltipLines: [
+      `Minsik: ${props.author.books_avg_rating?.toFixed(1) ?? '0.0'} (${(props.author.books_total_ratings ?? 0).toLocaleString()} ratings)`,
+      `Open Library: ${props.author.books_ol_avg_rating?.toFixed(1) ?? '0.0'} (${(props.author.books_ol_total_ratings ?? 0).toLocaleString()} ratings)`,
+    ],
+  },
+  {
+    icon: 'mdi-account-multiple',
+    value: authorTotalReaders.value.toLocaleString(),
+    label: 'READERS',
+    tooltipLines: [
+      `Minsik - Want to Read: ${(props.author.app_want_to_read_count ?? 0).toLocaleString()}`,
+      `Minsik - Reading: ${(props.author.app_reading_count ?? 0).toLocaleString()}`,
+      `Minsik - Read: ${(props.author.app_read_count ?? 0).toLocaleString()}`,
+      `Open Library - Want to Read: ${(props.author.ol_want_to_read_count ?? 0).toLocaleString()}`,
+      `Open Library - Reading: ${(props.author.ol_currently_reading_count ?? 0).toLocaleString()}`,
+      `Open Library - Read: ${(props.author.ol_already_read_count ?? 0).toLocaleString()}`,
+    ],
+  },
+])
 
 const preTitleLine = computed(() => {
   const parts: string[] = []
@@ -149,7 +189,9 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
 </script>
 
 <template>
-  <v-row class="mb-6 align-center">
+  <v-row
+    align="start"
+  >
     <!-- Left: Avatar + dates -->
     <v-col
       cols="12"
@@ -173,14 +215,14 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
       </v-avatar>
 
       <div
-        v-if="birthYear || deathYear"
-        class="d-flex align-center gap-2 text-medium-emphasis text-body-2"
+        v-if="birthDateFormatted || deathDateFormatted"
+        class="d-flex align-center gap-2 text-medium-emphasis text-body-2 text-center"
       >
         <v-icon
           icon="mdi-calendar"
           size="small"
         />
-        <span>{{ birthYear ?? '?' }} — {{ deathYear ?? '—' }}</span>
+        <span>{{ birthDateFormatted ?? '?' }} — {{ deathDateFormatted ?? '—' }}</span>
         <span
           v-if="age !== null"
           class="ml-1"
@@ -212,73 +254,16 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
       </p>
 
       <!-- Stats row -->
-      <div class="d-flex flex-wrap gap-6 mb-4 align-center">
-        <div class="d-flex flex-column align-center">
-          <div class="d-flex align-center gap-1 text-body-1 font-weight-bold">
-            <v-icon
-              icon="mdi-book-multiple"
-              size="small"
-            />
-            {{ author.books_count }}
-          </div>
-          <span class="text-caption text-medium-emphasis">BOOKS</span>
-        </div>
-
-        <div class="d-flex flex-column align-center">
-          <div class="d-flex align-center gap-1 text-body-1 font-weight-bold">
-            <v-icon
-              icon="mdi-star"
-              size="small"
-              color="warning"
-            />
-            <span>
-              {{ authorWeightedRating.toFixed(1) }}
-              <v-tooltip
-                activator="parent"
-                location="bottom"
-              >
-                <div>Minsik: {{ author.books_avg_rating?.toFixed(1) ?? '0.0' }} ({{ (author.books_total_ratings ?? 0).toLocaleString() }} ratings)</div>
-                <div class="mt-1">
-                  Open Library: {{ author.books_ol_avg_rating?.toFixed(1) ?? '0.0' }} ({{ (author.books_ol_total_ratings ?? 0).toLocaleString() }} ratings)
-                </div>
-              </v-tooltip>
-            </span>
-          </div>
-          <span class="text-caption text-medium-emphasis">AVG RATING ({{ authorTotalRatings.toLocaleString() }})</span>
-        </div>
-
-        <div class="d-flex flex-column align-center">
-          <div class="d-flex align-center gap-1 text-body-1 font-weight-bold">
-            <v-icon
-              icon="mdi-account-multiple"
-              size="small"
-            />
-            <span>
-              {{ authorTotalReaders.toLocaleString() }}
-              <v-tooltip
-                activator="parent"
-                location="bottom"
-              >
-                <div>Minsik - Want to Read: {{ (author.app_want_to_read_count ?? 0).toLocaleString() }}</div>
-                <div>Minsik - Reading: {{ (author.app_reading_count ?? 0).toLocaleString() }}</div>
-                <div>Minsik - Read: {{ (author.app_read_count ?? 0).toLocaleString() }}</div>
-                <div class="mt-1">
-                  Open Library - Want to Read: {{ (author.ol_want_to_read_count ?? 0).toLocaleString() }}
-                </div>
-                <div>Open Library - Reading: {{ (author.ol_currently_reading_count ?? 0).toLocaleString() }}</div>
-                <div>Open Library - Read: {{ (author.ol_already_read_count ?? 0).toLocaleString() }}</div>
-              </v-tooltip>
-            </span>
-          </div>
-          <span class="text-caption text-medium-emphasis">READERS</span>
-        </div>
-      </div>
+      <StatsRow
+        :stats="authorStats"
+        class="mb-4"
+      />
 
       <!-- Bio -->
       <DescriptionCard
         :description="author.bio"
         :collapsible="true"
-        :max-chars="400"
+        :max-lines="5"
         hide-card
         empty-message=""
         class="mb-4"
@@ -287,14 +272,14 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
       <!-- Info row -->
       <div class="d-flex flex-wrap align-center gap-4 mb-4 text-body-2">
         <div
-          v-if="author.birth_place"
+          v-if="birthPlace"
           class="d-flex align-center gap-1 text-medium-emphasis"
         >
           <v-icon
             icon="mdi-map-marker"
             size="small"
           />
-          {{ author.birth_place }}
+          {{ birthPlace }}
         </div>
 
         <a

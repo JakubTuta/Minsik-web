@@ -93,10 +93,7 @@ const hasLinks = computed(() => links.value.length > 0)
 </script>
 
 <template>
-  <v-card
-    v-if="hasLinks"
-    class="h-100"
-  >
+  <v-card v-if="hasLinks">
     <v-card-text>
       <h2 class="text-h6 font-weight-bold mb-3">
         Check out this book on other platforms

@@ -11,7 +11,6 @@ const recommendationsStore = useRecommendationsStore()
 
 const slug = route.params.slug as string
 
-// Fetch series data and books
 const { data: series, error: seriesError } = await useAsyncData(
   `series-${slug}`,
   () => seriesStore.fetchSeries(slug),
@@ -22,7 +21,7 @@ const { data: books } = await useAsyncData(
   () => seriesStore.fetchSeriesBooks(slug),
 )
 
-// Fetch first book's full details to get author
+// Fetch first book's full details to get author for AuthorShortCard
 const booksStore = useBooksStore()
 const { data: firstBookDetails } = await useAsyncData(
   `series-first-book-${slug}`,
@@ -43,7 +42,6 @@ const { data: firstBookDetails } = await useAsyncData(
   },
 )
 
-// Fetch author data from first book
 const { data: primaryAuthor } = await useAsyncData(
   `series-author-${slug}`,
   async () => {
@@ -79,28 +77,17 @@ useSeo({
   author: series.value.author?.name,
 })
 
-// Structured data
 useSeriesStructuredData({
   name: series.value.name,
   description: series.value.description || undefined,
   url: canonicalUrl,
 })
 
-// Series rating from API
-const seriesAvgRating = computed(() => series.value?.avg_rating ?? 0)
-const seriesTotalRatings = computed(() => series.value?.rating_count ?? 0)
-
-const statisticsExpanded = ref(false)
-
-function toggleStatistics() {
-  statisticsExpanded.value = !statisticsExpanded.value
-}
-
 const isAdmin = computed(() => authStore.user?.role === 'admin')
-const editDialogOpen = ref(false)
 const editError = ref('')
-const deleteDialogOpen = ref(false)
 const deleteError = ref('')
+const editDialogOpen = ref(false)
+const deleteDialogOpen = ref(false)
 
 const seriesEditFields: EditFieldConfig[] = [
   { key: 'name', label: 'Name', type: 'text' },
@@ -156,209 +143,45 @@ onMounted(async () => {
     catch { /* Silently fail */ }
   }
 })
-
-// Get book covers for collage (max 4)
-const collageCovers = computed(() => {
-  if (!books.value || books.value.length === 0)
-    return []
-
-  return books.value.slice(0, 4).map(book => book.primary_cover_url || coverColor(book))
-})
 </script>
 
 <template>
   <v-container v-if="series">
     <v-row>
       <v-col cols="12">
-        <v-card>
-          <v-row no-gutters>
-            <!-- Book Covers Collage -->
-            <v-col
-              cols="12"
-              md="3"
-              class="pa-0"
-            >
-              <CoversCollage :covers="collageCovers" />
-            </v-col>
-
-            <!-- Series Info -->
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <v-card-text class="d-flex flex-column h-100">
-                <div>
-                  <div class="text-secondary text-h6 mb-1">
-                    Book Series
-                  </div>
-
-                  <div class="d-flex align-center justify-space-between">
-                    <h1 class="text-h4 font-weight-bold">
-                      {{ series.name }}
-                    </h1>
-
-                    <ClientOnly>
-                      <div class="d-flex">
-                        <v-btn
-                          v-if="isAdmin"
-                          icon="mdi-pencil"
-                          variant="text"
-                          size="small"
-                          color="secondary"
-                          @click="editDialogOpen = true"
-                        />
-
-                        <v-btn
-                          v-if="isAdmin"
-                          icon="mdi-delete"
-                          variant="text"
-                          size="small"
-                          color="error"
-                          @click="deleteDialogOpen = true"
-                        />
-                      </div>
-                    </ClientOnly>
-                  </div>
-
-                  <ClientOnly>
-                    <AdminEditDialog
-                      v-model="editDialogOpen"
-                      title="Edit Series"
-                      :fields="seriesEditFields"
-                      :original-data="seriesEditOriginalData"
-                      :loading="adminStore.isUpdateLoading"
-                      :error="editError"
-                      @save="handleSeriesEditSave"
-                    />
-
-                    <v-dialog
-                      v-model="deleteDialogOpen"
-                      max-width="400"
-                    >
-                      <v-card>
-                        <v-card-title>Delete Series?</v-card-title>
-
-                        <v-card-text>
-                          This action cannot be undone. Are you sure you want to delete "{{ series?.name }}"?
-                          <v-alert
-                            v-if="deleteError"
-                            type="error"
-                            class="mt-3"
-                          >
-                            {{ deleteError }}
-                          </v-alert>
-                        </v-card-text>
-
-                        <v-card-actions>
-                          <v-spacer />
-
-                          <v-btn
-                            variant="text"
-                            @click="deleteDialogOpen = false"
-                          >
-                            Cancel
-                          </v-btn>
-
-                          <v-btn
-                            color="error"
-                            variant="flat"
-                            :loading="adminStore.isDeleteLoading"
-                            @click="handleSeriesDelete"
-                          >
-                            Delete
-                          </v-btn>
-                        </v-card-actions>
-                      </v-card>
-                    </v-dialog>
-                  </ClientOnly>
-
-                  <!-- Rating -->
-                  <div class="text-secondary mb-1 mt-6">
-                    Minsik users reviews
-                  </div>
-
-                  <RatingDisplay
-                    :rating="seriesAvgRating"
-                    :rating-count="seriesTotalRatings"
-                  />
-
-                  <!-- Other Platform Ratings -->
-                  <div class="text-secondary mb-1 mt-4">
-                    Other platforms reviews
-                  </div>
-
-                  <RatingDisplay
-                    :rating="series.ol_avg_rating"
-                    :rating-count="series.ol_rating_count"
-                    size="small"
-                  />
-
-                  <!-- Metadata -->
-                  <div class="mt-6">
-                    <v-icon icon="mdi-book-multiple" />
-
-                    {{ series.total_books }} {{ series.total_books === 1
-                      ? 'book'
-                      : 'books' }}
-                  </div>
-                </div>
-
-                <!-- Statistics Toggle at bottom -->
-                <div class="pt-4">
-                  <v-btn
-                    variant="text"
-                    color="secondary"
-                    size="small"
-                    @click="toggleStatistics"
-                  >
-                    Statistics
-                    <v-icon
-                      :icon="statisticsExpanded
-                        ? 'mdi-chevron-up'
-                        : 'mdi-chevron-down'"
-                    />
-                  </v-btn>
-
-                  <v-expand-transition>
-                    <div v-show="statisticsExpanded">
-                      <div class="text-body-2 mt-2">
-                        <div>Minsik want to read: {{ (series.app_want_to_read_count ?? 0).toLocaleString() }}</div>
-
-                        <div>Minsik reading: {{ (series.app_reading_count ?? 0).toLocaleString() }}</div>
-
-                        <div>Minsik read: {{ (series.app_read_count ?? 0).toLocaleString() }}</div>
-
-                        <div class="mt-3">
-                          Open Library want to read: {{ (series.ol_want_to_read_count ?? 0).toLocaleString() }}
-                        </div>
-
-                        <div>Open Library reading: {{ (series.ol_currently_reading_count ?? 0).toLocaleString() }}</div>
-
-                        <div>Open Library read: {{ (series.ol_already_read_count ?? 0).toLocaleString() }}</div>
-                      </div>
-                    </div>
-                  </v-expand-transition>
-                </div>
-              </v-card-text>
-            </v-col>
-
-            <!-- Author Section -->
-            <v-col
-              v-if="primaryAuthor"
-              cols="12"
-              md="3"
-            >
-              <AuthorShortCard :author="primaryAuthor" />
-            </v-col>
-          </v-row>
-        </v-card>
+        <SeriesHeader
+          v-model:edit-dialog-open="editDialogOpen"
+          v-model:delete-dialog-open="deleteDialogOpen"
+          :series="series"
+          :books="books || []"
+          :primary-author="primaryAuthor"
+          :is-admin="isAdmin"
+          :edit-fields="seriesEditFields"
+          :edit-original-data="seriesEditOriginalData"
+          :edit-loading="adminStore.isUpdateLoading"
+          :edit-error="editError"
+          :delete-loading="adminStore.isDeleteLoading"
+          :delete-error="deleteError"
+          @edit-save="handleSeriesEditSave"
+          @delete-confirm="handleSeriesDelete"
+        />
       </v-col>
     </v-row>
 
     <!-- Description Section -->
     <v-row class="mt-6">
       <v-col cols="12">
-        <DescriptionCard :description="series.description" />
+        <LongDescriptionCard :description="series.description" />
+      </v-col>
+    </v-row>
+
+    <!-- Evolution Graph -->
+    <v-row
+      v-if="(books?.length ?? 0) >= 2"
+      class="mt-6"
+    >
+      <v-col cols="12">
+        <SeriesEvolutionCard :books="books!" />
       </v-col>
     </v-row>
 
@@ -380,6 +203,7 @@ const collageCovers = computed(() => {
         </v-card>
       </v-col>
     </v-row>
+
     <!-- Series Recommendations -->
     <ClientOnly>
       <div

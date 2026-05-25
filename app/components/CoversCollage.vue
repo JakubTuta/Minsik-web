@@ -35,7 +35,7 @@ const containerStyle = computed(() => {
         :alt="`Book cover ${index + 1}`"
         aspect-ratio="0.67"
         cover
-        class="rounded"
+        class="rounded cover-image"
         :style="cover.startsWith('#') ? { backgroundColor: cover } : undefined"
       >
         <template #placeholder>
@@ -49,13 +49,23 @@ const containerStyle = computed(() => {
 <style scoped>
 .cover-item {
   position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s;
+  overflow: hidden;
+  border-radius: 4px;
 }
 
 .cover-item:hover {
   transform: scale(1.05);
   z-index: 10;
+}
+
+.cover-item .cover-image {
+  width: 100%;
+  height: 100%;
 }
 
 /* 1 Book */

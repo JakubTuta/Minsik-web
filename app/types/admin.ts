@@ -15,6 +15,11 @@ export interface JobTriggerResult {
   message: string
 }
 
+export interface RecommendationsRefreshResult {
+  success: boolean
+  message: string
+}
+
 export interface AdminUpdateBookRequest {
   title?: string | null
   slug?: string | null

@@ -132,6 +132,7 @@ export interface Series extends SeriesMinimal {
   ol_want_to_read_count: number
   ol_currently_reading_count: number
   ol_already_read_count: number
+  total_pages: number
 }
 
 // Book Types
@@ -156,6 +157,7 @@ export interface BookSummary {
   series_position?: number | null
   rarity?: string | null
   original_publication_year?: number | null
+  number_of_pages?: number | null
 }
 
 export interface Book {

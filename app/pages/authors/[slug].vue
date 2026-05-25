@@ -175,21 +175,26 @@ async function handleAuthorDelete() {
 <template>
   <v-container v-if="author">
     <!-- Header -->
-    <AuthorHeader
-      :author="author"
-      :is-admin="isAdmin"
-      @delete="handleAuthorDelete"
-    />
+    <div class="mb-16">
+      <AuthorHeader
+        :author="author"
+        :is-admin="isAdmin"
+        @delete="handleAuthorDelete"
+      />
+    </div>
 
     <!-- Quote -->
-    <AuthorQuoteCard :quote="(authorQuote as AuthorQuote | null)" />
+    <div class="mb-16">
+      <AuthorQuoteCard :quote="(authorQuote as AuthorQuote | null)" />
+    </div>
 
     <!-- Top 3 Books (podium) -->
-    <AuthorTopBooks
-      :books="(topBooks as BookSummary[] | null) ?? []"
-      :loading="authorsStore.isLoadingBooks && !topBooks"
-      :books-count="author.books_count"
-    />
+    <div class="mb-16">
+      <AuthorTopBooks
+        :books="(topBooks as BookSummary[] | null) ?? []"
+        :loading="authorsStore.isLoadingBooks && !topBooks"
+      />
+    </div>
 
     <!-- Books Section -->
     <v-card id="books-list">

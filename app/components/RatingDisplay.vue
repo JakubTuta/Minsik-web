@@ -18,7 +18,10 @@ const isSmall = computed(() => props.size === 'small')
 </script>
 
 <template>
-  <div class="d-flex align-center gap-2">
+  <div
+    class="d-flex gap-2"
+    style="align-items: center;"
+  >
     <v-rating
       :model-value="roundedRating"
       readonly
@@ -29,20 +32,23 @@ const isSmall = computed(() => props.size === 'small')
         ? 'small'
         : 'x-large'"
       density="compact"
+      style="display: inline-flex; align-items: center;"
     />
 
     <span
       :class="isSmall
         ? 'text-body-1 font-weight-bold text-primary'
         : 'text-h4 font-weight-bold text-primary'"
+      style="line-height: 1;"
     >
       {{ rating.toFixed(1) }}
     </span>
 
     <span
       :class="isSmall
-        ? ' text-secondary'
+        ? 'text-secondary'
         : 'text-body-1 text-secondary'"
+      style="line-height: 1;"
     >
       ({{ ratingCount.toLocaleString() }}{{ mobile
         ? ''

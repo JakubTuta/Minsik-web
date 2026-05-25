@@ -13,9 +13,9 @@ defineProps<Props>()
     v-if="quote"
     color="surface"
     flat
-    class="my-6 py-4"
+    class=""
   >
-    <v-card-text class="d-flex flex-column align-center text-center px-8 py-6">
+    <v-card-text class="d-flex flex-column align-center text-center px-6 py-4">
       <v-icon
         icon="mdi-format-quote-open"
         size="36"

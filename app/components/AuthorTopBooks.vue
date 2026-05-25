@@ -5,12 +5,10 @@ import { totalRatingCount, weightedRating } from '~/utils/format'
 interface Props {
   books: BookSummary[]
   loading?: boolean
-  booksCount?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
-  booksCount: 0,
 })
 
 function bookWeightedRating(book: BookSummary): number {
@@ -27,31 +25,21 @@ const podiumOrder = computed(() => {
     return []
   const [first, second, third] = props.books
   return [
-    second ? { book: second, rank: 2, topPadding: 'pt-6' } : null,
-    first ? { book: first, rank: 1, topPadding: '' } : null,
-    third ? { book: third, rank: 3, topPadding: 'pt-10' } : null,
-  ].filter(Boolean) as { book: BookSummary, rank: number, topPadding: string }[]
+    second ? { book: second, rank: 2, cardTopClass: 'mt-8' } : null,
+    first ? { book: first, rank: 1, cardTopClass: '' } : null,
+    third ? { book: third, rank: 3, cardTopClass: 'mt-14' } : null,
+  ].filter(Boolean) as { book: BookSummary, rank: number, cardTopClass: string }[]
 })
 </script>
 
 <template>
   <div
     v-if="loading || books.length > 0"
-    class="mb-8"
+    class=""
   >
-    <div class="d-flex align-center justify-space-between mb-4">
-      <h2 class="text-h5 font-weight-bold">
-        Most acclaimed
-      </h2>
-
-      <NuxtLink
-        v-if="booksCount > 0"
-        to="#books-list"
-        class="text-primary text-decoration-none text-body-2"
-      >
-        All {{ booksCount }} books →
-      </NuxtLink>
-    </div>
+    <h2 class="text-h5 font-weight-bold">
+      Most acclaimed
+    </h2>
 
     <!-- Skeleton -->
     <v-row v-if="loading">
@@ -66,76 +54,76 @@ const podiumOrder = computed(() => {
     </v-row>
 
     <!-- Podium -->
-    <v-row
-      v-else
-      align="end"
-    >
+    <v-row v-else>
       <v-col
         v-for="entry in podiumOrder"
         :key="entry.rank"
         cols="12"
         md="4"
-        :class="entry.topPadding"
       >
-        <NuxtLink
-          :to="`/books/${entry.book.slug}`"
-          class="text-decoration-none"
-        >
-          <v-card class="h-full">
-            <v-card-text class="pa-4">
-              <!-- Cover + rank row -->
-              <div class="d-flex justify-space-between align-start mb-3">
-                <v-img
-                  :src="entry.book.primary_cover_url || undefined"
-                  lazy-src="/placeholder-book-lazy.jpg"
-                  :alt="entry.book.title"
-                  width="100"
-                  height="150"
-                  cover
-                  class="rounded flex-shrink-0"
-                />
+        <v-card :class="['h-full', entry.cardTopClass]">
+          <v-card-text class="pa-4">
+            <!-- Cover + rank -->
+            <div
+              class="position-relative mb-3"
+              style="height: 180px;"
+            >
+              <v-img
+                :src="entry.book.primary_cover_url || undefined"
+                lazy-src="/placeholder-book-lazy.jpg"
+                :alt="entry.book.title"
+                width="120"
+                height="180"
+                contain
+                position="left center"
+                class="rounded"
+                style="position: absolute; left: 0; top: 0;"
+              />
 
-                <span
-                  class="text-h3 font-weight-bold text-medium-emphasis"
-                  style="opacity: 0.25; font-style: italic; line-height: 1; user-select: none;"
-                >
-                  #{{ entry.rank }}
-                </span>
-              </div>
+              <span
+                class="text-h2 font-weight-bold text-primary"
+                style="position: absolute; right: 0; top: 0; opacity: 0.2; font-style: italic; line-height: 1; user-select: none;"
+              >
+                #{{ entry.rank }}
+              </span>
+            </div>
 
-              <!-- Title -->
+            <!-- Title (only this is a link) -->
+            <NuxtLink
+              :to="`/books/${entry.book.slug}`"
+              class="text-decoration-none book-title-link"
+            >
               <p class="text-subtitle-1 font-weight-bold book-title mb-1">
                 {{ entry.book.title }}
               </p>
+            </NuxtLink>
 
-              <!-- Year -->
-              <p
-                v-if="entry.book.original_publication_year"
-                class="text-body-2 text-medium-emphasis mb-2"
-              >
-                {{ entry.book.original_publication_year }}
-              </p>
+            <!-- Year -->
+            <p
+              v-if="entry.book.original_publication_year"
+              class="text-body-2 text-medium-emphasis mb-2"
+            >
+              {{ entry.book.original_publication_year }}
+            </p>
 
-              <!-- Rating -->
-              <div class="d-flex align-center gap-2 mb-3">
-                <RatingDisplay
-                  :rating="bookWeightedRating(entry.book)"
-                  :rating-count="bookTotalRatings(entry.book)"
-                  size="small"
-                />
-              </div>
+            <!-- Rating -->
+            <RatingDisplay
+              :rating="bookWeightedRating(entry.book)"
+              :rating-count="bookTotalRatings(entry.book)"
+              size="small"
+              class="mb-3"
+            />
 
-              <!-- Description -->
-              <p
-                v-if="entry.book.description"
-                class="text-body-2 text-medium-emphasis"
-                style="-webkit-line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;"
-              >
-                {{ entry.book.description }}
-              </p>
-            </v-card-text>
-          </v-card>
-        </NuxtLink>
+            <!-- Description -->
+            <p
+              v-if="entry.book.description"
+              class="text-body-2 text-medium-emphasis"
+              style="-webkit-line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;"
+            >
+              {{ entry.book.description }}
+            </p>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
   </div>
@@ -143,10 +131,11 @@ const podiumOrder = computed(() => {
 
 <style scoped>
 .book-title {
+  color: rgb(var(--v-theme-on-surface));
   transition: color 0.15s ease;
 }
 
-a:hover .book-title {
+.book-title-link:hover .book-title {
   color: rgb(var(--v-theme-primary));
 }
 </style>

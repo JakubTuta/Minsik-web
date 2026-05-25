@@ -58,9 +58,6 @@ const primaryAuthor = ref<Author | null>(null)
 const seriesBooks = ref<BookSummary[]>([])
 const bookRecommendations = ref<RecommendationSection[]>([])
 const personalizedBookRecs = ref<RecommendationSection[]>([])
-const descriptionExpanded = ref(false)
-const descriptionRef = ref<HTMLElement>()
-const expandedHeight = ref(0)
 const selectedRating = ref<number | null>(null)
 
 function distributionCount(star: number): number {
@@ -113,45 +110,6 @@ function formatFirstSentence(sentence: string): string {
     return trimmed
 
   return trimmed + '.'.repeat(3 - existingDots)
-}
-
-// Description truncation
-const DESCRIPTION_MAX_LENGTH = 500
-const TRUNCATION_WINDOW = 20
-
-const truncatedDescription = computed(() => {
-  const desc = book.value?.description
-  if (!desc || desc.length <= DESCRIPTION_MAX_LENGTH + TRUNCATION_WINDOW)
-    return null
-
-  const windowStart = DESCRIPTION_MAX_LENGTH - TRUNCATION_WINDOW
-  const windowEnd = DESCRIPTION_MAX_LENGTH + TRUNCATION_WINDOW
-  const window = desc.slice(windowStart, windowEnd)
-
-  // Try to cut at paragraph boundary within window
-  const paragraphIdx = window.indexOf('\n\n')
-  if (paragraphIdx >= 0)
-    return desc.slice(0, windowStart + paragraphIdx).trim()
-
-  // Try to cut at sentence boundary within window
-  const sentenceMatch = window.match(/[.!?](?:\s|$)/)
-  if (sentenceMatch?.index != null)
-    return desc.slice(0, windowStart + sentenceMatch.index + 1).trim()
-
-  // Try to cut at word boundary within window
-  const wordIdx = window.indexOf(' ')
-  if (wordIdx >= 0)
-    return `${desc.slice(0, windowStart + wordIdx).trim()}...`
-
-  return `${desc.slice(0, DESCRIPTION_MAX_LENGTH).trim()}...`
-})
-
-const descriptionNeedsTruncation = computed(() => !!truncatedDescription.value)
-
-function toggleDescription() {
-  if (descriptionRef.value)
-    expandedHeight.value = descriptionRef.value.scrollHeight
-  descriptionExpanded.value = !descriptionExpanded.value
 }
 
 const isAdmin = computed(() => authStore.user?.role === 'admin')
@@ -383,64 +341,15 @@ onUnmounted(() => {
           <v-col
             cols="12"
             md="8"
-            class="d-flex flex-column"
           >
-            <v-card class="flex-1">
-              <v-card-text>
-                <h2 class="text-h6 font-weight-bold mb-3">
-                  Description
-                </h2>
-
-                <template v-if="book.description">
-                  <div
-                    ref="descriptionRef"
-                    class="description-content"
-                    :class="{'description-collapsed': descriptionNeedsTruncation && !descriptionExpanded}"
-                    :style="descriptionNeedsTruncation && descriptionExpanded && expandedHeight
-                      ? {'maxHeight': `${expandedHeight}px`}
-                      : undefined"
-                  >
-                    <p
-                      class="text-body-1 mb-0"
-                      style="white-space: pre-line;"
-                    >
-                      {{ book.description }}
-                    </p>
-                  </div>
-
-                  <v-btn
-                    v-if="descriptionNeedsTruncation"
-                    variant="text"
-                    color="secondary"
-                    size="small"
-                    class="mt-2"
-                    @click="toggleDescription"
-                  >
-                    {{ descriptionExpanded
-                      ? 'Read less'
-                      : 'Read more' }}
-                  </v-btn>
-                </template>
-
-                <p
-                  v-else
-                  class="text-body-1 text-medium-emphasis mb-0 font-italic"
-                >
-                  There is no description yet, we will add it soon.
-                </p>
-              </v-card-text>
-            </v-card>
+            <LongDescriptionCard :description="book.description" />
           </v-col>
 
           <v-col
             cols="12"
             md="4"
-            class="d-flex flex-column"
           >
-            <ExternalLinksSection
-              :book="book"
-              class="flex-1"
-            />
+            <ExternalLinksSection :book="book" />
           </v-col>
         </v-row>
 
@@ -606,27 +515,3 @@ onUnmounted(() => {
     <LoadingState type="detail" />
   </v-container>
 </template>
-
-<style scoped>
-/* Description expand/collapse */
-.description-content {
-  overflow: hidden;
-  transition: max-height 0.4s ease;
-}
-
-.description-collapsed {
-  max-height: 10em;
-  position: relative;
-}
-
-.description-collapsed::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3em;
-  background: linear-gradient(transparent, rgb(var(--v-theme-surface)));
-  pointer-events: none;
-}
-</style>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Author, Book, BookSummary } from '~/types/api'
 import { hashColor } from '~/utils/coverColor'
+import { formatReadingTime } from '~/utils/readingTime'
 
 interface Props {
   book: Book
@@ -60,22 +61,48 @@ function toggleStatistics() {
     detailsExpanded.value = false
 }
 
-// Reading time: 1 minute per page
-const readingTime = computed(() => {
-  const pages = props.book.number_of_pages
-  if (!pages || pages <= 0)
-    return null
+const readingTime = computed(() => formatReadingTime(props.book.number_of_pages))
 
-  const minutes = pages
-  if (minutes < 60)
-    return `${minutes} min`
+const bookStats = computed(() => {
+  const items: Array<{
+    icon: string
+    value: string | number
+    label: string
+  }> = []
 
-  const hours = Math.floor(minutes / 60)
-  const remainder = minutes % 60
+  if (props.book.number_of_pages > 0) {
+    items.push({
+      icon: 'mdi-book-open-page-variant',
+      value: props.book.number_of_pages.toLocaleString(),
+      label: 'PAGES',
+    })
+  }
 
-  return remainder > 0
-    ? `${hours}h ${remainder}min`
-    : `${hours}h`
+  if (readingTime.value) {
+    items.push({
+      icon: 'mdi-clock-outline',
+      value: `~${readingTime.value}`,
+      label: 'READING TIME',
+    })
+  }
+
+  if (languageDisplay.value) {
+    items.push({
+      icon: 'mdi-translate',
+      value: languageDisplay.value,
+      label: 'LANGUAGE',
+    })
+  }
+
+  if (combinedReaders.value > 0) {
+    items.push({
+      icon: 'mdi-account-multiple',
+      value: combinedReadersFormatted.value,
+      label: 'READERS',
+    })
+  }
+
+  return items
 })
 
 function formatSeriesPosition(position: number | null) {
@@ -292,55 +319,10 @@ function formatSeriesPosition(position: number | null) {
             </v-card>
 
             <!-- Stats Row -->
-            <div class="d-flex text-medium-emphasis mt-4 flex-wrap gap-4">
-              <div
-                v-if="book.number_of_pages > 0"
-                class="d-flex align-center gap-1"
-              >
-                <v-icon
-                  icon="mdi-book-open-page-variant"
-                  size="small"
-                />
-
-                <span class="text-body-2">{{ book.number_of_pages }} pages</span>
-              </div>
-
-              <div
-                v-if="readingTime"
-                class="d-flex align-center gap-1"
-              >
-                <v-icon
-                  icon="mdi-clock-outline"
-                  size="small"
-                />
-
-                <span class="text-body-2">~{{ readingTime }}</span>
-              </div>
-
-              <div
-                v-if="languageDisplay"
-                class="d-flex align-center gap-1"
-              >
-                <v-icon
-                  icon="mdi-translate"
-                  size="small"
-                />
-
-                <span class="text-body-2">{{ languageDisplay }}</span>
-              </div>
-
-              <div
-                v-if="combinedReaders > 0"
-                class="d-flex align-center gap-1"
-              >
-                <v-icon
-                  icon="mdi-account-multiple"
-                  size="small"
-                />
-
-                <span class="text-body-2">{{ combinedReadersFormatted }} readers</span>
-              </div>
-            </div>
+            <StatsRow
+              :stats="bookStats"
+              class="mt-4"
+            />
 
             <!-- Categories -->
             <CategoriesChips
