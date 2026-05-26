@@ -137,7 +137,8 @@ export const useBookPageStore = defineStore('bookPage', () => {
     try {
       await client.value.post(`/api/v1/books/${slug}/rate`, data)
       userRating.value = data as BookCommentRating
-      const fresh = await booksStore.fetchBook(slug, 'en', true)
+      const lang = booksStore.currentBook?.language ?? 'en'
+      const fresh = await booksStore.fetchBook(slug, lang, true)
       if (fresh) {
         liveAvgRating.value = fresh.avg_rating
         liveRatingCount.value = fresh.rating_count
@@ -155,7 +156,8 @@ export const useBookPageStore = defineStore('bookPage', () => {
     try {
       await client.value.delete(`/api/v1/books/${slug}/rate`)
       userRating.value = null
-      const fresh = await booksStore.fetchBook(slug, 'en', true)
+      const lang = booksStore.currentBook?.language ?? 'en'
+      const fresh = await booksStore.fetchBook(slug, lang, true)
       if (fresh) {
         liveAvgRating.value = fresh.avg_rating
         liveRatingCount.value = fresh.rating_count

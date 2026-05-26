@@ -8,6 +8,7 @@ export interface User {
   role: string
   is_active: boolean
   created_at: string
+  preferred_language: string
 }
 
 export interface AuthTokensData {
@@ -40,6 +41,7 @@ export interface UpdateProfileRequest {
   display_name?: string | null
   bio?: string | null
   avatar_url?: string | null
+  preferred_language?: string | null
 }
 
 export interface GoogleAuthRequest {

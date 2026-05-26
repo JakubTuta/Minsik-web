@@ -184,7 +184,7 @@ async function handleBookEditSave(editedData: Record<string, any>) {
     const newSlug = editedData.slug && editedData.slug !== slug
       ? editedData.slug
       : slug
-    await booksStore.fetchBook(newSlug, 'en', true)
+    await booksStore.fetchBook(newSlug, lang.value, true)
     if (newSlug !== slug) {
       await navigateTo(`/books/${newSlug}`)
     }
@@ -253,7 +253,9 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
 }, { immediate: true })
 
 onUnmounted(() => {
-  bookPageStore.resetState()
+  if (bookPageStore.currentSlug === slug) {
+    bookPageStore.resetState()
+  }
 })
 </script>
 

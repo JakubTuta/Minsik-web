@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 
 export const useCategoriesStore = defineStore('categories', () => {
   const apiStore = useApiStore()
+  const { language } = useUserLanguage()
 
   // State
   const categories = ref<Category[]>([])
@@ -86,7 +87,7 @@ export const useCategoriesStore = defineStore('categories', () => {
     isLoadingBooks.value = true
 
     try {
-      const params: Record<string, any> = { limit, offset, sort_by: sortBy, order }
+      const params: Record<string, any> = { limit, offset, sort_by: sortBy, order, language: language.value }
 
       const response = await apiStore.client.get<APIResponse<CategoryBooksData>>(
         `/api/v1/categories/${slug}/books`,

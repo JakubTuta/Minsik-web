@@ -2,10 +2,9 @@ import type { SearchResponse, SearchResult, SearchType } from '~/types/api'
 import { defineStore } from 'pinia'
 import { dedupBySlug } from '~/utils/dedupResults'
 
-const DEFAULT_LANGUAGE = 'en'
-
 export const useSearchStore = defineStore('search', () => {
   const apiStore = useApiStore()
+  const { language } = useUserLanguage()
 
   // State
   const query = ref('')
@@ -84,12 +83,12 @@ export const useSearchStore = defineStore('search', () => {
           type: type.value,
           limit: limit.value,
           offset: offset.value,
-          language: DEFAULT_LANGUAGE,
+          language: language.value,
         },
       })
 
       const searchData = response.data.data
-      const newResults = dedupBySlug(searchData.results || [], DEFAULT_LANGUAGE)
+      const newResults = dedupBySlug(searchData.results || [], language.value)
 
       // Update cache
       cache.set(cacheKey, {
@@ -103,7 +102,7 @@ export const useSearchStore = defineStore('search', () => {
         results.value = newResults
       }
       else {
-        results.value = dedupBySlug([...results.value, ...newResults], DEFAULT_LANGUAGE)
+        results.value = dedupBySlug([...results.value, ...newResults], language.value)
       }
 
       total.value = searchData.total_count || 0

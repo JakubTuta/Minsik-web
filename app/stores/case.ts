@@ -5,13 +5,14 @@ import { defineStore } from 'pinia'
 export const useCaseStore = defineStore('case', () => {
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
+  const { language } = useUserLanguage()
 
   const caseData = ref<OpenCaseData | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const phase = ref<CasePhase>('idle')
 
-  const openCase = async (language = 'en') => {
+  const openCase = async () => {
     if (isLoading.value)
       return
 
@@ -20,7 +21,7 @@ export const useCaseStore = defineStore('case', () => {
 
     try {
       const response = await client.value.get<APIResponse<OpenCaseData>>('/api/v1/case/open', {
-        params: { language },
+        params: { language: language.value },
       })
       caseData.value = response.data.data!
     }

@@ -10,6 +10,7 @@ import { defineStore } from 'pinia'
 
 export const useRecommendationsStore = defineStore('recommendations', () => {
   const apiStore = useApiStore()
+  const { language } = useUserLanguage()
 
   // State
   const homeCategories = ref<RecommendationSection[]>([])
@@ -55,7 +56,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     try {
       const response = await apiStore.client.get<HomePageResponse>(
         '/api/v1/recommendations/home',
-        { params: { items_per_category: 10 } },
+        { params: { items_per_category: 10, language: language.value } },
       )
       homeCategories.value = response.data.data!.sections
       lastFetchTime.value.set('home', Date.now())
@@ -87,7 +88,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     try {
       const response = await apiStore.client.get<RecommendationListResponse>(
         `/api/v1/recommendations/${category}`,
-        { params: { limit, offset } },
+        { params: { limit, offset, language: language.value } },
       )
       const data = response.data.data!
       categoryData.value.set(cacheKey, data)
@@ -299,6 +300,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     try {
       const response = await apiStore.client.get<{ success: boolean, data: BookOfTheWeek }>(
         '/api/v1/recommendations/book-of-the-week',
+        { params: { language: language.value } },
       )
       bookOfTheWeek.value = response.data.data!
       lastFetchTime.value.set(cacheKey, Date.now())

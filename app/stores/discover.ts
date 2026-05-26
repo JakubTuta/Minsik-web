@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 export const useDiscoverStore = defineStore('discover', () => {
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
+  const { language } = useUserLanguage()
 
   // Filter state
   const bookLength = ref<BookLength | null>(null)
@@ -23,7 +24,7 @@ export const useDiscoverStore = defineStore('discover', () => {
   const excludeIds = ref<number[]>([])
 
   const filtersPayload = computed<DiscoverBookFilters>(() => {
-    const filters: DiscoverBookFilters = { language: 'en' }
+    const filters: DiscoverBookFilters = { language: language.value }
     if (bookLength.value)
       filters.book_length = bookLength.value
     if (quality.value)
