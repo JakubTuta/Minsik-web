@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Author, AuthorMinimal, BookSummary, Series } from '~/types/api'
 import type { EditFieldConfig } from '~/types/admin'
+import type { Author, AuthorMinimal, BookSummary, Series } from '~/types/api'
 import { formatReadingTime } from '~/utils/readingTime'
 
 interface Props {
@@ -36,6 +36,7 @@ const deleteDialogOpen = defineModel<boolean>('deleteDialogOpen', { default: fal
 const collageCovers = computed(() => {
   if (!props.books || props.books.length === 0)
     return []
+
   return props.books.slice(0, 4).map(book => book.primary_cover_url || coverColor(book))
 })
 
@@ -50,6 +51,7 @@ const authorsLine = computed(() => {
       }
     }
   }
+
   return out
 })
 
@@ -140,7 +142,7 @@ const seriesStats = computed(() => {
             <!-- Authors line -->
             <div
               v-if="authorsLine.length > 0"
-              class="mt-2 text-body-1"
+              class="text-body-1 mt-2"
             >
               by
               <template
@@ -150,7 +152,11 @@ const seriesStats = computed(() => {
                 <NuxtLink
                   :to="`/authors/${author.slug}`"
                   class="font-weight-bold text-primary text-decoration-none"
-                >{{ author.name }}</NuxtLink><span v-if="i < authorsLine.length - 1">, </span>
+                >
+                  {{ author.name }}
+                </NuxtLink>
+
+                <span v-if="i < authorsLine.length - 1">, </span>
               </template>
             </div>
 

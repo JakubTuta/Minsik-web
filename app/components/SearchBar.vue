@@ -155,11 +155,15 @@ const groupedResults = computed(() => {
     return null
 
   const results = quickSearchStore.results
-  const byScore = (a: SuggestItem, b: SuggestItem) => b.score - a.score
+  // const byScore = (a: SuggestItem, b: SuggestItem) => b.score - a.score
 
-  const books = results.filter(r => r.type === 'book').sort(byScore).slice(0, 10)
-  const series = results.filter(r => r.type === 'series').sort(byScore).slice(0, 10)
-  const authors = results.filter(r => r.type === 'author').sort(byScore).slice(0, 10)
+  // const books = results.filter(r => r.type === 'book').sort(byScore).slice(0, 10)
+  // const series = results.filter(r => r.type === 'series').sort(byScore).slice(0, 10)
+  // const authors = results.filter(r => r.type === 'author').sort(byScore).slice(0, 10)
+
+  const books = results.filter(r => r.type === 'book').slice(0, 10)
+  const series = results.filter(r => r.type === 'series').slice(0, 10)
+  const authors = results.filter(r => r.type === 'author').slice(0, 10)
 
   return { books, series, authors }
 })

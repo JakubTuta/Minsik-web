@@ -90,10 +90,10 @@ const dimensions: DimensionConfig[] = [
 
 function getAvg(key: string): number {
   const stat = props.stats[key]
-  if (!stat?.avg)
+  if (!stat)
     return 0
 
-  return stat.avg
+  return Number(stat.avg) || 0
 }
 
 function getDescription(dim: DimensionConfig): string {

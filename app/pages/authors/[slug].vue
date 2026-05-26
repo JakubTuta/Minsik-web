@@ -21,6 +21,7 @@ const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'reader
 
 function getSortParams() {
   const [field = 'date', direction = 'desc'] = sortBy.value.split('-')
+
   return {
     apiSortBy: sortByMap[field] as 'publication_year' | 'combined_rating' | 'readers_count',
     apiOrder: direction as 'asc' | 'desc',

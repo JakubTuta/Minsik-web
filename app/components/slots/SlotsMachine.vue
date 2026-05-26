@@ -58,7 +58,7 @@ function initializeReels() {
   const initial: Rarity[][] = [[], [], []]
   for (let c = 0; c < 3; c++) {
     // 30 items per reel for long spin
-    const col = Array.from({ length: 30 }, () => getRandomRarity())
+    const col = Array.from({ length: 30 }).fill(getRandomRarity())
 
     // We will land on index 27 (so indices 26, 27, 28 are visible in 3x3)
     // 27 is the middle row.

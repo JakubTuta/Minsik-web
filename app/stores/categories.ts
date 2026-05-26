@@ -66,10 +66,12 @@ export const useCategoriesStore = defineStore('categories', () => {
       )
       popularCategories.value = response.data.data!.categories
       popularCategoriesLastFetch.value = Date.now()
+
       return popularCategories.value
     }
     catch (error) {
       console.error('Error fetching popular categories:', error)
+
       return []
     }
   }

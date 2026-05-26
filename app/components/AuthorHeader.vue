@@ -4,15 +4,6 @@ import type { Author } from '~/types/api'
 import { hashColor } from '~/utils/coverColor'
 import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
-function formatShortDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-interface Props {
-  author: Author
-  isAdmin?: boolean
-}
-
 const props = withDefaults(defineProps<Props>(), {
   isAdmin: false,
 })
@@ -21,6 +12,15 @@ const emit = defineEmits<{
   edit: []
   delete: []
 }>()
+
+function formatShortDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+interface Props {
+  author: Author
+  isAdmin?: boolean
+}
 
 const adminStore = useAdminStore()
 const authorsStore = useAuthorsStore()
@@ -45,41 +45,43 @@ const age = computed(() => {
   return years
 })
 
-const birthDateFormatted = computed(() =>
-  props.author.birth_date ? formatShortDate(props.author.birth_date) : null,
+const birthDateFormatted = computed(() => (props.author.birth_date
+  ? formatShortDate(props.author.birth_date)
+  : null),
 )
 
-const deathDateFormatted = computed(() =>
-  props.author.death_date ? formatShortDate(props.author.death_date) : null,
+const deathDateFormatted = computed(() => (props.author.death_date
+  ? formatShortDate(props.author.death_date)
+  : null),
 )
 
 const birthPlace = computed(() => {
   const parts = [props.author.birth_place, props.author.nationality].filter(Boolean)
-  return parts.length ? parts.join(', ') : null
+
+  return parts.length
+    ? parts.join(', ')
+    : null
 })
 
-const authorWeightedRating = computed(() =>
-  weightedRating(
-    props.author.books_avg_rating,
-    props.author.books_total_ratings,
-    props.author.books_ol_avg_rating,
-    props.author.books_ol_total_ratings,
-  ),
+const authorWeightedRating = computed(() => weightedRating(
+  props.author.books_avg_rating,
+  props.author.books_total_ratings,
+  props.author.books_ol_avg_rating,
+  props.author.books_ol_total_ratings,
+),
 )
 
-const authorTotalRatings = computed(() =>
-  totalRatingCount(props.author.books_total_ratings, props.author.books_ol_total_ratings),
+const authorTotalRatings = computed(() => totalRatingCount(props.author.books_total_ratings, props.author.books_ol_total_ratings),
 )
 
-const authorTotalReaders = computed(() =>
-  totalReaders(
-    props.author.app_want_to_read_count,
-    props.author.app_reading_count,
-    props.author.app_read_count,
-    props.author.ol_want_to_read_count,
-    props.author.ol_currently_reading_count,
-    props.author.ol_already_read_count,
-  ),
+const authorTotalReaders = computed(() => totalReaders(
+  props.author.app_want_to_read_count,
+  props.author.app_reading_count,
+  props.author.app_read_count,
+  props.author.ol_want_to_read_count,
+  props.author.ol_currently_reading_count,
+  props.author.ol_already_read_count,
+),
 )
 
 const authorStats = computed(() => [
@@ -119,6 +121,7 @@ const preTitleLine = computed(() => {
     parts.push(`${props.author.nationality.toUpperCase()} AUTHOR`)
   if (props.author.book_categories?.length)
     parts.push(...props.author.book_categories.slice(0, 2).map(c => c.toUpperCase()))
+
   return parts.join(' · ')
 })
 
@@ -177,7 +180,9 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
   const result = await adminStore.updateAuthor(props.author.author_id, authorEditOriginalData.value, editedData)
   if (result.success) {
     editDialogOpen.value = false
-    const newSlug = editedData.slug && editedData.slug !== slug.value ? editedData.slug : slug.value
+    const newSlug = editedData.slug && editedData.slug !== slug.value
+      ? editedData.slug
+      : slug.value
     await authorsStore.fetchAuthor(newSlug, true)
     if (newSlug !== slug.value)
       await navigateTo(`/authors/${newSlug}`)
@@ -205,7 +210,9 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
         <v-img
           :src="photoUrl"
           :alt="author.name"
-          :lazy-src="photoUrl ? '/placeholder-author-lazy.jpg' : undefined"
+          :lazy-src="photoUrl
+            ? '/placeholder-author-lazy.jpg'
+            : undefined"
           eager
         >
           <template #placeholder>
@@ -216,13 +223,15 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
 
       <div
         v-if="birthDateFormatted || deathDateFormatted"
-        class="d-flex align-center gap-2 text-medium-emphasis text-body-2 text-center"
+        class="d-flex align-center text-medium-emphasis text-body-2 gap-2 text-center"
       >
         <v-icon
           icon="mdi-calendar"
           size="small"
         />
+
         <span>{{ birthDateFormatted ?? '?' }} — {{ deathDateFormatted ?? '—' }}</span>
+
         <span
           v-if="age !== null"
           class="ml-1"
@@ -270,10 +279,10 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
       />
 
       <!-- Info row -->
-      <div class="d-flex flex-wrap align-center gap-4 mb-4 text-body-2">
+      <div class="d-flex align-center text-body-2 mb-4 flex-wrap gap-4">
         <div
           v-if="birthPlace"
-          class="d-flex align-center gap-1 text-medium-emphasis"
+          class="d-flex align-center text-medium-emphasis gap-1"
         >
           <v-icon
             icon="mdi-map-marker"
@@ -287,7 +296,7 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
           :href="author.wikipedia_url"
           target="_blank"
           rel="noopener noreferrer"
-          class="d-flex align-center gap-1 text-primary text-decoration-none"
+          class="d-flex align-center text-primary text-decoration-none gap-1"
         >
           <v-icon
             icon="mdi-wikipedia"

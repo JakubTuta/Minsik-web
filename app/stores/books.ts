@@ -1,4 +1,4 @@
-import type { APIResponse, Book } from '~/types/api'
+import type { APIResponse, Book, BookLanguageVariant } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useBooksStore = defineStore('books', () => {
@@ -9,6 +9,8 @@ export const useBooksStore = defineStore('books', () => {
   const isLoading = ref(false)
   const lastFetchTime = ref(new Map<string, number>())
   const currentBook = ref<Book | null>(null)
+  const langVariantsCache = ref(new Map<string, BookLanguageVariant[]>())
+  const langVariantsFetchTime = ref(new Map<string, number>())
 
   // Cache TTL
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
@@ -17,43 +19,49 @@ export const useBooksStore = defineStore('books', () => {
   const hasData = computed(() => books.value.size > 0)
   const currentBookSlug = computed(() => currentBook.value?.slug || null)
 
-  // Check if book exists in cache
-  const hasBook = (slug: string) => {
-    return books.value.has(slug)
+  const cacheKey = (slug: string, lang: string) => `${slug}:${lang}`
+
+  const hasBook = (slug: string, lang: string = 'en') => {
+    return books.value.has(cacheKey(slug, lang))
   }
 
-  // Check if cached data is fresh
-  const isCacheFresh = (slug: string) => {
-    const timestamp = lastFetchTime.value.get(slug)
+  const isCacheFresh = (slug: string, lang: string = 'en') => {
+    const timestamp = lastFetchTime.value.get(cacheKey(slug, lang))
     if (!timestamp)
       return false
 
     return Date.now() - timestamp < CACHE_TTL
   }
 
-  // Fetch book details
-  const fetchBook = async (slug: string, force = false) => {
-    // Return from cache if fresh
-    if (!force && hasBook(slug) && isCacheFresh(slug)) {
-      currentBook.value = books.value.get(slug)!
+  // Fetch book details — falls back to 'en' if lang edition not found
+  const fetchBook = async (slug: string, lang: string = 'en', force = false) => {
+    const key = cacheKey(slug, lang)
 
+    if (!force && hasBook(slug, lang) && isCacheFresh(slug, lang)) {
+      currentBook.value = books.value.get(key)!
       return currentBook.value
     }
 
     isLoading.value = true
 
     try {
-      const response = await apiStore.client.get<APIResponse<Book>>(`/api/v1/books/${slug}`)
+      const response = await apiStore.client.get<APIResponse<Book>>(
+        `/api/v1/books/${slug}`,
+        { params: { language: lang } },
+      )
       const book = response.data.data!
 
-      // Cache the book
-      books.value.set(slug, book)
-      lastFetchTime.value.set(slug, Date.now())
+      books.value.set(key, book)
+      lastFetchTime.value.set(key, Date.now())
       currentBook.value = book
 
       return book
     }
-    catch (error) {
+    catch (error: any) {
+      if (lang !== 'en' && error?.response?.status === 404) {
+        isLoading.value = false
+        return fetchBook(slug, 'en', force)
+      }
       console.error('Error fetching book:', error)
       currentBook.value = null
       throw error
@@ -63,37 +71,64 @@ export const useBooksStore = defineStore('books', () => {
     }
   }
 
+  const fetchLanguageVariants = async (slug: string, excludeLang: string = 'en'): Promise<BookLanguageVariant[]> => {
+    const key = `${slug}:${excludeLang}`
+    const fetchTime = langVariantsFetchTime.value.get(key)
+
+    if (fetchTime && Date.now() - fetchTime < CACHE_TTL) {
+      return langVariantsCache.value.get(key) ?? []
+    }
+
+    try {
+      const response = await apiStore.client.get<APIResponse<{ items: BookLanguageVariant[] }>>(
+        `/api/v1/books/${slug}/language-variants`,
+        { params: { exclude_language: excludeLang } },
+      )
+      const items = response.data.data!.items
+
+      langVariantsCache.value.set(key, items)
+      langVariantsFetchTime.value.set(key, Date.now())
+
+      return items
+    }
+    catch {
+      return []
+    }
+  }
+
   // Cache a book (useful when receiving from search results)
-  const cacheBook = (book: Book) => {
-    books.value.set(book.slug, book)
-    lastFetchTime.value.set(book.slug, Date.now())
+  const cacheBook = (book: Book, lang: string = 'en') => {
+    books.value.set(cacheKey(book.slug, lang), book)
+    lastFetchTime.value.set(cacheKey(book.slug, lang), Date.now())
   }
 
   // Cache multiple books
-  const cacheBooks = (bookList: Book[]) => {
+  const cacheBooks = (bookList: Book[], lang: string = 'en') => {
     const timestamp = Date.now()
     bookList.forEach((book) => {
-      books.value.set(book.slug, book)
-      lastFetchTime.value.set(book.slug, timestamp)
+      books.value.set(cacheKey(book.slug, lang), book)
+      lastFetchTime.value.set(cacheKey(book.slug, lang), timestamp)
     })
   }
 
   // Get book from cache
-  const getBook = (slug: string) => {
-    return books.value.get(slug) || null
+  const getBook = (slug: string, lang: string = 'en') => {
+    return books.value.get(cacheKey(slug, lang)) || null
   }
 
   // Refresh current book
   const refresh = async () => {
     if (!currentBook.value)
       return
-    await fetchBook(currentBook.value.slug, true)
+    await fetchBook(currentBook.value.slug, currentBook.value.language, true)
   }
 
   // Clear cache
   const clearCache = () => {
     books.value.clear()
     lastFetchTime.value.clear()
+    langVariantsCache.value.clear()
+    langVariantsFetchTime.value.clear()
     currentBook.value = null
   }
 
@@ -110,6 +145,7 @@ export const useBooksStore = defineStore('books', () => {
 
     // Actions
     fetchBook,
+    fetchLanguageVariants,
     cacheBook,
     cacheBooks,
     getBook,

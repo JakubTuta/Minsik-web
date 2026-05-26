@@ -260,7 +260,6 @@ onMounted(() => {
   z-index: 0;
 }
 
-
 @media (max-width: 960px) {
   .hero-banner {
     min-height: auto;

@@ -31,15 +31,23 @@ const containerStyle = computed(() => {
       :class="`cover-${index + 1}`"
     >
       <v-img
-        :src="cover.startsWith('#') ? undefined : cover"
+        :src="cover.startsWith('#')
+          ? undefined
+          : cover"
         :alt="`Book cover ${index + 1}`"
         aspect-ratio="0.67"
         cover
-        class="rounded cover-image"
-        :style="cover.startsWith('#') ? { backgroundColor: cover } : undefined"
+        class="cover-image rounded"
+        :style="cover.startsWith('#')
+          ? {'backgroundColor': cover}
+          : undefined"
       >
         <template #placeholder>
-          <HashedFill :color="cover.startsWith('#') ? cover : '#e0e0e0'" />
+          <HashedFill
+            :color="cover.startsWith('#')
+              ? cover
+              : '#e0e0e0'"
+          />
         </template>
       </v-img>
     </div>

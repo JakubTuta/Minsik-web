@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import type { ChartData, ChartOptions } from 'chart.js'
 import type { BookSummary } from '~/types/api'
 import {
   CategoryScale,
+
   Chart as ChartJS,
-  type ChartData,
-  type ChartOptions,
-  LineElement,
+
   LinearScale,
+  LineElement,
   PointElement,
   Tooltip,
 } from 'chart.js'
@@ -14,21 +15,22 @@ import { Line } from 'vue-chartjs'
 import { useTheme } from 'vuetify'
 import { weightedRating } from '~/utils/format'
 
+const props = defineProps<Props>()
+
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip)
 
 interface Props {
   books: BookSummary[]
 }
 
-const props = defineProps<Props>()
 const theme = useTheme()
 
-const sortedBooks = computed(() =>
-  [...props.books].sort((a, b) => {
-    const ap = a.series_position ?? Infinity
-    const bp = b.series_position ?? Infinity
-    return ap - bp
-  }),
+const sortedBooks = computed(() => [...props.books].sort((a, b) => {
+  const ap = a.series_position ?? Infinity
+  const bp = b.series_position ?? Infinity
+
+  return ap - bp
+}),
 )
 
 function bookWeightedRating(b: BookSummary): number {
@@ -63,7 +65,9 @@ const positionPlugin = {
       const pos = Number(book.series_position)
       if (!Number.isFinite(pos))
         return
-      const label = `#${Number.isInteger(pos) ? pos : pos.toFixed(1)}`
+      const label = `#${Number.isInteger(pos)
+        ? pos
+        : pos.toFixed(1)}`
       ctx.fillText(label, point.x, point.y - 14)
     })
     ctx.restore()
@@ -134,20 +138,25 @@ const seriesStats = computed<StatEntry[]>(() => {
     if (!pos)
       return ''
     const n = Number(pos)
-    return `#${Number.isInteger(n) ? n : n.toFixed(1)}`
+
+    return `#${Number.isInteger(n)
+      ? n
+      : n.toFixed(1)}`
   }
 
   const ratingOf = (b: BookSummary) => bookWeightedRating(b)
 
   const first = books[0]
-  const last = books[books.length - 1]
+  const last = books.at(-1)
 
   entries.push({
     keyword: 'beginning',
     position: fmtPos(first),
     title: first.title,
     rating: ratingOf(first),
-    comment: ratingOf(first) >= 3 ? 'strong start' : 'tough start',
+    comment: ratingOf(first) >= 3
+      ? 'strong start'
+      : 'tough start',
   })
 
   if (books.length > 2) {
@@ -178,7 +187,9 @@ const seriesStats = computed<StatEntry[]>(() => {
       const dip = books[dipIdx]
       const rating = ratingOf(dip)
       entries.push({
-        keyword: rating >= 3 ? 'dip' : 'the pit',
+        keyword: rating >= 3
+          ? 'dip'
+          : 'the pit',
         position: fmtPos(dip),
         title: dip.title,
         rating,
@@ -192,7 +203,9 @@ const seriesStats = computed<StatEntry[]>(() => {
     position: fmtPos(last),
     title: last.title,
     rating: ratingOf(last),
-    comment: ratingOf(last) >= 3 ? 'sticks the landing' : 'messes up the ending',
+    comment: ratingOf(last) >= 3
+      ? 'sticks the landing'
+      : 'messes up the ending',
   })
 
   const mean = ratings.value.reduce((s, r) => s + r, 0) / ratings.value.length
@@ -215,7 +228,7 @@ const seriesStats = computed<StatEntry[]>(() => {
   }
   else if (mean >= 4.3) {
     trendIcon = 'mdi-star'
-    trendComment = "it's peak"
+    trendComment = 'it\'s peak'
   }
   else if (mean <= 2) {
     trendIcon = 'mdi-emoticon-sad-outline'
@@ -223,7 +236,7 @@ const seriesStats = computed<StatEntry[]>(() => {
   }
   else if (signChanges >= 2) {
     trendIcon = 'mdi-chart-bell-curve-cumulative'
-    trendComment = "it's a rollercoaster"
+    trendComment = 'it\'s a rollercoaster'
   }
   else {
     trendIcon = 'mdi-chart-line'
@@ -267,7 +280,7 @@ const seriesStats = computed<StatEntry[]>(() => {
         <div
           v-for="entry in seriesStats"
           :key="entry.keyword"
-          class="d-flex flex-column flex-1 stat-entry"
+          class="d-flex flex-column stat-entry flex-1"
         >
           <div class="text-overline font-weight-bold text-primary text-uppercase">
             {{ entry.keyword }}
@@ -280,18 +293,21 @@ const seriesStats = computed<StatEntry[]>(() => {
             {{ entry.position }}<span v-if="entry.position && entry.title">&nbsp;</span>{{ entry.title }}
           </div>
 
-          <div class="d-flex align-center gap-1 text-body-2 text-medium-emphasis mt-1">
+          <div class="d-flex align-center text-body-2 text-medium-emphasis mt-1 gap-1">
             <v-icon
               v-if="entry.icon"
               :icon="entry.icon"
               size="small"
             />
+
             <span class="font-weight-medium">{{ entry.rating.toFixed(1) }}</span>
+
             <v-icon
               icon="mdi-star"
               size="x-small"
               color="warning"
             />
+
             <span
               v-if="entry.comment"
               class="ml-1"

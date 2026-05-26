@@ -24,10 +24,17 @@ const podiumOrder = computed(() => {
   if (props.books.length === 0)
     return []
   const [first, second, third] = props.books
+
   return [
-    second ? { book: second, rank: 2, cardTopClass: 'mt-8' } : null,
-    first ? { book: first, rank: 1, cardTopClass: '' } : null,
-    third ? { book: third, rank: 3, cardTopClass: 'mt-14' } : null,
+    second
+      ? { book: second, rank: 2, cardTopClass: 'mt-8' }
+      : null,
+    first
+      ? { book: first, rank: 1, cardTopClass: '' }
+      : null,
+    third
+      ? { book: third, rank: 3, cardTopClass: 'mt-14' }
+      : null,
   ].filter(Boolean) as { book: BookSummary, rank: number, cardTopClass: string }[]
 })
 </script>
@@ -61,7 +68,10 @@ const podiumOrder = computed(() => {
         cols="12"
         md="4"
       >
-        <v-card :class="['h-full', entry.cardTopClass]">
+        <v-card
+          class="h-full"
+          :class="[entry.cardTopClass]"
+        >
           <v-card-text class="pa-4">
             <!-- Cover + rank -->
             <div

@@ -198,6 +198,14 @@ export interface Book {
   rating_distribution: Record<string, number>
 }
 
+export interface BookLanguageVariant {
+  book_id: number
+  slug: string
+  language: string
+  title: string
+  primary_cover_url?: string | null
+}
+
 // Card Display Types — kept for BookCard.vue compatibility
 
 export interface BookCardData {
@@ -231,6 +239,7 @@ export interface SearchResult {
   ol_rating_count: number
   book_count: number
   readers: number
+  language?: string
 }
 
 export interface SearchResultsData {
@@ -263,6 +272,7 @@ export interface SuggestItem {
   app_rating_count: number
   ol_avg_rating: number
   ol_rating_count: number
+  language?: string
 }
 
 export interface SuggestResultsData {

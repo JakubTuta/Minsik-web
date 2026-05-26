@@ -21,6 +21,7 @@ const needsTruncation = computed(() => {
   const desc = props.description
   if (!desc)
     return false
+
   return desc.length > props.charLimit + props.truncationWindow
 })
 
@@ -42,9 +43,9 @@ function toggle() {
         <div
           ref="descriptionRef"
           class="description-content"
-          :class="{ 'description-collapsed': needsTruncation && !expanded }"
+          :class="{'description-collapsed': needsTruncation && !expanded}"
           :style="needsTruncation && expanded && expandedHeight
-            ? { 'maxHeight': `${expandedHeight}px` }
+            ? {'maxHeight': `${expandedHeight}px`}
             : undefined"
         >
           <p

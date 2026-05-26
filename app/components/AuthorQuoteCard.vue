@@ -15,7 +15,7 @@ defineProps<Props>()
     flat
     class=""
   >
-    <v-card-text class="d-flex flex-column align-center text-center px-6 py-4">
+    <v-card-text class="d-flex flex-column align-center px-6 py-4 text-center">
       <v-icon
         icon="mdi-format-quote-open"
         size="36"
@@ -25,7 +25,11 @@ defineProps<Props>()
 
       <p
         class="text-h5 font-weight-regular mb-4"
-        :class="[quote.first_sentence.length > 80 ? 'text-left' : 'text-center']"
+        :class="[
+          quote.first_sentence.length > 80
+            ? 'text-left'
+            : 'text-center',
+        ]"
         style="font-style: italic; max-width: 720px; font-family: Georgia, serif;"
       >
         {{ quote.first_sentence }}
@@ -39,6 +43,7 @@ defineProps<Props>()
         >
           {{ quote.book_title }}
         </NuxtLink>
+
         <span v-if="quote.publication_year">, {{ quote.publication_year }}</span>
       </p>
     </v-card-text>

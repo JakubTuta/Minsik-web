@@ -9,7 +9,7 @@ defineProps<Props>()
 <template>
   <div
     class="hashed-fill"
-    :style="{ backgroundColor: color }"
+    :style="{'backgroundColor': color}"
   />
 </template>
 

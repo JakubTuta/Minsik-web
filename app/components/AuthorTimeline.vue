@@ -75,7 +75,9 @@ const { sentinel } = useInfiniteScroll(() => props.loadMore(), { enabled: scroll
             >
               <div
                 class="d-flex align-center flex-shrink-0 justify-center"
-                :style="{ width: '80px', minWidth: '80px', height: '120px' }"
+                :style="{'width': '80px',
+                         'minWidth': '80px',
+                         'height': '120px'}"
               >
                 <v-img
                   v-if="entry.book.primary_cover_url"

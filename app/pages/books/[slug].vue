@@ -14,10 +14,17 @@ const recommendationsStore = useRecommendationsStore()
 
 const slug = route.params.slug as string
 
+function resolvedLang(): string {
+  const q = route.query.lang
+  return typeof q === 'string' && /^[a-z]{2,10}$/i.test(q) ? q.toLowerCase() : 'en'
+}
+
+const lang = ref(resolvedLang())
+
 // Fetch book data
 const { data: book, error } = await useAsyncData(
-  `book-${slug}`,
-  () => booksStore.fetchBook(slug),
+  `book-${slug}-${lang.value}`,
+  () => booksStore.fetchBook(slug, lang.value),
 )
 
 // Handle 404
@@ -58,6 +65,7 @@ const primaryAuthor = ref<Author | null>(null)
 const seriesBooks = ref<BookSummary[]>([])
 const bookRecommendations = ref<RecommendationSection[]>([])
 const personalizedBookRecs = ref<RecommendationSection[]>([])
+const langVariants = ref<import('~/types/api').BookLanguageVariant[]>([])
 const selectedRating = ref<number | null>(null)
 
 function distributionCount(star: number): number {
@@ -176,13 +184,22 @@ async function handleBookEditSave(editedData: Record<string, any>) {
     const newSlug = editedData.slug && editedData.slug !== slug
       ? editedData.slug
       : slug
-    await booksStore.fetchBook(newSlug, true)
+    await booksStore.fetchBook(newSlug, 'en', true)
     if (newSlug !== slug) {
       await navigateTo(`/books/${newSlug}`)
     }
   }
   else {
     editError.value = (result as any).error || 'Update failed'
+  }
+}
+
+async function fetchLangVariants() {
+  if (book.value?.slug) {
+    try {
+      langVariants.value = await booksStore.fetchLanguageVariants(book.value.slug, lang.value)
+    }
+    catch { /* Silently fail */ }
   }
 }
 
@@ -207,6 +224,17 @@ onMounted(async () => {
     }
     catch { /* Silently fail */ }
   }
+
+  fetchLangVariants()
+})
+
+watch(() => route.query.lang, async () => {
+  const newLang = resolvedLang()
+  if (newLang === lang.value)
+    return
+  lang.value = newLang
+  book.value = await booksStore.fetchBook(slug, newLang)
+  fetchLangVariants()
 })
 
 watch(() => authStore.isAuthenticated, (isAuth) => {
@@ -363,6 +391,16 @@ onUnmounted(() => {
             />
           </v-card-text>
         </v-card>
+
+        <!-- Language Variants -->
+        <ClientOnly>
+          <LanguageVariantsCard
+            v-if="langVariants.length > 0"
+            :slug="slug"
+            :variants="langVariants"
+            :current-lang="lang"
+          />
+        </ClientOnly>
 
         <!-- Book Recommendations -->
         <ClientOnly>

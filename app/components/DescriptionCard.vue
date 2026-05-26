@@ -58,7 +58,9 @@ onMounted(() => {
         class="mt-1 px-0"
         @click="expanded = !expanded"
       >
-        {{ expanded ? 'Show less' : 'Show more' }}
+        {{ expanded
+          ? 'Show less'
+          : 'Show more' }}
       </v-btn>
     </v-card-text>
   </v-card>
@@ -77,7 +79,7 @@ onMounted(() => {
 
     <p
       v-else-if="emptyMessage"
-      class="text-body-1 font-italic text-medium-emphasis"
+      class="text-body-1 text-medium-emphasis font-italic"
     >
       {{ emptyMessage }}
     </p>
@@ -90,7 +92,9 @@ onMounted(() => {
       class="mt-1 px-0"
       @click="expanded = !expanded"
     >
-      {{ expanded ? 'Show less' : 'Show more' }}
+      {{ expanded
+        ? 'Show less'
+        : 'Show more' }}
     </v-btn>
   </div>
 </template>

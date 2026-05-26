@@ -302,10 +302,12 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
       )
       bookOfTheWeek.value = response.data.data!
       lastFetchTime.value.set(cacheKey, Date.now())
+
       return bookOfTheWeek.value
     }
     catch (error) {
       console.error('Error fetching book of the week:', error)
+
       return null
     }
   }

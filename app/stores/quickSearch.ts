@@ -1,5 +1,8 @@
 import type { SuggestItem, SuggestResponse } from '~/types/api'
 import { defineStore } from 'pinia'
+import { dedupBySlug } from '~/utils/dedupResults'
+
+const DEFAULT_LANGUAGE = 'en'
 
 export const useQuickSearchStore = defineStore('quickSearch', () => {
   const apiStore = useApiStore()
@@ -29,9 +32,11 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
         params: {
           q: query,
           limit: 20,
+          language: DEFAULT_LANGUAGE,
         },
       })
-      results.value = response.data.data.items || []
+      const items = response.data.data.items || []
+      results.value = dedupBySlug(items, DEFAULT_LANGUAGE)
       isEmpty.value = results.value.length === 0
     }
     catch (error) {

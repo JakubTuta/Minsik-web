@@ -499,11 +499,15 @@ onMounted(() => {
                 </h3>
 
                 <v-chip
-                  :color="adminStore.recommendationsRefreshResult.success ? 'success' : 'error'"
+                  :color="adminStore.recommendationsRefreshResult.success
+                    ? 'success'
+                    : 'error'"
                   size="small"
                   class="mb-3"
                 >
-                  {{ adminStore.recommendationsRefreshResult.success ? 'success' : 'failed' }}
+                  {{ adminStore.recommendationsRefreshResult.success
+                    ? 'success'
+                    : 'failed' }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -537,7 +541,9 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Flushes <code>rec:profile:*</code> and <code>rec:personal:*</code> Redis keys, then re-runs personal refresher for active users.
+                Flushes <code>rec:profile:*</code>
+
+                and <code>rec:personal:*</code> Redis keys, then re-runs personal refresher for active users.
               </v-alert>
 
               <v-alert
@@ -567,11 +573,15 @@ onMounted(() => {
                 </h3>
 
                 <v-chip
-                  :color="adminStore.personalRecommendationsRefreshResult.success ? 'success' : 'error'"
+                  :color="adminStore.personalRecommendationsRefreshResult.success
+                    ? 'success'
+                    : 'error'"
                   size="small"
                   class="mb-3"
                 >
-                  {{ adminStore.personalRecommendationsRefreshResult.success ? 'success' : 'failed' }}
+                  {{ adminStore.personalRecommendationsRefreshResult.success
+                    ? 'success'
+                    : 'failed' }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -632,11 +642,15 @@ onMounted(() => {
                 class="mt-6"
               >
                 <v-chip
-                  :color="adminStore.userPersonalRecommendationsRefreshResult.success ? 'success' : 'error'"
+                  :color="adminStore.userPersonalRecommendationsRefreshResult.success
+                    ? 'success'
+                    : 'error'"
                   size="small"
                   class="mb-3"
                 >
-                  {{ adminStore.userPersonalRecommendationsRefreshResult.success ? 'success' : 'failed' }}
+                  {{ adminStore.userPersonalRecommendationsRefreshResult.success
+                    ? 'success'
+                    : 'failed' }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -670,7 +684,11 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Flushes <code>rec:book:*</code>, <code>rec:author:*</code>, and <code>rec:series:*</code> Redis keys, then re-runs the contextual precompute job.
+                Flushes <code>rec:book:*</code>
+
+                , <code>rec:author:*</code>
+
+                , and <code>rec:series:*</code> Redis keys, then re-runs the contextual precompute job.
               </v-alert>
 
               <v-alert
@@ -700,11 +718,15 @@ onMounted(() => {
                 </h3>
 
                 <v-chip
-                  :color="adminStore.contextualRecommendationsRefreshResult.success ? 'success' : 'error'"
+                  :color="adminStore.contextualRecommendationsRefreshResult.success
+                    ? 'success'
+                    : 'error'"
                   size="small"
                   class="mb-3"
                 >
-                  {{ adminStore.contextualRecommendationsRefreshResult.success ? 'success' : 'failed' }}
+                  {{ adminStore.contextualRecommendationsRefreshResult.success
+                    ? 'success'
+                    : 'failed' }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -741,7 +763,11 @@ onMounted(() => {
               <div class="d-flex flex-wrap gap-3 align-start">
                 <v-select
                   v-model="contextualInvalidateEntityType"
-                  :items="['book', 'author', 'series']"
+                  :items="[
+                    'book',
+                    'author',
+                    'series',
+                  ]"
                   label="Entity type"
                   density="comfortable"
                   variant="outlined"
@@ -775,11 +801,15 @@ onMounted(() => {
                 class="mt-6"
               >
                 <v-chip
-                  :color="adminStore.contextualInvalidateResult.success ? 'success' : 'error'"
+                  :color="adminStore.contextualInvalidateResult.success
+                    ? 'success'
+                    : 'error'"
                   size="small"
                   class="mb-3"
                 >
-                  {{ adminStore.contextualInvalidateResult.success ? 'success' : 'failed' }}
+                  {{ adminStore.contextualInvalidateResult.success
+                    ? 'success'
+                    : 'failed' }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -843,11 +873,15 @@ onMounted(() => {
                 </h3>
 
                 <v-chip
-                  :color="adminStore.bookOfTheWeekRefreshResult.success ? 'success' : 'error'"
+                  :color="adminStore.bookOfTheWeekRefreshResult.success
+                    ? 'success'
+                    : 'error'"
                   size="small"
                   class="mb-3"
                 >
-                  {{ adminStore.bookOfTheWeekRefreshResult.success ? 'success' : 'failed' }}
+                  {{ adminStore.bookOfTheWeekRefreshResult.success
+                    ? 'success'
+                    : 'failed' }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -1188,7 +1222,8 @@ onMounted(() => {
         <v-card-text class="text-body-2">
           <div class="mb-2">
             This will delete the cached contextual recommendations for
-            <strong>{{ contextualInvalidateEntityType }}</strong> with slug
+            <strong>{{ contextualInvalidateEntityType }}</strong>
+            with slug
             <strong>{{ contextualInvalidateSlug.trim() }}</strong>.
           </div>
 

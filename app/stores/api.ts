@@ -28,6 +28,7 @@ export const useApiStore = defineStore('api', () => {
               usp.append(key, String(value))
             }
           }
+
           return usp.toString()
         },
       })

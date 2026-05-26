@@ -163,6 +163,7 @@ export const useAuthorsStore = defineStore('authors', () => {
       const response = await apiStore.client.get<APIResponse<AuthorQuote>>(`/api/v1/authors/${slug}/quote`)
       const data = response.data.data ?? null
       authorQuoteCache.value.set(slug, { data, timestamp: Date.now() })
+
       return data
     }
     catch {
@@ -179,6 +180,7 @@ export const useAuthorsStore = defineStore('authors', () => {
       const response = await apiStore.client.get<APIResponse<AuthorTopBooksResponse>>(`/api/v1/authors/${slug}/top-books`)
       const books = response.data.data?.books ?? []
       authorTopBooksCache.value.set(slug, { data: books, timestamp: Date.now() })
+
       return books
     }
     catch {

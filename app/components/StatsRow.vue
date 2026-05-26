@@ -13,18 +13,19 @@ defineProps<{
 </script>
 
 <template>
-  <div class="d-flex flex-wrap align-center">
+  <div class="d-flex align-center flex-wrap">
     <template
       v-for="(stat, i) in stats"
       :key="i"
     >
       <div class="d-flex flex-column align-center px-4">
-        <div class="d-flex align-center gap-1 text-body-1 font-weight-bold">
+        <div class="d-flex align-center text-body-1 font-weight-bold gap-1">
           <v-icon
             :icon="stat.icon"
             :color="stat.iconColor"
             size="small"
           />
+
           <span>
             {{ stat.value }}
             <v-tooltip
@@ -41,6 +42,7 @@ defineProps<{
             </v-tooltip>
           </span>
         </div>
+
         <span class="text-caption text-medium-emphasis">{{ stat.label }}</span>
       </div>
 
