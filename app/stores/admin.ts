@@ -330,6 +330,23 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
+  const removeBookAuthor = async (bookId: number, authorId: number) => {
+    isUpdateLoading.value = true
+    try {
+      await client.value.delete(`/api/v1/admin/books/${bookId}/authors/${authorId}`)
+
+      return { success: true }
+    }
+    catch (error: any) {
+      const msg = error.response?.data?.error?.message || 'Failed to remove author from book'
+
+      return { success: false, error: msg }
+    }
+    finally {
+      isUpdateLoading.value = false
+    }
+  }
+
   const deleteBook = async (bookId: number) => {
     isDeleteLoading.value = true
     try {
@@ -416,6 +433,7 @@ export const useAdminStore = defineStore('admin', () => {
     invalidateContextualCache,
     refreshBookOfTheWeek,
     updateBook,
+    removeBookAuthor,
     updateAuthor,
     updateSeries,
     deleteBook,

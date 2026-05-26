@@ -125,6 +125,7 @@ const editDialogOpen = ref(false)
 const editError = ref('')
 const deleteDialogOpen = ref(false)
 const deleteError = ref('')
+const removeAuthorError = ref('')
 
 const bookEditFields: EditFieldConfig[] = [
   { key: 'title', label: 'Title', type: 'text' },
@@ -163,6 +164,17 @@ const bookEditOriginalData = computed(() => ({
     : null,
   series_position: book.value?.series_position ?? null,
 }))
+
+async function handleRemoveAuthor(authorId: number) {
+  removeAuthorError.value = ''
+  const result = await adminStore.removeBookAuthor(book.value!.book_id, authorId)
+  if (result.success) {
+    await booksStore.fetchBook(slug, lang.value, true)
+  }
+  else {
+    removeAuthorError.value = (result as any).error || 'Remove failed'
+  }
+}
 
 async function handleBookDelete() {
   deleteError.value = ''
@@ -269,6 +281,8 @@ onUnmounted(() => {
           :slug="slug"
           :series-books="seriesBooks"
           :primary-author="primaryAuthor"
+          :lang-variants="langVariants"
+          :current-lang="lang"
         />
 
         <ClientOnly>
@@ -295,6 +309,29 @@ onUnmounted(() => {
             >
               Delete Book
             </v-btn>
+          </div>
+
+          <div
+            v-if="isAdmin && book.authors.length > 0"
+            class="mt-2"
+          >
+            <v-autocomplete
+              :items="book.authors"
+              item-title="name"
+              item-value="author_id"
+              label="Remove author"
+              placeholder="Search by name or slug"
+              :custom-filter="(item: any, query: string) =>
+                item.name.toLowerCase().includes(query.toLowerCase())
+                || item.slug.toLowerCase().includes(query.toLowerCase())"
+              density="compact"
+              variant="outlined"
+              clearable
+              hide-details
+              :loading="adminStore.isUpdateLoading"
+              :error-messages="removeAuthorError ? [removeAuthorError] : []"
+              @update:model-value="(val: number | null) => val && handleRemoveAuthor(val)"
+            />
           </div>
 
           <AdminEditDialog
@@ -393,16 +430,6 @@ onUnmounted(() => {
             />
           </v-card-text>
         </v-card>
-
-        <!-- Language Variants -->
-        <ClientOnly>
-          <LanguageVariantsCard
-            v-if="langVariants.length > 0"
-            :slug="slug"
-            :variants="langVariants"
-            :current-lang="lang"
-          />
-        </ClientOnly>
 
         <!-- Book Recommendations -->
         <ClientOnly>

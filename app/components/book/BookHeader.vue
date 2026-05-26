@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Author, Book, BookSummary } from '~/types/api'
+import type { Author, Book, BookLanguageVariant, BookSummary } from '~/types/api'
 import { hashColor } from '~/utils/coverColor'
 import { formatReadingTime } from '~/utils/readingTime'
 
@@ -8,11 +8,15 @@ interface Props {
   slug: string
   seriesBooks?: BookSummary[]
   primaryAuthor?: Author | null
+  langVariants?: BookLanguageVariant[]
+  currentLang?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   seriesBooks: () => [],
   primaryAuthor: null,
+  langVariants: () => [],
+  currentLang: 'en',
 })
 
 const bookPageStore = useBookPageStore()
@@ -26,6 +30,7 @@ useParallax(coverRef)
 const lightboxOpen = ref(false)
 const detailsExpanded = ref(false)
 const statisticsExpanded = ref(false)
+const langVariantsExpanded = ref(false)
 
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
@@ -51,14 +56,30 @@ const combinedReadersFormatted = computed(() => compactFmt.format(combinedReader
 
 function toggleDetails() {
   detailsExpanded.value = !detailsExpanded.value
-  if (detailsExpanded.value)
+  if (detailsExpanded.value) {
     statisticsExpanded.value = false
+    langVariantsExpanded.value = false
+  }
 }
 
 function toggleStatistics() {
   statisticsExpanded.value = !statisticsExpanded.value
-  if (statisticsExpanded.value)
+  if (statisticsExpanded.value) {
     detailsExpanded.value = false
+    langVariantsExpanded.value = false
+  }
+}
+
+function toggleLangVariants() {
+  langVariantsExpanded.value = !langVariantsExpanded.value
+  if (langVariantsExpanded.value) {
+    detailsExpanded.value = false
+    statisticsExpanded.value = false
+  }
+}
+
+function langLabel(code: string): string {
+  return languageNames.of(code) || code.toUpperCase()
 }
 
 const readingTime = computed(() => formatReadingTime(props.book.number_of_pages))
@@ -341,7 +362,7 @@ function formatSeriesPosition(position: number | null) {
 
           <!-- Details / Statistics Toggles -->
           <div class="pt-4">
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
               <v-btn
                 variant="text"
                 color="secondary"
@@ -365,6 +386,21 @@ function formatSeriesPosition(position: number | null) {
                 Statistics
                 <v-icon
                   :icon="statisticsExpanded
+                    ? 'mdi-chevron-up'
+                    : 'mdi-chevron-down'"
+                />
+              </v-btn>
+
+              <v-btn
+                v-if="langVariants.length > 0"
+                variant="text"
+                color="secondary"
+                size="small"
+                @click="toggleLangVariants"
+              >
+                Languages
+                <v-icon
+                  :icon="langVariantsExpanded
                     ? 'mdi-chevron-up'
                     : 'mdi-chevron-down'"
                 />
@@ -435,6 +471,41 @@ function formatSeriesPosition(position: number | null) {
                   >
                     {{ toTitleCase(format) }}
                   </v-chip>
+                </div>
+              </div>
+            </v-expand-transition>
+
+            <!-- Expandable Languages Section -->
+            <v-expand-transition>
+              <div v-show="langVariantsExpanded">
+                <div class="d-flex mt-2 gap-3 overflow-x-auto pb-2">
+                  <NuxtLink
+                    v-for="variant in langVariants"
+                    :key="variant.language"
+                    :to="`/books/${slug}?lang=${variant.language}`"
+                    replace
+                    class="text-decoration-none flex-shrink-0"
+                  >
+                    <div
+                      class="d-flex flex-column align-center gap-1"
+                      style="width: 80px;"
+                    >
+                      <v-img
+                        :src="variant.primary_cover_url || undefined"
+                        lazy-src="/placeholder-book-lazy.jpg"
+                        :alt="variant.title"
+                        width="80"
+                        height="116"
+                        cover
+                        class="rounded"
+                        :class="{'border-primary border-2': variant.language === currentLang}"
+                      />
+
+                      <span class="text-caption text-center text-medium-emphasis">
+                        {{ langLabel(variant.language) }}
+                      </span>
+                    </div>
+                  </NuxtLink>
                 </div>
               </div>
             </v-expand-transition>
