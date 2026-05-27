@@ -60,9 +60,36 @@ useBookStructuredData({
   inLanguage: book.value.language,
 })
 
-// Non-blocking data fetches
-const primaryAuthor = ref<Author | null>(null)
-const seriesBooks = ref<BookSummary[]>([])
+const { data: primaryAuthor } = useLazyAsyncData<Author | null>(
+  `book-primary-author-${slug}`,
+  async () => {
+    if (!book.value?.authors[0]?.slug)
+      return null
+    try {
+      return await authorsStore.fetchAuthor(book.value.authors[0].slug)
+    }
+    catch {
+      return null
+    }
+  },
+  { watch: [book], default: () => null },
+)
+
+const { data: seriesBooks } = useLazyAsyncData<BookSummary[]>(
+  `book-series-books-${slug}`,
+  async () => {
+    if (!book.value?.series?.slug)
+      return []
+    try {
+      return await seriesStore.fetchSeriesBooks(book.value.series.slug)
+    }
+    catch {
+      return []
+    }
+  },
+  { watch: [book], default: () => [] },
+)
+
 const bookRecommendations = ref<RecommendationSection[]>([])
 const personalizedBookRecs = ref<RecommendationSection[]>([])
 const langVariants = ref<import('~/types/api').BookLanguageVariant[]>([])
@@ -216,20 +243,6 @@ async function fetchLangVariants() {
 }
 
 onMounted(async () => {
-  if (book.value?.authors[0]?.slug) {
-    try {
-      primaryAuthor.value = await authorsStore.fetchAuthor(book.value.authors[0].slug)
-    }
-    catch { /* Silently fail */ }
-  }
-
-  if (book.value?.series?.slug) {
-    try {
-      seriesBooks.value = await seriesStore.fetchSeriesBooks(book.value.series.slug)
-    }
-    catch { /* Silently fail */ }
-  }
-
   if (book.value?.book_id) {
     try {
       bookRecommendations.value = await recommendationsStore.fetchBookRecommendations(book.value.book_id) ?? []
@@ -403,22 +416,11 @@ onUnmounted(() => {
           </v-card-text>
         </v-card>
 
-        <!-- Description + External Links -->
-        <v-row class="mt-4">
-          <v-col
-            cols="12"
-            md="8"
-          >
-            <LongDescriptionCard :description="book.description" />
-          </v-col>
-
-          <v-col
-            cols="12"
-            md="4"
-          >
-            <ExternalLinksSection :book="book" />
-          </v-col>
-        </v-row>
+        <!-- Description -->
+        <LongDescriptionCard
+          :description="book.description"
+          class="mt-4"
+        />
 
         <!-- Rating -->
         <v-card class="mt-4">

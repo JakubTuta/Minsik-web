@@ -83,11 +83,26 @@ export default defineNuxtConfig({
 
   // Route rules for SEO and caching
   routeRules: {
+    // Public content — SSR for SEO and fast first paint
     '/': { ssr: true },
     '/books/**': { ssr: true },
     '/authors/**': { ssr: true },
     '/series/**': { ssr: true },
     '/search': { ssr: true },
+    '/categories': { ssr: true },
+    '/recommendations/**': { ssr: true },
+    '/bookshelf/**': { ssr: true },
+    '/about': { ssr: true },
+    '/privacy-policy': { ssr: true },
+    '/terms-of-service': { ssr: true },
+
+    // Interactive pages — no SEO content, no data fetching
+    '/open-case': { ssr: false },
+    '/open-pack': { ssr: false },
+    '/play-slots': { ssr: false },
+    '/discover': { ssr: false },
+
+    // Auth-required pages — skip SSR, client-only
     '/auth/**': { ssr: false },
     '/dashboard': { ssr: false },
     '/admin': { ssr: false },
@@ -95,8 +110,6 @@ export default defineNuxtConfig({
     '/favourites': { ssr: false },
     '/ratings': { ssr: false },
     '/comments': { ssr: false },
-    '/open-case': { ssr: true },
-    '/discover': { ssr: true },
   },
 
   nitro: {

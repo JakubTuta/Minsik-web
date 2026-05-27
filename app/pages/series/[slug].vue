@@ -11,19 +11,20 @@ const recommendationsStore = useRecommendationsStore()
 
 const slug = route.params.slug as string
 
-const { data: series, error: seriesError } = await useAsyncData(
-  `series-${slug}`,
-  () => seriesStore.fetchSeries(slug),
-)
-
-const { data: books } = await useAsyncData(
-  `series-books-${slug}`,
-  () => seriesStore.fetchSeriesBooks(slug),
-)
-
-// Fetch first book's full details to get author for AuthorShortCard
 const booksStore = useBooksStore()
-const { data: firstBookDetails } = await useAsyncData(
+
+const [{ data: series, error: seriesError }, { data: books }] = await Promise.all([
+  useAsyncData(
+    `series-${slug}`,
+    () => seriesStore.fetchSeries(slug),
+  ),
+  useAsyncData(
+    `series-books-${slug}`,
+    () => seriesStore.fetchSeriesBooks(slug),
+  ),
+])
+
+const { data: firstBookDetails } = useLazyAsyncData(
   `series-first-book-${slug}`,
   async () => {
     if (!books.value || books.value.length === 0)
@@ -40,9 +41,10 @@ const { data: firstBookDetails } = await useAsyncData(
       return null
     }
   },
+  { watch: [books], default: () => null },
 )
 
-const { data: primaryAuthor } = await useAsyncData(
+const { data: primaryAuthor } = useLazyAsyncData(
   `series-author-${slug}`,
   async () => {
     if (!firstBookDetails.value?.authors?.[0]?.slug)
@@ -55,6 +57,7 @@ const { data: primaryAuthor } = await useAsyncData(
       return null
     }
   },
+  { watch: [firstBookDetails], default: () => null },
 )
 
 // Handle 404

@@ -31,6 +31,7 @@ const lightboxOpen = ref(false)
 const detailsExpanded = ref(false)
 const statisticsExpanded = ref(false)
 const langVariantsExpanded = ref(false)
+const externalLinksExpanded = ref(false)
 
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
@@ -54,11 +55,86 @@ const combinedReaders = computed(() => props.book.app_want_to_read_count + props
 
 const combinedReadersFormatted = computed(() => compactFmt.format(combinedReaders.value))
 
+interface ExternalLink {
+  title: string
+  url: string
+  icon: string
+  color?: string
+}
+
+const externalLinks = computed<ExternalLink[]>(() => {
+  const result: ExternalLink[] = []
+  const exIds = props.book.external_ids || {}
+
+  if (props.book.open_library_id) {
+    const isEdition = props.book.open_library_id.endsWith('M')
+    result.push({
+      title: 'Open Library',
+      url: `https://openlibrary.org/${isEdition ? 'books' : 'works'}/${props.book.open_library_id}`,
+      icon: 'mdi-library',
+      color: '#e2d5c3',
+    })
+  }
+  if (props.book.google_books_id) {
+    result.push({
+      title: 'Google Books',
+      url: `https://books.google.com/books?id=${props.book.google_books_id}`,
+      icon: 'mdi-google',
+      color: '#4285F4',
+    })
+  }
+  if (exIds.goodreads) {
+    result.push({
+      title: 'Goodreads',
+      url: `https://www.goodreads.com/book/show/${exIds.goodreads}`,
+      icon: 'mdi-alpha-g-box',
+      color: '#553b08',
+    })
+  }
+  if (exIds.librarything) {
+    result.push({
+      title: 'LibraryThing',
+      url: `https://www.librarything.com/work/${exIds.librarything}`,
+      icon: 'mdi-bookshelf',
+      color: '#947A6D',
+    })
+  }
+  if (exIds.amazon) {
+    result.push({
+      title: 'Amazon',
+      url: `https://www.amazon.com/dp/${exIds.amazon}`,
+      icon: 'mdi-amazon',
+      color: '#FF9900',
+    })
+  }
+  if (exIds.better_world_books) {
+    result.push({
+      title: 'Better World Books',
+      url: `https://www.betterworldbooks.com/product/detail/${exIds.better_world_books}`,
+      icon: 'mdi-earth',
+      color: '#4CAF50',
+    })
+  }
+  if (exIds.dnb) {
+    result.push({
+      title: 'DNB',
+      url: `https://d-nb.info/${exIds.dnb}`,
+      icon: 'mdi-bank',
+      color: '#333333',
+    })
+  }
+
+  return result
+})
+
+const hasExternalLinks = computed(() => externalLinks.value.length > 0)
+
 function toggleDetails() {
   detailsExpanded.value = !detailsExpanded.value
   if (detailsExpanded.value) {
     statisticsExpanded.value = false
     langVariantsExpanded.value = false
+    externalLinksExpanded.value = false
   }
 }
 
@@ -67,6 +143,7 @@ function toggleStatistics() {
   if (statisticsExpanded.value) {
     detailsExpanded.value = false
     langVariantsExpanded.value = false
+    externalLinksExpanded.value = false
   }
 }
 
@@ -75,6 +152,16 @@ function toggleLangVariants() {
   if (langVariantsExpanded.value) {
     detailsExpanded.value = false
     statisticsExpanded.value = false
+    externalLinksExpanded.value = false
+  }
+}
+
+function toggleExternalLinks() {
+  externalLinksExpanded.value = !externalLinksExpanded.value
+  if (externalLinksExpanded.value) {
+    detailsExpanded.value = false
+    statisticsExpanded.value = false
+    langVariantsExpanded.value = false
   }
 }
 
@@ -405,6 +492,21 @@ function formatSeriesPosition(position: number | null) {
                     : 'mdi-chevron-down'"
                 />
               </v-btn>
+
+              <v-btn
+                v-if="hasExternalLinks"
+                variant="text"
+                color="secondary"
+                size="small"
+                @click="toggleExternalLinks"
+              >
+                External Links
+                <v-icon
+                  :icon="externalLinksExpanded
+                    ? 'mdi-chevron-up'
+                    : 'mdi-chevron-down'"
+                />
+              </v-btn>
             </div>
 
             <!-- Expandable Details Section -->
@@ -506,6 +608,28 @@ function formatSeriesPosition(position: number | null) {
                       </span>
                     </div>
                   </NuxtLink>
+                </div>
+              </div>
+            </v-expand-transition>
+
+            <!-- Expandable External Links Section -->
+            <v-expand-transition>
+              <div v-show="externalLinksExpanded">
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  <v-btn
+                    v-for="link in externalLinks"
+                    :key="link.title"
+                    :href="link.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outlined"
+                    size="small"
+                    :color="link.color"
+                    :prepend-icon="link.icon"
+                    append-icon="mdi-open-in-new"
+                  >
+                    {{ link.title }}
+                  </v-btn>
                 </div>
               </div>
             </v-expand-transition>

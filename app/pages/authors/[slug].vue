@@ -45,25 +45,25 @@ const booksOffset = ref(0)
 const booksTotalCount = ref(0)
 const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.value)
 
-// Fetch initial page of books
-const { data: initialBooksData } = await useAsyncData(
+const { data: initialBooksData } = useLazyAsyncData(
   `author-books-${slug}`,
   () => authorsStore.fetchAuthorBooksPage(slug, 'publication_year', 'desc', 0, 20),
 )
 
-if (initialBooksData.value) {
-  allBooks.value = initialBooksData.value.books
-  booksTotalCount.value = initialBooksData.value.total_count
-  booksOffset.value = initialBooksData.value.books.length
-}
+watch(initialBooksData, (val) => {
+  if (val && allBooks.value.length === 0) {
+    allBooks.value = val.books
+    booksTotalCount.value = val.total_count
+    booksOffset.value = val.books.length
+  }
+}, { immediate: true })
 
-// Fetch quote and top books (SSR-safe)
-const { data: authorQuote } = await useAsyncData(
+const { data: authorQuote } = useLazyAsyncData(
   `author-quote-${slug}`,
   () => authorsStore.fetchAuthorQuote(slug),
 )
 
-const { data: topBooks } = await useAsyncData(
+const { data: topBooks } = useLazyAsyncData(
   `author-top-books-${slug}`,
   () => authorsStore.fetchAuthorTopBooks(slug),
 )
