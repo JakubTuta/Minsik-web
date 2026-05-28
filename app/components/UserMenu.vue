@@ -132,15 +132,15 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       />
 
       <v-list-item
-        prepend-icon="mdi-view-dashboard"
-        title="Dashboard"
-        to="/dashboard"
-      />
-
-      <v-list-item
         prepend-icon="mdi-account"
         title="Public Profile"
         :to="`/bookshelf/${user?.username}`"
+      />
+
+      <v-list-item
+        prepend-icon="mdi-view-dashboard"
+        title="Dashboard"
+        to="/dashboard"
       />
 
       <v-list-item

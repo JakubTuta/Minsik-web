@@ -41,10 +41,10 @@ function langLabel(code: string): string {
               height="130"
               cover
               class="rounded"
-              :class="{ 'border-primary border-2': variant.language === props.currentLang }"
+              :class="{'border-primary border-2': variant.language === props.currentLang}"
             />
 
-            <span class="text-caption text-center text-medium-emphasis">
+            <span class="text-caption text-medium-emphasis text-center">
               {{ langLabel(variant.language) }}
             </span>
           </div>

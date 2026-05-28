@@ -39,6 +39,7 @@ export const useBooksStore = defineStore('books', () => {
 
     if (!force && hasBook(slug, lang) && isCacheFresh(slug, lang)) {
       currentBook.value = books.value.get(key)!
+
       return currentBook.value
     }
 
@@ -60,6 +61,7 @@ export const useBooksStore = defineStore('books', () => {
     catch (error: any) {
       if (lang !== 'en' && error?.response?.status === 404) {
         isLoading.value = false
+
         return fetchBook(slug, 'en', force)
       }
       console.error('Error fetching book:', error)

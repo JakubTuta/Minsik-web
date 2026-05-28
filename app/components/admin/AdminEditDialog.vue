@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EditFieldConfig } from '~/types/admin'
+import type { Author } from '~/types/api'
 
 interface Props {
   modelValue: boolean
@@ -8,22 +9,27 @@ interface Props {
   originalData: Record<string, any>
   loading?: boolean
   error?: string
+  authors?: Pick<Author, 'author_id' | 'name' | 'slug'>[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   error: '',
+  authors: () => [],
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'save': [data: Record<string, any>]
+  'removeAuthors': [authorIds: number[]]
 }>()
 
 const editedData = ref<Record<string, any>>({})
+const authorsToRemove = ref<number[]>([])
 
 watch(() => props.modelValue, (open) => {
   if (open) {
     editedData.value = { ...props.originalData }
+    authorsToRemove.value = []
   }
 })
 
@@ -44,6 +50,9 @@ function setArrayValue(key: string, value: string) {
 }
 
 function handleSave() {
+  if (authorsToRemove.value.length > 0)
+    emit('removeAuthors', [...authorsToRemove.value])
+
   emit('save', { ...editedData.value })
 }
 
@@ -131,6 +140,30 @@ function handleClose() {
               />
             </v-col>
           </template>
+
+          <v-col
+            v-if="authors.length > 0"
+            cols="12"
+          >
+            <v-autocomplete
+              v-model="authorsToRemove"
+              :items="authors"
+              item-title="name"
+              item-value="author_id"
+              label="Remove authors"
+              placeholder="Select authors to remove"
+              :custom-filter="(_: string, query: string, item?: any) =>
+                item?.raw?.name?.toLowerCase().includes(query.toLowerCase())
+                || item?.raw?.slug?.toLowerCase().includes(query.toLowerCase())"
+              variant="outlined"
+              density="compact"
+              multiple
+              chips
+              closable-chips
+              clearable
+              hide-details
+            />
+          </v-col>
         </v-row>
       </v-card-text>
 

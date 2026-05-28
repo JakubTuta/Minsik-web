@@ -16,7 +16,10 @@ const slug = route.params.slug as string
 
 function resolvedLang(): string {
   const q = route.query.lang
-  return typeof q === 'string' && /^[a-z]{2,10}$/i.test(q) ? q.toLowerCase() : 'en'
+
+  return typeof q === 'string' && /^[a-z]{2,10}$/i.test(q)
+    ? q.toLowerCase()
+    : 'en'
 }
 
 const lang = ref(resolvedLang())
@@ -192,15 +195,18 @@ const bookEditOriginalData = computed(() => ({
   series_position: book.value?.series_position ?? null,
 }))
 
-async function handleRemoveAuthor(authorId: number) {
+async function handleRemoveAuthors(authorIds: number[]) {
   removeAuthorError.value = ''
-  const result = await adminStore.removeBookAuthor(book.value!.book_id, authorId)
-  if (result.success) {
-    await booksStore.fetchBook(slug, lang.value, true)
+  const results = await Promise.all(
+    authorIds.map(id => adminStore.removeBookAuthor(book.value!.book_id, id)),
+  )
+  const failed = results.find(r => !r.success)
+  if (failed) {
+    removeAuthorError.value = (failed as any).error || 'Remove failed'
+
+    return
   }
-  else {
-    removeAuthorError.value = (result as any).error || 'Remove failed'
-  }
+  await booksStore.fetchBook(slug, lang.value, true)
 }
 
 async function handleBookDelete() {
@@ -324,37 +330,16 @@ onUnmounted(() => {
             </v-btn>
           </div>
 
-          <div
-            v-if="isAdmin && book.authors.length > 0"
-            class="mt-2"
-          >
-            <v-autocomplete
-              :items="book.authors"
-              item-title="name"
-              item-value="author_id"
-              label="Remove author"
-              placeholder="Search by name or slug"
-              :custom-filter="(item: any, query: string) =>
-                item.name.toLowerCase().includes(query.toLowerCase())
-                || item.slug.toLowerCase().includes(query.toLowerCase())"
-              density="compact"
-              variant="outlined"
-              clearable
-              hide-details
-              :loading="adminStore.isUpdateLoading"
-              :error-messages="removeAuthorError ? [removeAuthorError] : []"
-              @update:model-value="(val: number | null) => val && handleRemoveAuthor(val)"
-            />
-          </div>
-
           <AdminEditDialog
             v-model="editDialogOpen"
             title="Edit Book"
             :fields="bookEditFields"
             :original-data="bookEditOriginalData"
+            :authors="book.authors"
             :loading="adminStore.isUpdateLoading"
-            :error="editError"
+            :error="editError || removeAuthorError"
             @save="handleBookEditSave"
+            @remove-authors="handleRemoveAuthors"
           />
 
           <v-dialog
@@ -436,42 +421,34 @@ onUnmounted(() => {
         <!-- Book Recommendations -->
         <ClientOnly>
           <div
-            v-if="personalizedBookRecs.length > 0 || recommendationsStore.isLoadingPersonalizedBookRecs"
+            v-if="personalizedBookRecs.length > 0"
             class="mt-8"
           >
-            <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingPersonalizedBookRecs" />
-
-            <template v-else>
-              <template
-                v-for="category in personalizedBookRecs"
-                :key="category.key"
-              >
-                <RecommendationRow
-                  v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-                  :category="category"
-                  hide-show-more
-                />
-              </template>
+            <template
+              v-for="category in personalizedBookRecs"
+              :key="category.key"
+            >
+              <RecommendationRow
+                v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+                :category="category"
+                hide-show-more
+              />
             </template>
           </div>
 
           <div
-            v-if="bookRecommendations.length > 0 || recommendationsStore.isLoadingBookRecs"
+            v-if="bookRecommendations.length > 0"
             class="mt-8"
           >
-            <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingBookRecs" />
-
-            <template v-else>
-              <template
-                v-for="category in bookRecommendations"
-                :key="category.key"
-              >
-                <RecommendationRow
-                  v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-                  :category="category"
-                  hide-show-more
-                />
-              </template>
+            <template
+              v-for="category in bookRecommendations"
+              :key="category.key"
+            >
+              <RecommendationRow
+                v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+                :category="category"
+                hide-show-more
+              />
             </template>
           </div>
         </ClientOnly>

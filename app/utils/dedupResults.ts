@@ -32,7 +32,9 @@ export function dedupBySlug<T extends Dedupable>(items: T[], preferredLanguage: 
     }
 
     const combinedReaders = group.reduce((sum, g) => sum + (g.readers || 0), 0)
-    const top = group.reduce((best, g) => (g.readers > best.readers ? g : best), group[0]!)
+    const top = group.reduce((best, g) => (g.readers > best.readers
+      ? g
+      : best), group[0]!)
     out.push({ ...top, readers: combinedReaders })
   }
 

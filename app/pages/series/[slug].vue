@@ -210,22 +210,18 @@ onMounted(async () => {
     <!-- Series Recommendations -->
     <ClientOnly>
       <div
-        v-if="seriesRecommendations.length > 0 || recommendationsStore.isLoadingSeriesRecs"
+        v-if="seriesRecommendations.length > 0"
         class="mt-8"
       >
-        <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingSeriesRecs" />
-
-        <template v-else>
-          <template
-            v-for="category in seriesRecommendations"
-            :key="category.key"
-          >
-            <RecommendationRow
-              v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-              :category="category"
-              hide-show-more
-            />
-          </template>
+        <template
+          v-for="category in seriesRecommendations"
+          :key="category.key"
+        >
+          <RecommendationRow
+            v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+            :category="category"
+            hide-show-more
+          />
         </template>
       </div>
     </ClientOnly>

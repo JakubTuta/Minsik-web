@@ -264,42 +264,34 @@ async function handleAuthorDelete() {
     <!-- Recommendations -->
     <ClientOnly>
       <div
-        v-if="personalizedAuthorRecs.length > 0 || recommendationsStore.isLoadingPersonalizedAuthorRecs"
+        v-if="personalizedAuthorRecs.length > 0"
         class="mt-8"
       >
-        <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingPersonalizedAuthorRecs" />
-
-        <template v-else>
-          <template
-            v-for="category in personalizedAuthorRecs"
-            :key="category.key"
-          >
-            <RecommendationRow
-              v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-              :category="category"
-              hide-show-more
-            />
-          </template>
+        <template
+          v-for="category in personalizedAuthorRecs"
+          :key="category.key"
+        >
+          <RecommendationRow
+            v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+            :category="category"
+            hide-show-more
+          />
         </template>
       </div>
 
       <div
-        v-if="authorRecommendations.length > 0 || recommendationsStore.isLoadingAuthorRecs"
+        v-if="authorRecommendations.length > 0"
         class="mt-8"
       >
-        <RecommendationRowSkeleton v-if="recommendationsStore.isLoadingAuthorRecs" />
-
-        <template v-else>
-          <template
-            v-for="category in authorRecommendations"
-            :key="category.key"
-          >
-            <RecommendationRow
-              v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-              :category="category"
-              hide-show-more
-            />
-          </template>
+        <template
+          v-for="category in authorRecommendations"
+          :key="category.key"
+        >
+          <RecommendationRow
+            v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
+            :category="category"
+            hide-show-more
+          />
         </template>
       </div>
     </ClientOnly>

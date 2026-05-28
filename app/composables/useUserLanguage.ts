@@ -6,6 +6,7 @@ function detectBrowserLanguage(): string {
   if (import.meta.server)
     return DEFAULT_LANGUAGE
   const lang = navigator.language || DEFAULT_LANGUAGE
+
   return lang.split('-')[0].slice(0, 8)
 }
 

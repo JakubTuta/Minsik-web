@@ -70,7 +70,9 @@ const externalLinks = computed<ExternalLink[]>(() => {
     const isEdition = props.book.open_library_id.endsWith('M')
     result.push({
       title: 'Open Library',
-      url: `https://openlibrary.org/${isEdition ? 'books' : 'works'}/${props.book.open_library_id}`,
+      url: `https://openlibrary.org/${isEdition
+        ? 'books'
+        : 'works'}/${props.book.open_library_id}`,
       icon: 'mdi-library',
       color: '#e2d5c3',
     })
@@ -603,7 +605,7 @@ function formatSeriesPosition(position: number | null) {
                         :class="{'border-primary border-2': variant.language === currentLang}"
                       />
 
-                      <span class="text-caption text-center text-medium-emphasis">
+                      <span class="text-caption text-medium-emphasis text-center">
                         {{ langLabel(variant.language) }}
                       </span>
                     </div>
@@ -615,7 +617,7 @@ function formatSeriesPosition(position: number | null) {
             <!-- Expandable External Links Section -->
             <v-expand-transition>
               <div v-show="externalLinksExpanded">
-                <div class="d-flex flex-wrap gap-2 mt-2">
+                <div class="d-flex mt-2 flex-wrap gap-2">
                   <v-btn
                     v-for="link in externalLinks"
                     :key="link.title"

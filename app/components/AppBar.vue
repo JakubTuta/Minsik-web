@@ -41,17 +41,7 @@ onMounted(() => {
       </NuxtLink>
     </v-app-bar-title>
 
-    <!-- Search Bar (absolutely centered) -->
-    <div class="search-container">
-      <SearchBar
-        v-model="appBarSearchQuery"
-        variant="appbar"
-      />
-    </div>
-
-    <v-spacer />
-
-    <!-- Desktop: Categories menu — right side before Discover -->
+    <!-- Desktop: Categories menu — left side after logo -->
     <v-menu
       class="d-none d-md-flex"
       location="bottom"
@@ -59,7 +49,7 @@ onMounted(() => {
     >
       <template #activator="{'props': menuProps}">
         <v-btn
-          class="d-none d-md-inline-flex"
+          class="d-none d-md-inline-flex ml-2"
           variant="text"
           prepend-icon="mdi-shape"
           v-bind="menuProps"
@@ -92,9 +82,9 @@ onMounted(() => {
       </v-list>
     </v-menu>
 
-    <!-- Desktop: Theme Toggle & User Menu -->
+    <!-- Desktop: Discover — left side after logo -->
     <v-btn
-      class="d-none d-md-inline-flex"
+      class="d-none d-md-inline-flex ml-2"
       variant="text"
       prepend-icon="mdi-compass"
       to="/discover"
@@ -102,6 +92,17 @@ onMounted(() => {
       Discover
     </v-btn>
 
+    <!-- Search Bar (absolutely centered) -->
+    <div class="search-container">
+      <SearchBar
+        v-model="appBarSearchQuery"
+        variant="appbar"
+      />
+    </div>
+
+    <v-spacer />
+
+    <!-- Desktop: Casino menu -->
     <v-menu
       class="d-none d-md-flex"
       location="bottom"
@@ -109,7 +110,7 @@ onMounted(() => {
     >
       <template #activator="{'props': menuProps}">
         <v-btn
-          class="d-none d-md-inline-flex"
+          class="d-none d-md-inline-flex mr-2"
           variant="text"
           prepend-icon="mdi-slot-machine"
           v-bind="menuProps"
@@ -146,7 +147,7 @@ onMounted(() => {
       </v-list>
     </v-menu>
 
-    <div class="d-none d-md-flex align-center">
+    <div class="d-none d-md-flex align-center mr-2">
       <ThemeToggle />
     </div>
 
