@@ -13,19 +13,20 @@ defineProps<{
 </script>
 
 <template>
-  <div class="d-flex align-center flex-wrap">
+  <div class="d-flex align-center w-100">
     <template
       v-for="(stat, i) in stats"
       :key="i"
     >
-      <div class="d-flex flex-column align-center px-4">
-        <div class="d-flex align-center text-body-1 font-weight-bold gap-1">
-          <v-icon
-            :icon="stat.icon"
-            :color="stat.iconColor"
-            size="small"
-          />
+      <div class="d-flex flex-column align-center flex-1-1 py-2">
+        <v-icon
+          :icon="stat.icon"
+          :color="stat.iconColor"
+          size="28"
+          class="mb-1"
+        />
 
+        <div class="d-flex align-center text-h5 font-weight-bold">
           <span>
             {{ stat.value }}
             <v-tooltip
@@ -43,14 +44,14 @@ defineProps<{
           </span>
         </div>
 
-        <span class="text-caption text-medium-emphasis">{{ stat.label }}</span>
+        <span class="text-body-2 text-medium-emphasis mt-1">{{ stat.label }}</span>
       </div>
 
       <v-divider
         v-if="i < stats.length - 1"
         vertical
         class="mx-0"
-        style="height: 36px; align-self: center;"
+        style="height: 48px; align-self: center;"
       />
     </template>
   </div>

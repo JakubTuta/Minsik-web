@@ -2,6 +2,13 @@ import type { APIResponse, PaginatedResponse } from '~/types/api'
 import type { CommentEntry } from '~/types/user'
 import { defineStore } from 'pinia'
 
+interface UpdateCommentResponse {
+  comment_id: number
+  body: string
+  is_spoiler: boolean
+  updated_at: string
+}
+
 export interface UserCommentsParams {
   sort_by?: 'created_at' | 'updated_at'
   order?: 'asc' | 'desc'
@@ -64,6 +71,24 @@ export const useUserCommentsStore = defineStore('userComments', () => {
     await fetch(currentParams.value, false)
   }
 
+  const updateComment = async (slug: string, commentId: number, body: string, isSpoiler: boolean) => {
+    const response = await client.value.put<APIResponse<UpdateCommentResponse>>(
+      `/api/v1/books/${slug}/comments/${commentId}`,
+      { body, is_spoiler: isSpoiler },
+    )
+    const updated = response.data.data!
+    const idx = items.value.findIndex(e => e.comment_id === commentId)
+    if (idx !== -1) {
+      items.value[idx] = { ...items.value[idx], body: updated.body, is_spoiler: updated.is_spoiler, updated_at: updated.updated_at }
+    }
+  }
+
+  const deleteComment = async (slug: string, commentId: number) => {
+    await client.value.delete(`/api/v1/books/${slug}/comments/${commentId}`)
+    items.value = items.value.filter(e => e.comment_id !== commentId)
+    total.value = Math.max(0, total.value - 1)
+  }
+
   return {
     items,
     total,
@@ -74,5 +99,7 @@ export const useUserCommentsStore = defineStore('userComments', () => {
     isEmpty,
     fetch,
     loadMore,
+    updateComment,
+    deleteComment,
   }
 })

@@ -13,7 +13,6 @@ const filteredItems = computed(() => {
   if (!titleFilter.value)
     return commentsStore.items
   const q = titleFilter.value.toLowerCase()
-
   return commentsStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
@@ -30,20 +29,25 @@ watch([sortBy, order], () => fetchWithFilters(true))
 
 onMounted(() => fetchWithFilters(true))
 
-const isLoadingMore = ref(false)
-
-async function onIntersectLoadMore(isIntersecting: boolean) {
-  if (!isIntersecting || isLoadingMore.value || !commentsStore.hasMore || commentsStore.isLoading)
-    return
-  isLoadingMore.value = true
-  try { await commentsStore.loadMore() }
-  finally { isLoadingMore.value = false }
-}
+const { sentinel } = useInfiniteScroll(
+  () => commentsStore.loadMore(),
+  { enabled: computed(() => commentsStore.hasMore && !commentsStore.isLoading) },
+)
 </script>
 
 <template>
   <v-container>
     <UserProfileTabs />
+
+    <div class="mb-6 mt-4">
+      <div class="text-h2 font-weight-bold">
+        {{ commentsStore.total }} comments
+      </div>
+
+      <div class="text-body-1 text-medium-emphasis mt-1">
+        Every word you've shared on a book page.
+      </div>
+    </div>
 
     <v-row>
       <v-col
@@ -62,18 +66,17 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
         cols="12"
         md="9"
       >
-        <div class="d-flex flex-column gap-2">
-          <div
-            v-for="(entry, index) in filteredItems"
+        <BookUserHeaderRow
+          v-if="commentsStore.hasData"
+          secondary-label="Updated"
+        />
+
+        <div class="d-flex flex-column gap-2 mt-2">
+          <CommentItem
+            v-for="entry in filteredItems"
             :key="entry.comment_id"
-            v-intersect="index === filteredItems.length - 3
-              ? onIntersectLoadMore
-              : undefined"
-          >
-            <CommentItem
-              :entry="entry"
-            />
-          </div>
+            :entry="entry"
+          />
         </div>
 
         <div
@@ -116,6 +119,8 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
             Comment on books while browsing to see them here
           </div>
         </div>
+
+        <div ref="sentinel" />
       </v-col>
     </v-row>
   </v-container>

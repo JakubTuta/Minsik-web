@@ -6,6 +6,13 @@ definePageMeta({ middleware: 'auth' })
 useSeo({ title: 'My Bookshelf', description: 'Your personal reading list.' })
 
 const bookshelfStore = useBookshelfStore()
+const dashboardStore = useDashboardStore()
+
+const totalBooks = computed(() => {
+  const s = dashboardStore.stats
+  if (!s) return 0
+  return s.want_to_read_count + s.reading_count + s.read_count + s.abandoned_count
+})
 
 const sortBy = ref<'created_at' | 'updated_at' | 'book_title'>('created_at')
 const order = ref<'asc' | 'desc'>('desc')
@@ -16,7 +23,6 @@ const filteredItems = computed(() => {
   if (!titleFilter.value)
     return bookshelfStore.myItems
   const q = titleFilter.value.toLowerCase()
-
   return bookshelfStore.myItems.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
@@ -35,22 +41,31 @@ function fetchWithFilters(reset = true) {
 
 watch([sortBy, order, status], () => fetchWithFilters(true))
 
-onMounted(() => fetchWithFilters(true))
+onMounted(() => {
+  fetchWithFilters(true)
+  if (!dashboardStore.stats)
+    dashboardStore.fetchStats()
+})
 
-const isLoadingMore = ref(false)
-
-async function onIntersectLoadMore(isIntersecting: boolean) {
-  if (!isIntersecting || isLoadingMore.value || !bookshelfStore.myHasMore || bookshelfStore.myIsLoading)
-    return
-  isLoadingMore.value = true
-  try { await bookshelfStore.loadMoreMine() }
-  finally { isLoadingMore.value = false }
-}
+const { sentinel } = useInfiniteScroll(
+  () => bookshelfStore.loadMoreMine(),
+  { enabled: computed(() => bookshelfStore.myHasMore && !bookshelfStore.myIsLoading) },
+)
 </script>
 
 <template>
   <v-container>
     <UserProfileTabs />
+
+    <div class="mb-6 mt-4">
+      <div class="text-h2 font-weight-bold">
+        {{ totalBooks }} books on your shelf
+      </div>
+
+      <div class="text-body-1 text-medium-emphasis mt-1">
+        Everything you've added to read, are reading, or have finished — in one place.
+      </div>
+    </div>
 
     <v-row>
       <v-col
@@ -71,20 +86,18 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
         cols="12"
         md="9"
       >
-        <!-- Book list -->
-        <div class="d-flex flex-column gap-2">
-          <div
-            v-for="(entry, index) in filteredItems"
+        <BookUserHeaderRow
+          v-if="bookshelfStore.myHasData"
+          :is-public-profile="false"
+        />
+
+        <div class="d-flex flex-column gap-2 mt-2">
+          <BookshelfItem
+            v-for="entry in filteredItems"
             :key="entry.book_id"
-            v-intersect="index === filteredItems.length - 3
-              ? onIntersectLoadMore
-              : undefined"
-          >
-            <BookshelfItem
-              :entry="entry"
-              :is-public-profile="false"
-            />
-          </div>
+            :entry="entry"
+            :is-public-profile="false"
+          />
         </div>
 
         <div
@@ -98,7 +111,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           />
         </div>
 
-        <!-- Loading more indicator -->
         <div
           v-if="bookshelfStore.myIsLoading && bookshelfStore.myHasData"
           class="py-6 text-center"
@@ -109,7 +121,6 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           />
         </div>
 
-        <!-- Empty state -->
         <div
           v-if="bookshelfStore.myIsEmpty"
           class="py-12 text-center"
@@ -129,6 +140,8 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
             Add books to your bookshelf while browsing
           </div>
         </div>
+
+        <div ref="sentinel" />
       </v-col>
     </v-row>
   </v-container>

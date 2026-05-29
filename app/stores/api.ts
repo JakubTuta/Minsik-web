@@ -2,6 +2,20 @@ import type { AxiosError, AxiosInstance } from 'axios'
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
+const CSRF_COOKIE = 'csrf_token'
+const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete'])
+
+function readCookie(name: string): string | null {
+  if (!import.meta.client)
+    return null
+
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  if (!match)
+    return null
+
+  return decodeURIComponent(match[1]!)
+}
+
 export const useApiStore = defineStore('api', () => {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase as string
@@ -15,6 +29,7 @@ export const useApiStore = defineStore('api', () => {
       client = axios.create({
         baseURL,
         timeout: 30000,
+        withCredentials: true,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -42,9 +57,12 @@ export const useApiStore = defineStore('api', () => {
           if (!isAuthEndpoint && import.meta.client) {
             const authStore = useAuthStore()
             await authStore.waitForAuth()
-            const token = authStore.token
-            if (token) {
-              config.headers.Authorization = `Bearer ${token}`
+          }
+
+          if (import.meta.client && UNSAFE_METHODS.has((config.method || 'get').toLowerCase())) {
+            const csrfToken = readCookie(CSRF_COOKIE)
+            if (csrfToken) {
+              config.headers['X-CSRF-Token'] = csrfToken
             }
           }
 
@@ -64,9 +82,7 @@ export const useApiStore = defineStore('api', () => {
             originalRequest._retry = true
             const authStore = useAuthStore()
             const refreshed = await authStore.refreshAccessToken()
-            if (refreshed && authStore.token) {
-              originalRequest.headers.Authorization = `Bearer ${authStore.token}`
-
+            if (refreshed) {
               return client(originalRequest)
             }
           }

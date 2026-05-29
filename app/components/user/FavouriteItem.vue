@@ -13,16 +13,18 @@ async function remove() {
 </script>
 
 <template>
-  <BookUserItemBase
+  <BookUserRow
     :slug="entry.book_slug"
     :title="entry.book_title"
     :cover-url="entry.book_cover_url"
     :author-names="entry.book_author_names"
     :author-slugs="entry.book_author_slugs"
     :series-name="entry.book_series_name"
-    :series-slug="entry.book_series_slug"
+    :status="entry.status"
+    :updated-at="entry.updated_at"
+    :show-actions="true"
   >
-    <template #topRight>
+    <template #actions>
       <v-btn
         icon
         size="small"
@@ -35,6 +37,14 @@ async function remove() {
           size="20"
         />
       </v-btn>
+
+      <v-btn
+        icon="mdi-open-in-new"
+        size="small"
+        variant="text"
+        :to="`/books/${entry.book_slug}`"
+        :as="NuxtLink"
+      />
     </template>
-  </BookUserItemBase>
+  </BookUserRow>
 </template>

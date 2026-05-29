@@ -4,6 +4,7 @@ definePageMeta({ middleware: 'auth' })
 useSeo({ title: 'My Favourites', description: 'Books you have marked as favourites.' })
 
 const favouritesStore = useFavouritesStore()
+const dashboardStore = useDashboardStore()
 
 const sortOptions = [
   { label: 'Date Added', value: 'created_at' },
@@ -22,22 +23,31 @@ const filteredItems = computed(() => {
 
 watch(order, newOrder => favouritesStore.fetch(true, 'created_at', newOrder))
 
-onMounted(() => favouritesStore.fetch(true, 'created_at', order.value))
+onMounted(() => {
+  favouritesStore.fetch(true, 'created_at', order.value)
+  if (!dashboardStore.stats)
+    dashboardStore.fetchStats()
+})
 
-const isLoadingMore = ref(false)
-
-async function onIntersectLoadMore(isIntersecting: boolean) {
-  if (!isIntersecting || isLoadingMore.value || !favouritesStore.hasMore || favouritesStore.isLoading)
-    return
-  isLoadingMore.value = true
-  try { await favouritesStore.loadMore() }
-  finally { isLoadingMore.value = false }
-}
+const { sentinel } = useInfiniteScroll(
+  () => favouritesStore.loadMore(),
+  { enabled: computed(() => favouritesStore.hasMore && !favouritesStore.isLoading) },
+)
 </script>
 
 <template>
   <v-container>
     <UserProfileTabs />
+
+    <div class="mb-6 mt-4">
+      <div class="text-h2 font-weight-bold">
+        {{ dashboardStore.stats?.favourites_count ?? 0 }} liked books
+      </div>
+
+      <div class="text-body-1 text-medium-emphasis mt-1">
+        Your collection of recommended-to-others — the books you'd press into a friend's hand.
+      </div>
+    </div>
 
     <v-row>
       <v-col
@@ -56,18 +66,17 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
         cols="12"
         md="9"
       >
-        <div class="d-flex flex-column gap-2">
-          <div
-            v-for="(entry, index) in filteredItems"
+        <BookUserHeaderRow
+          v-if="favouritesStore.hasData"
+          :is-public-profile="false"
+        />
+
+        <div class="d-flex flex-column gap-2 mt-2">
+          <FavouriteItem
+            v-for="entry in filteredItems"
             :key="entry.book_id"
-            v-intersect="index === filteredItems.length - 3
-              ? onIntersectLoadMore
-              : undefined"
-          >
-            <FavouriteItem
-              :entry="entry"
-            />
-          </div>
+            :entry="entry"
+          />
         </div>
 
         <div
@@ -110,6 +119,8 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
             Mark books as favourites while browsing
           </div>
         </div>
+
+        <div ref="sentinel" />
       </v-col>
     </v-row>
   </v-container>

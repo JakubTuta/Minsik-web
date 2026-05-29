@@ -10,19 +10,14 @@ interface SortOption {
 interface Props {
   sortOptions: SortOption[]
   showStatusFilter?: boolean
-  showRatingFilter?: boolean
   sort: string
   order: 'asc' | 'desc'
   titleFilter: string
   status?: BookshelfStatus | null
-  selectedRatings?: number[]
-  ratingCounts?: Record<number, number>
 }
 
 const props = withDefaults(defineProps<Props>(), {
   status: null,
-  selectedRatings: () => [],
-  ratingCounts: () => ({}),
 })
 
 const emit = defineEmits<{
@@ -30,7 +25,6 @@ const emit = defineEmits<{
   'update:order': [value: 'asc' | 'desc']
   'update:titleFilter': [value: string]
   'update:status': [value: BookshelfStatus | null]
-  'update:selectedRatings': [value: number[]]
 }>()
 
 const statusOptions: { label: string, value: BookshelfStatus, color: string }[] = [
@@ -40,35 +34,16 @@ const statusOptions: { label: string, value: BookshelfStatus, color: string }[] 
   { label: 'Abandoned', value: 'abandoned', color: 'grey' },
 ]
 
-const starLevels = [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5]
-
 const { mobile } = useDisplay()
 const expanded = ref(false)
 const showContent = computed(() => !mobile.value || expanded.value)
-
-function toggleRating(star: number) {
-  const current = [...props.selectedRatings!]
-  const idx = current.indexOf(star)
-  if (idx === -1)
-    current.push(star)
-  else current.splice(idx, 1)
-  emit('update:selectedRatings', current)
-}
-
-function starLabel(star: number): string {
-  const unit = star === 1
-    ? 'star'
-    : 'stars'
-  const count = props.ratingCounts![star] ?? 0
-
-  return `${star.toFixed(1)} ${unit} (${count})`
-}
 </script>
 
 <template>
   <v-card
     variant="outlined"
     class="pa-4"
+    style="position: sticky; top: 80px; align-self: flex-start;"
   >
     <!-- Mobile toggle header -->
     <div
@@ -183,27 +158,6 @@ function starLabel(star: number): string {
         </div>
       </template>
 
-      <!-- Rating Checkboxes -->
-      <template v-if="showRatingFilter">
-        <v-divider class="my-4" />
-
-        <div class="text-medium-emphasis font-weight-bold text-uppercase mb-2">
-          Filter by Rating
-        </div>
-
-        <div class="d-flex flex-column">
-          <v-checkbox
-            v-for="star in starLevels"
-            :key="star"
-            :model-value="selectedRatings!.includes(star)"
-            :label="starLabel(star)"
-            density="compact"
-            hide-details
-            color="primary"
-            @update:model-value="toggleRating(star)"
-          />
-        </div>
-      </template>
     </template>
   </v-card>
 </template>

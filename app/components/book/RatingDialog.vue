@@ -1,8 +1,5 @@
 <script setup lang="ts">
-interface Props {
-  modelValue: boolean
-  slug: string
-}
+import type { RatingEntry } from '~/types/user'
 
 interface DimensionConfig {
   key: string
@@ -11,6 +8,14 @@ interface DimensionConfig {
   type: 'quality' | 'spectrum'
   lowLabel: string
   highLabel: string
+}
+
+interface Props {
+  modelValue: boolean
+  slug: string
+  initialRating?: RatingEntry | null
+  onSave?: (data: Record<string, any>) => Promise<void>
+  onDelete?: () => Promise<void>
 }
 
 const props = defineProps<Props>()
@@ -47,18 +52,17 @@ const dimensions: DimensionConfig[] = [
   { key: 'humor', label: 'Humor', color: 'pink', type: 'spectrum', lowLabel: 'Serious', highLabel: 'Very funny' },
 ]
 
-const isEditing = computed(() => !!bookPageStore.userRating)
+const existingRating = computed(() => props.initialRating ?? bookPageStore.userRating)
+const isEditing = computed(() => !!existingRating.value)
 const canSave = computed(() => overallRating.value >= 0.5)
 
 function populateFromExisting() {
-  const existing = bookPageStore.userRating
+  const existing = existingRating.value
   if (existing) {
     overallRating.value = existing.overall_rating
     for (const dim of dimensions) {
       const val = existing[dim.key as keyof typeof existing]
-      subRatings.value[dim.key] = typeof val === 'number'
-        ? val
-        : null
+      subRatings.value[dim.key] = typeof val === 'number' ? val : null
     }
   }
   else {
@@ -85,14 +89,17 @@ async function handleSave() {
   saving.value = true
   try {
     const data: Record<string, any> = { overall_rating: overallRating.value }
-
     for (const dim of dimensions) {
-      if (subRatings.value[dim.key] != null) {
+      if (subRatings.value[dim.key] != null)
         data[dim.key] = subRatings.value[dim.key]
-      }
     }
 
-    await bookPageStore.submitRating(props.slug, data)
+    if (props.onSave) {
+      await props.onSave(data)
+    }
+    else {
+      await bookPageStore.submitRating(props.slug, data)
+    }
     emit('update:modelValue', false)
     emit('saved')
   }
@@ -105,7 +112,12 @@ async function handleSave() {
 async function handleDelete() {
   deleting.value = true
   try {
-    await bookPageStore.deleteRating(props.slug)
+    if (props.onDelete) {
+      await props.onDelete()
+    }
+    else {
+      await bookPageStore.deleteRating(props.slug)
+    }
     emit('update:modelValue', false)
   }
   catch { /* handled in store */ }

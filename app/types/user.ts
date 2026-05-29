@@ -24,7 +24,9 @@ export interface FavouriteEntry {
   book_author_slugs: string[]
   book_series_name: string | null
   book_series_slug: string | null
+  status: BookshelfStatus
   created_at: string
+  updated_at: string
 }
 
 export interface RatingEntry {
@@ -46,6 +48,8 @@ export interface RatingEntry {
   humor?: number | null
   created_at: string
   updated_at: string
+  book_avg_rating?: number
+  book_rating_count?: number
 }
 
 export interface CommentEntry {
@@ -167,6 +171,47 @@ export interface UserStats {
   favourites_count: number
   ratings_count: number
   comments_count: number
+  finished_this_year_count: number
+  pages_read_this_year: number
+  hours_read_this_year: number
+  bookshelf_updated_at: string
+  favourites_updated_at: string
+  comments_updated_at: string
+  ratings_updated_at: string
+  average_rating: number
+  rating_distribution: Record<string, number>
+  pages_read_total: number
+  reviews_count: number
+}
+
+export interface OverviewBook {
+  book_slug: string
+  book_title: string
+  book_cover_url: string
+  book_author_names: string[]
+  book_author_slugs: string[]
+}
+
+export interface TopGenre {
+  name: string
+  slug: string
+  count: number
+  percent: number
+}
+
+export interface FavouriteAuthor {
+  name: string
+  slug: string
+  count: number
+  photo_url?: string | null
+}
+
+export interface ProfileOverview {
+  user: UserPublicProfile
+  reading_now: OverviewBook | null
+  top_genres: TopGenre[]
+  favourite_authors: FavouriteAuthor[]
+  favourites_this_year: OverviewBook[]
 }
 
 export interface BookCommentsListData {

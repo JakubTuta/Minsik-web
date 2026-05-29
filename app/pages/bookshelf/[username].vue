@@ -4,58 +4,37 @@ const username = computed(() => route.params.username as string)
 
 const bookshelfStore = useBookshelfStore()
 const dashboardStore = useDashboardStore()
+const profileStore = useProfileStore()
 
-const statItems = [
-  { label: 'Want to Read', icon: 'mdi-bookmark', color: 'info', getValue: () => dashboardStore.publicStats?.want_to_read_count ?? 0 },
-  { label: 'Currently Reading', icon: 'mdi-book-open', color: 'primary', getValue: () => dashboardStore.publicStats?.reading_count ?? 0 },
-  { label: 'Books Read', icon: 'mdi-bookshelf', color: 'success', getValue: () => dashboardStore.publicStats?.read_count ?? 0 },
-  { label: 'Abandoned', icon: 'mdi-book-off', color: 'warning', getValue: () => dashboardStore.publicStats?.abandoned_count ?? 0 },
-  { label: 'Favourite Books', icon: 'mdi-heart', color: 'error', getValue: () => dashboardStore.publicStats?.favourites_count ?? 0 },
-  { label: 'Books Rated', icon: 'mdi-star', color: 'amber', getValue: () => dashboardStore.publicStats?.ratings_count ?? 0 },
-  { label: 'Comments', icon: 'mdi-comment-text', color: 'blue-grey', getValue: () => dashboardStore.publicStats?.comments_count ?? 0 },
-]
+const currentYear = new Date().getFullYear()
 
-const sortBy = ref<'created_at' | 'updated_at' | 'book_title'>('created_at')
-const order = ref<'asc' | 'desc'>('desc')
-const titleFilter = ref('')
-
-const filteredItems = computed(() => {
-  if (!titleFilter.value)
-    return bookshelfStore.publicItems
-  const q = titleFilter.value.toLowerCase()
-
-  return bookshelfStore.publicItems.filter(e => e.book_title.toLowerCase().includes(q))
+const statsItems = computed(() => {
+  const s = dashboardStore.publicStats
+  const totalBooks = (s?.want_to_read_count ?? 0) + (s?.reading_count ?? 0) + (s?.read_count ?? 0) + (s?.abandoned_count ?? 0)
+  return [
+    { icon: 'mdi-bookshelf', iconColor: 'primary', value: totalBooks, label: 'Books on shelves' },
+    { icon: 'mdi-star', iconColor: 'amber', value: s?.ratings_count ?? 0, label: 'Ratings' },
+    { icon: 'mdi-comment-text', iconColor: 'blue-grey', value: s?.reviews_count ?? 0, label: 'Reviews' },
+    { icon: 'mdi-check-circle', iconColor: 'success', value: s?.read_count ?? 0, label: 'Finished' },
+    { icon: 'mdi-file-document', iconColor: 'info', value: (s?.pages_read_total ?? 0).toLocaleString(), label: 'Pages read' },
+    { icon: 'mdi-star-half-full', iconColor: 'amber', value: s?.average_rating ? s.average_rating.toFixed(1) : '—', label: 'Avg rating' },
+  ]
 })
-
-const sortOptions = [
-  { label: 'Date Added', value: 'created_at' },
-  { label: 'Last Updated', value: 'updated_at' },
-  { label: 'Title', value: 'book_title' },
-]
 
 useSeo({
   title: computed(() => `${username.value}'s Bookshelf`),
   description: computed(() => `View ${username.value}'s reading list.`),
 })
 
-function fetchWithFilters(reset = true) {
-  bookshelfStore.fetchByUsername(
-    username.value,
-    { sort_by: sortBy.value, order: order.value },
-    reset,
-  )
+function fetchAll(reset = true) {
+  bookshelfStore.fetchByUsername(username.value, { sort_by: 'created_at', order: 'desc' }, reset)
+  dashboardStore.fetchStatsByUsername(username.value)
+  profileStore.fetchOverview(username.value)
 }
 
-watch([sortBy, order], () => fetchWithFilters(true))
-watch(username, (val) => {
-  fetchWithFilters(true)
-  dashboardStore.fetchStatsByUsername(val)
-})
+watch(username, () => fetchAll(true))
 
-onMounted(() => {
-  fetchWithFilters(true)
-  dashboardStore.fetchStatsByUsername(username.value)
-})
+onMounted(() => fetchAll(true))
 
 const { sentinel } = useInfiniteScroll(
   () => bookshelfStore.loadMoreByUsername(username.value),
@@ -67,80 +46,30 @@ const { sentinel } = useInfiniteScroll(
 
 <template>
   <v-container>
-    <!-- User header -->
+    <UserProfileCard
+      :display-name="profileStore.overview?.user.display_name || username"
+      :username="username"
+      :avatar-url="profileStore.overview?.user.avatar_url"
+      :bio="profileStore.overview?.user.bio"
+    />
+
     <v-card
-      variant="outlined"
-      class="d-flex align-center mb-6 gap-4 pa-4"
+      variant="elevated"
+      class="mb-6 pa-4"
     >
-      <v-avatar
-        color="secondary"
-        size="64"
-      >
-        <span class="text-h5 font-weight-bold">{{ username.charAt(0).toUpperCase() }}</span>
-      </v-avatar>
-
-      <div>
-        <div class="text-h6 font-weight-bold">
-          @{{ username }}
-        </div>
-
-        <div class="text-subtitle-1">
-          Public Bookshelf
-        </div>
-      </div>
+      <StatsRow :stats="statsItems" />
     </v-card>
-
-    <!-- Stats Grid -->
-    <v-row class="mb-6">
-      <v-col
-        v-for="item in statItems"
-        :key="item.label"
-        cols="6"
-        sm="4"
-        lg="3"
-      >
-        <v-card
-          :color="item.color"
-          variant="tonal"
-          class="h-100 pa-4 text-center"
-        >
-          <v-icon
-            :icon="item.icon"
-            size="32"
-            class="mb-2"
-          />
-
-          <div class="text-h4 font-weight-bold">
-            {{ item.getValue() }}
-          </div>
-
-          <div class="text-body-2 text-secondary">
-            {{ item.label }}
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
 
     <v-row>
       <v-col
         cols="12"
-        md="3"
+        md="8"
       >
-        <UserFilterPanel
-          v-model:sort="sortBy"
-          v-model:order="order"
-          v-model:title-filter="titleFilter"
-          :sort-options="sortOptions"
-        />
-      </v-col>
+        <BookUserHeaderRow is-public-profile />
 
-      <v-col
-        cols="12"
-        md="9"
-      >
-        <div class="d-flex flex-column gap-2">
+        <div class="d-flex flex-column gap-2 mt-2">
           <BookshelfItem
-            v-for="entry in filteredItems"
+            v-for="entry in bookshelfStore.publicItems"
             :key="entry.book_id"
             :entry="entry"
             is-public-profile
@@ -185,6 +114,22 @@ const { sentinel } = useInfiniteScroll(
         </div>
 
         <div ref="sentinel" />
+      </v-col>
+
+      <v-col
+        cols="12"
+        md="4"
+      >
+        <ReadingNowCard :book="profileStore.overview?.reading_now ?? null" />
+
+        <TopGenresCard :genres="profileStore.overview?.top_genres ?? []" />
+
+        <FavouriteAuthorsCard :authors="profileStore.overview?.favourite_authors ?? []" />
+
+        <FavouritesOfYearCard
+          :books="profileStore.overview?.favourites_this_year ?? []"
+          :year="currentYear"
+        />
       </v-col>
     </v-row>
   </v-container>

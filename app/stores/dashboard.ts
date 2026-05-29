@@ -13,9 +13,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const publicStats = ref<UserStats | null>(null)
   const publicIsLoading = ref(false)
 
-  const fetchStats = async () => {
+  const fetchStats = async (force = false) => {
     const username = authStore.user?.username
     if (!username)
+      return
+    if (isLoading.value && !force)
       return
 
     isLoading.value = true

@@ -11,11 +11,9 @@ export interface User {
   preferred_language: string
 }
 
-export interface AuthTokensData {
-  access_token: string
-  refresh_token: string
-  token_type: string
+export interface SessionData {
   user: User
+  expires_in: number
 }
 
 export interface LoginRequest {
@@ -27,14 +25,6 @@ export interface RegisterRequest {
   email: string
   username: string
   password: string
-}
-
-export interface LogoutRequest {
-  refresh_token: string
-}
-
-export interface RefreshTokenRequest {
-  refresh_token: string
 }
 
 export interface UpdateProfileRequest {

@@ -98,33 +98,7 @@ const personalizedBookRecs = ref<RecommendationSection[]>([])
 const langVariants = ref<import('~/types/api').BookLanguageVariant[]>([])
 const selectedRating = ref<number | null>(null)
 
-function distributionCount(star: number): number {
-  const dist = book.value?.rating_distribution
-  if (!dist)
-    return 0
-
-  const full = dist[`${star}.0`] ?? dist[String(star)] ?? 0
-  const half = star < 5
-    ? (dist[`${star}.5`] ?? 0)
-    : 0
-
-  return full + half
-}
-
-const totalDistributionCount = computed(
-  () => [1, 2, 3, 4, 5].reduce((sum, star) => sum + distributionCount(star), 0),
-)
-
-function distributionPercent(star: number): number {
-  const total = totalDistributionCount.value
-  if (total === 0)
-    return 0
-
-  return (distributionCount(star) / total) * 100
-}
-
 const avgRating = computed(() => bookPageStore.liveAvgRating ?? book.value?.avg_rating ?? 0)
-const roundedAvgRating = computed(() => Math.floor(avgRating.value * 2) / 2)
 const totalRatingCount = computed(() => bookPageStore.liveRatingCount ?? book.value?.rating_count ?? 0)
 
 const selectedRatingFilters = computed<number[] | null>(() => {
@@ -461,82 +435,14 @@ onUnmounted(() => {
                 Rating Distribution
               </h2>
 
-              <v-row align="center">
-                <!-- Left: avg + stars + count -->
-                <v-col
-                  cols="12"
-                  sm="4"
-                  class="d-flex flex-column align-center text-center"
-                >
-                  <div class="text-h2 font-weight-bold text-primary">
-                    {{ avgRating.toFixed(1) }}
-                  </div>
-
-                  <v-rating
-                    :model-value="roundedAvgRating"
-                    readonly
-                    half-increments
-                    color="warning"
-                    active-color="warning"
-                    density="compact"
-                  />
-
-                  <div class="text-body-2 text-secondary mt-1">
-                    with {{ totalRatingCount.toLocaleString() }} ratings
-                  </div>
-                </v-col>
-
-                <!-- Right: horizontal bar rows 5→1 -->
-                <v-col
-                  cols="12"
-                  sm="8"
-                >
-                  <div
-                    v-for="star in [
-                      5,
-                      4,
-                      3,
-                      2,
-                      1,
-                    ]"
-                    :key="star"
-                    class="d-flex align-center mb-2 cursor-pointer gap-2 rounded pa-1"
-                    :class="{'bg-primary-lighten-4': selectedRating === star}"
-                    @click="selectedRating = selectedRating === star
-                      ? null
-                      : star"
-                  >
-                    <span
-                      class="text-body-2 font-weight-bold"
-                      style="min-width: 10px; text-align: right;"
-                    >{{ star }}</span>
-
-                    <v-icon
-                      icon="mdi-star"
-                      size="small"
-                      color="warning"
-                    />
-
-                    <v-progress-linear
-                      :model-value="distributionPercent(star)"
-                      color="primary"
-                      rounded
-                      height="10"
-                      class="flex-1"
-                    />
-
-                    <span
-                      class="text-body-2"
-                      style="min-width: 40px; text-align: right;"
-                    >{{ distributionCount(star).toLocaleString() }}</span>
-
-                    <span
-                      class="text-caption text-secondary"
-                      style="min-width: 36px; text-align: right;"
-                    >{{ distributionPercent(star).toFixed(0) }}%</span>
-                  </div>
-                </v-col>
-              </v-row>
+              <RatingDistributionCard
+                :avg-rating="avgRating"
+                :rating-count="totalRatingCount"
+                :distribution="book.rating_distribution ?? {}"
+                clickable
+                :selected-star="selectedRating"
+                @update:selected-star="selectedRating = $event"
+              />
             </v-card-text>
           </v-card>
         </ClientOnly>

@@ -145,6 +145,11 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     }
   }
 
+  const deleteMine = async (slug: string) => {
+    await client.value.delete(`/api/v1/users/me/bookshelves/${slug}`)
+    removeItem(slug)
+  }
+
   return {
     // My bookshelf
     myItems,
@@ -168,5 +173,6 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     // Actions
     upsertStatus,
     removeItem,
+    deleteMine,
   }
 })

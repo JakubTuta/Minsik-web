@@ -1,11 +1,11 @@
 import type { APIResponse } from '~/types/api'
-import type { AuthTokensData, GoogleAuthRequest, LoginRequest, LogoutRequest, RefreshTokenRequest, RegisterRequest, UpdateProfileRequest, User } from '~/types/auth'
+import type { GoogleAuthRequest, LoginRequest, RegisterRequest, SessionData, UpdateProfileRequest, User } from '~/types/auth'
 import { defineStore } from 'pinia'
 
-const TOKEN_KEY = 'minsik_auth_token'
-const REFRESH_TOKEN_KEY = 'minsik_refresh_token'
-const TOKEN_EXPIRY_KEY = 'minsik_token_expiry'
-const ACCESS_TOKEN_EXPIRY_SECONDS = 900 // 15 minutes
+const LAST_REFRESH_KEY = 'minsik_last_refresh'
+const REFRESH_DEDUP_MS = 5000
+const REFRESH_LEAD_SECONDS = 60
+const MIN_REFRESH_DELAY_SECONDS = 30
 
 export const useAuthStore = defineStore('auth', () => {
   const apiStore = useApiStore()
@@ -14,14 +14,11 @@ export const useAuthStore = defineStore('auth', () => {
   const route = useRoute()
 
   const user = ref<User | null>(null)
-  const token = ref<string | null>(null)
-  const refreshToken = ref<string | null>(null)
-  const tokenExpiryTime = ref<number | null>(null)
-  const isAuthenticated = computed(() => !!user.value && !!token.value)
+  const isAuthenticated = computed(() => !!user.value)
   const authInitialized = ref(false)
 
   let _refreshPromise: Promise<boolean> | null = null
-  let _refreshInterval: ReturnType<typeof setInterval> | null = null
+  let _refreshTimer: ReturnType<typeof setTimeout> | null = null
 
   // Resolves once autoLogin() completes (success or failure) — gates all non-auth API requests
   let _authReadyResolve: (() => void) | null = null
@@ -29,60 +26,87 @@ export const useAuthStore = defineStore('auth', () => {
     ? new Promise<void>((resolve) => { _authReadyResolve = resolve })
     : Promise.resolve()
 
-  const clearRefreshInterval = () => {
-    if (_refreshInterval !== null) {
-      clearInterval(_refreshInterval)
-      _refreshInterval = null
+  const clearRefreshTimer = () => {
+    if (_refreshTimer !== null) {
+      clearTimeout(_refreshTimer)
+      _refreshTimer = null
     }
   }
 
-  const saveToken = (newToken: string, newRefreshToken: string) => {
-    token.value = newToken
-    refreshToken.value = newRefreshToken
-    tokenExpiryTime.value = Date.now() + (ACCESS_TOKEN_EXPIRY_SECONDS * 1000)
+  const scheduleRefresh = (expiresInSeconds: number) => {
+    if (!import.meta.client)
+      return
 
-    if (import.meta.client) {
-      localStorage.setItem(TOKEN_KEY, newToken)
-      localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken)
-      localStorage.setItem(TOKEN_EXPIRY_KEY, tokenExpiryTime.value.toString())
-    }
+    clearRefreshTimer()
+    const delaySeconds = Math.max(expiresInSeconds - REFRESH_LEAD_SECONDS, MIN_REFRESH_DELAY_SECONDS)
+    _refreshTimer = setTimeout(() => {
+      refreshAccessToken()
+    }, delaySeconds * 1000)
   }
 
-  const loadToken = () => {
-    if (import.meta.client) {
-      const savedToken = localStorage.getItem(TOKEN_KEY)
-      const savedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
-      const savedExpiry = localStorage.getItem(TOKEN_EXPIRY_KEY)
+  const _doRefresh = async (): Promise<boolean> => {
+    try {
+      const response = await client.value.post<APIResponse<SessionData>>('/api/v1/auth/refresh')
+      const data = response.data.data!
+      user.value = data.user
+      scheduleRefresh(data.expires_in)
 
-      if (savedToken && savedRefreshToken) {
-        token.value = savedToken
-        refreshToken.value = savedRefreshToken
-        tokenExpiryTime.value = savedExpiry
-          ? Number.parseInt(savedExpiry)
-          : null
+      return true
+    }
+    catch (error: any) {
+      // Only a genuine 401 (refresh token invalid/expired) ends the session.
+      // Network errors and 5xx are transient — keep the session so a later retry can recover.
+      if (error.response?.status === 401) {
+        user.value = null
+        clearRefreshTimer()
       }
+      else {
+        console.error('Token refresh failed (transient), keeping session:', error)
+      }
+
+      return false
     }
   }
 
-  const clearToken = () => {
-    token.value = null
-    refreshToken.value = null
-    tokenExpiryTime.value = null
-    if (import.meta.client) {
-      localStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem(REFRESH_TOKEN_KEY)
-      localStorage.removeItem(TOKEN_EXPIRY_KEY)
+  // Single-flight within a tab (_refreshPromise) and across tabs (Web Locks + last-refresh stamp),
+  // so concurrent refreshes never race on refresh-token rotation.
+  const _runRefresh = (): Promise<boolean> => {
+    if (import.meta.client && navigator.locks) {
+      return navigator.locks.request('minsik-token-refresh', async () => {
+        const last = Number(localStorage.getItem(LAST_REFRESH_KEY) || '0')
+        if (user.value && Date.now() - last < REFRESH_DEDUP_MS)
+          return true
+
+        const refreshed = await _doRefresh()
+        if (refreshed)
+          localStorage.setItem(LAST_REFRESH_KEY, Date.now().toString())
+
+        return refreshed
+      })
     }
+
+    return _doRefresh()
+  }
+
+  function refreshAccessToken(): Promise<boolean> {
+    if (_refreshPromise)
+      return _refreshPromise
+
+    _refreshPromise = _runRefresh().finally(() => {
+      _refreshPromise = null
+    })
+
+    return _refreshPromise
   }
 
   const login = async (credentials: LoginRequest) => {
     try {
-      const response = await client.value.post<APIResponse<AuthTokensData>>('/api/v1/auth/login', credentials)
+      const response = await client.value.post<APIResponse<SessionData>>('/api/v1/auth/login', credentials)
       const data = response.data.data!
 
-      saveToken(data.access_token, data.refresh_token)
       user.value = data.user
       authInitialized.value = true
+      scheduleRefresh(data.expires_in)
 
       return { success: true }
     }
@@ -100,12 +124,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   const register = async (data: RegisterRequest) => {
     try {
-      const response = await client.value.post<APIResponse<AuthTokensData>>('/api/v1/auth/register', data)
+      const response = await client.value.post<APIResponse<SessionData>>('/api/v1/auth/register', data)
       const responseData = response.data.data!
 
-      saveToken(responseData.access_token, responseData.refresh_token)
       user.value = responseData.user
       authInitialized.value = true
+      scheduleRefresh(responseData.expires_in)
 
       return { success: true }
     }
@@ -121,115 +145,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = async () => {
-    try {
-      if (token.value && refreshToken.value) {
-        await client.value.post('/api/v1/auth/logout', { refresh_token: refreshToken.value } as LogoutRequest)
-      }
-    }
-    catch { /* silently ignore — clearing state regardless */ }
-    finally {
-      clearToken()
-      clearRefreshInterval()
-      user.value = null
-      authInitialized.value = false
-
-      const middleware = route.meta.middleware
-      const isProtected = middleware === 'auth' || (Array.isArray(middleware) && middleware.includes('auth'))
-      if (isProtected) {
-        await router.push('/')
-      }
-    }
-  }
-
-  const shouldRefreshToken = () => {
-    if (!tokenExpiryTime.value)
-      return false
-
-    const refreshThreshold = 60000
-
-    return Date.now() + refreshThreshold >= tokenExpiryTime.value
-  }
-
-  const _doRefresh = async (): Promise<boolean> => {
-    if (!refreshToken.value)
-      return false
-
-    try {
-      const response = await client.value.post<APIResponse<AuthTokensData>>('/api/v1/auth/refresh', {
-        refresh_token: refreshToken.value,
-      } as RefreshTokenRequest)
-
-      const data = response.data.data!
-      saveToken(data.access_token, data.refresh_token)
-      user.value = data.user
-
-      return true
-    }
-    catch (error) {
-      console.error('Token refresh failed:', error)
-      clearToken()
-      user.value = null
-
-      return false
-    }
-  }
-
-  const refreshAccessToken = (): Promise<boolean> => {
-    if (!refreshToken.value)
-      return Promise.resolve(false)
-
-    if (_refreshPromise)
-      return _refreshPromise
-
-    _refreshPromise = _doRefresh().finally(() => {
-      _refreshPromise = null
-    })
-
-    return _refreshPromise
-  }
-
-  const autoLogin = async () => {
-    // autoLogin requires localStorage — client only
-    if (!import.meta.client)
-      return
-
-    if (authInitialized.value)
-      return
-
-    loadToken()
-
-    // Always refresh on page load if we have a refresh token.
-    // The refresh endpoint returns user data — no separate /users/me call needed.
-    if (refreshToken.value) {
-      const refreshed = await refreshAccessToken()
-      if (refreshed) {
-        clearRefreshInterval()
-        _refreshInterval = setInterval(async () => {
-          if (shouldRefreshToken() && refreshToken.value) {
-            await refreshAccessToken()
-          }
-        }, 30000)
-      }
-    }
-
-    authInitialized.value = true
-    _authReadyResolve?.()
-  }
-
-  const waitForAuth = () => _authReadyPromise
-
   const googleAuth = async (code: string, redirectUri: string) => {
     try {
-      const response = await client.value.post<APIResponse<AuthTokensData>>('/api/v1/auth/google', {
+      const response = await client.value.post<APIResponse<SessionData>>('/api/v1/auth/google', {
         code,
         redirect_uri: redirectUri,
       } as GoogleAuthRequest)
       const data = response.data.data!
 
-      saveToken(data.access_token, data.refresh_token)
       user.value = data.user
       authInitialized.value = true
+      scheduleRefresh(data.expires_in)
 
       return { success: true }
     }
@@ -244,6 +170,42 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: false, error: errorMessage }
     }
   }
+
+  const logout = async () => {
+    try {
+      await client.value.post('/api/v1/auth/logout', {})
+    }
+    catch { /* silently ignore — clearing state regardless */ }
+    finally {
+      clearRefreshTimer()
+      user.value = null
+      authInitialized.value = false
+
+      const middleware = route.meta.middleware
+      const isProtected = middleware === 'auth' || (Array.isArray(middleware) && middleware.includes('auth'))
+      if (isProtected) {
+        await router.push('/')
+      }
+    }
+  }
+
+  const autoLogin = async () => {
+    // autoLogin runs in the browser — relies on httpOnly cookies sent with the refresh request
+    if (!import.meta.client)
+      return
+
+    if (authInitialized.value)
+      return
+
+    // The refresh endpoint reads the httpOnly refresh cookie and returns the user.
+    // No stored token to read — a missing/expired cookie simply yields an unauthenticated state.
+    await refreshAccessToken()
+
+    authInitialized.value = true
+    _authReadyResolve?.()
+  }
+
+  const waitForAuth = () => _authReadyPromise
 
   const updateProfile = async (data: UpdateProfileRequest) => {
     try {
@@ -266,8 +228,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user,
-    token,
-    refreshToken,
     isAuthenticated,
     authInitialized,
     login,

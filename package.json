@@ -8,7 +8,7 @@
     "generate": "bun --bun run nuxt generate",
     "preview": "bun --bun run nuxt preview",
     "start": "bun run ./.output/server/index.mjs",
-    "postinstall": "bun --bun run nuxt prepare",
+    "postinstall": "bun --bun run nuxt prepare && node scripts/patch-vite-node-runner.mjs",
     "lint": "bun --bun run eslint --ext .ts,.js,.vue .",
     "lint:fix": "bun --bun run eslint --ext .ts,.js,.vue . --fix"
   },

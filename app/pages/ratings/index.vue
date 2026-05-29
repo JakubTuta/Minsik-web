@@ -4,34 +4,18 @@ definePageMeta({ middleware: 'auth' })
 useSeo({ title: 'My Ratings', description: 'Books you have rated.' })
 
 const ratingsStore = useRatingsStore()
+const dashboardStore = useDashboardStore()
 
 const sortBy = ref<'created_at' | 'overall_rating'>('created_at')
 const order = ref<'asc' | 'desc'>('desc')
 const titleFilter = ref('')
-const selectedRatings = ref<number[]>([])
-
-const ratingCounts = computed(() => {
-  const counts: Record<number, number> = { 0.5: 0, 1: 0, 1.5: 0, 2: 0, 2.5: 0, 3: 0, 3.5: 0, 4: 0, 4.5: 0, 5: 0 }
-  ratingsStore.items.forEach((e) => {
-    const rounded = Math.round(e.overall_rating * 2) / 2
-    if (rounded >= 0.5 && rounded <= 5)
-      counts[rounded]++
-  })
-
-  return counts
-})
+const selectedRating = ref<number | null>(null)
 
 const filteredItems = computed(() => {
-  let items = ratingsStore.items
-  if (titleFilter.value) {
-    const q = titleFilter.value.toLowerCase()
-    items = items.filter(e => e.book_title.toLowerCase().includes(q))
-  }
-  if (selectedRatings.value.length > 0) {
-    items = items.filter(e => selectedRatings.value.includes(Math.round(e.overall_rating)))
-  }
-
-  return items
+  if (!titleFilter.value)
+    return ratingsStore.items
+  const q = titleFilter.value.toLowerCase()
+  return ratingsStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
 const sortOptions = [
@@ -40,27 +24,67 @@ const sortOptions = [
 ]
 
 function fetchWithFilters(reset = true) {
-  ratingsStore.fetch({ sort_by: sortBy.value, order: order.value }, reset)
+  const n = selectedRating.value
+  const min = n
+  const max = n === null
+    ? null
+    : n === 5
+      ? 5
+      : n + 0.5
+  ratingsStore.fetch({ sort_by: sortBy.value, order: order.value, min_rating: min, max_rating: max }, reset)
 }
 
-watch([sortBy, order], () => fetchWithFilters(true))
+watch([sortBy, order, selectedRating], () => fetchWithFilters(true))
 
-onMounted(() => fetchWithFilters(true))
+onMounted(() => {
+  fetchWithFilters(true)
+  if (!dashboardStore.stats)
+    dashboardStore.fetchStats()
+})
 
-const isLoadingMore = ref(false)
+const { sentinel } = useInfiniteScroll(
+  () => ratingsStore.loadMore(),
+  { enabled: computed(() => ratingsStore.hasMore && !ratingsStore.isLoading) },
+)
 
-async function onIntersectLoadMore(isIntersecting: boolean) {
-  if (!isIntersecting || isLoadingMore.value || !ratingsStore.hasMore || ratingsStore.isLoading)
-    return
-  isLoadingMore.value = true
-  try { await ratingsStore.loadMore() }
-  finally { isLoadingMore.value = false }
-}
+const distribution = computed(() => dashboardStore.stats?.rating_distribution ?? {})
+const avgRating = computed(() => dashboardStore.stats?.average_rating ?? 0)
+const ratingsCount = computed(() => dashboardStore.stats?.ratings_count ?? 0)
 </script>
 
 <template>
   <v-container>
     <UserProfileTabs />
+
+    <div class="mb-6 mt-4">
+      <div class="text-h2 font-weight-bold">
+        {{ ratingsCount }} rated books
+      </div>
+
+      <div class="text-body-1 text-medium-emphasis mt-1">
+        Overall score plus 8 optional dimensions — emotion, depth, writing, rereadability, pacing, readability, plot, humor.
+      </div>
+    </div>
+
+    <v-card
+      v-if="ratingsCount > 0"
+      class="mb-6"
+    >
+      <v-card-text>
+        <h2 class="text-h6 font-weight-bold mb-4">
+          Rating Distribution
+        </h2>
+
+        <RatingDistributionCard
+          :avg-rating="avgRating"
+          :rating-count="ratingsCount"
+          :distribution="distribution"
+          clickable
+          :selected-star="selectedRating"
+          @update:selected-star="selectedRating = $event"
+        />
+      </v-card-text>
+    </v-card>
 
     <v-row>
       <v-col
@@ -71,10 +95,7 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
           v-model:sort="sortBy"
           v-model:order="order"
           v-model:title-filter="titleFilter"
-          v-model:selected-ratings="selectedRatings"
           :sort-options="sortOptions"
-          :rating-counts="ratingCounts"
-          show-rating-filter
         />
       </v-col>
 
@@ -82,18 +103,33 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
         cols="12"
         md="9"
       >
-        <div class="d-flex flex-column gap-2">
-          <div
-            v-for="(entry, index) in filteredItems"
+        <BookUserHeaderRow
+          v-if="ratingsStore.hasData"
+          secondary-label="Rated On"
+        >
+          <template #metaHeaders>
+            <div
+              class="flex-shrink-0 text-caption text-medium-emphasis font-weight-bold text-uppercase"
+              style="width: 140px;"
+            >
+              Your Rating
+            </div>
+
+            <div
+              class="flex-shrink-0 text-caption text-medium-emphasis font-weight-bold text-uppercase"
+              style="width: 140px;"
+            >
+              Community avg
+            </div>
+          </template>
+        </BookUserHeaderRow>
+
+        <div class="d-flex flex-column gap-2 mt-2">
+          <RatingItem
+            v-for="entry in filteredItems"
             :key="entry.book_id"
-            v-intersect="index === filteredItems.length - 3
-              ? onIntersectLoadMore
-              : undefined"
-          >
-            <RatingItem
-              :entry="entry"
-            />
-          </div>
+            :entry="entry"
+          />
         </div>
 
         <div
@@ -136,6 +172,8 @@ async function onIntersectLoadMore(isIntersecting: boolean) {
             Rate books while browsing to see them here
           </div>
         </div>
+
+        <div ref="sentinel" />
       </v-col>
     </v-row>
   </v-container>

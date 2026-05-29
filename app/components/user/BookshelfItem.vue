@@ -6,20 +6,11 @@ const props = defineProps<{
   isPublicProfile: boolean
 }>()
 
-const { isPublicProfile } = toRefs(props)
-
 const bookshelfStore = useBookshelfStore()
 
 const dialogOpen = ref(false)
-
-const statusConfig: Record<BookshelfStatus, { label: string, color: string, icon: string }> = {
-  want_to_read: { label: 'Want to Read', color: 'orange', icon: 'mdi-bookmark-outline' },
-  reading: { label: 'Reading', color: 'blue', icon: 'mdi-book-open-page-variant' },
-  read: { label: 'Read', color: 'green', icon: 'mdi-check-circle' },
-  abandoned: { label: 'Abandoned', color: 'grey', icon: 'mdi-close-circle' },
-}
-
-const status = computed(() => statusConfig[props.entry.status])
+const deleteConfirmOpen = ref(false)
+const deleting = ref(false)
 
 async function handleSave(newStatus: BookshelfStatus) {
   await bookshelfStore.upsertStatus(props.entry.book_slug, newStatus)
@@ -28,38 +19,103 @@ async function handleSave(newStatus: BookshelfStatus) {
 async function handleRemove() {
   bookshelfStore.removeItem(props.entry.book_slug)
 }
+
+async function handleDelete() {
+  deleting.value = true
+  try {
+    await bookshelfStore.deleteMine(props.entry.book_slug)
+    deleteConfirmOpen.value = false
+  }
+  finally {
+    deleting.value = false
+  }
+}
 </script>
 
 <template>
-  <BookUserItemBase
+  <BookUserRow
     :slug="entry.book_slug"
     :title="entry.book_title"
     :cover-url="entry.book_cover_url"
     :author-names="entry.book_author_names"
     :author-slugs="entry.book_author_slugs"
     :series-name="entry.book_series_name"
-    :series-slug="entry.book_series_slug"
+    :status="entry.status"
+    :updated-at="entry.updated_at"
+    :show-actions="true"
   >
-    <template #topRight>
-      <v-btn
-        :color="status.color"
-        :prepend-icon="status.icon"
-        size="small"
-        variant="elevated"
-        @click="isPublicProfile
-          ? null
-          : dialogOpen = true"
-      >
-        {{ status.label }}
-      </v-btn>
+    <template #actions>
+      <template v-if="!isPublicProfile">
+        <v-btn
+          icon="mdi-pencil"
+          size="small"
+          variant="text"
+          @click="dialogOpen = true"
+        />
+      </template>
 
-      <BookshelfStatusDialog
-        v-model="dialogOpen"
-        :current-status="entry.status"
-        :slug="entry.book_slug"
-        :on-save="handleSave"
-        :on-remove="handleRemove"
+      <v-btn
+        icon="mdi-open-in-new"
+        size="small"
+        variant="text"
+        :to="`/books/${entry.book_slug}`"
+        :as="NuxtLink"
       />
+
+      <template v-if="!isPublicProfile">
+        <v-btn
+          icon="mdi-delete"
+          size="small"
+          variant="text"
+          color="error"
+          @click="deleteConfirmOpen = true"
+        />
+      </template>
     </template>
-  </BookUserItemBase>
+  </BookUserRow>
+
+  <BookshelfStatusDialog
+    v-if="!isPublicProfile"
+    v-model="dialogOpen"
+    :current-status="entry.status"
+    :slug="entry.book_slug"
+    :on-save="handleSave"
+    :on-remove="handleRemove"
+  />
+
+  <v-dialog
+    v-if="!isPublicProfile"
+    v-model="deleteConfirmOpen"
+    max-width="360"
+  >
+    <v-card>
+      <v-card-title class="text-h6">
+        Remove from bookshelf?
+      </v-card-title>
+
+      <v-card-text>
+        "{{ entry.book_title }}" will be removed from your bookshelf.
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+
+        <v-btn
+          variant="text"
+          @click="deleteConfirmOpen = false"
+        >
+          Cancel
+        </v-btn>
+
+        <v-btn
+          color="error"
+          variant="elevated"
+          :loading="deleting"
+          @click="handleDelete"
+        >
+          Remove
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>

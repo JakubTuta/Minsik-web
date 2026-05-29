@@ -2,6 +2,19 @@ import type { APIResponse, PaginatedResponse } from '~/types/api'
 import type { RatingEntry } from '~/types/user'
 import { defineStore } from 'pinia'
 
+interface UpsertRatingData {
+  overall_rating: number
+  review_text?: string | null
+  pacing?: number | null
+  emotional_impact?: number | null
+  intellectual_depth?: number | null
+  writing_quality?: number | null
+  rereadability?: number | null
+  readability?: number | null
+  plot_complexity?: number | null
+  humor?: number | null
+}
+
 export interface RatingsParams {
   sort_by?: 'created_at' | 'overall_rating'
   order?: 'asc' | 'desc'
@@ -69,6 +82,24 @@ export const useRatingsStore = defineStore('ratings', () => {
     await fetch(currentParams.value, false)
   }
 
+  const updateRating = async (slug: string, data: UpsertRatingData) => {
+    await client.value.post(`/api/v1/books/${slug}/rate`, data)
+    const idx = items.value.findIndex(e => e.book_slug === slug)
+    if (idx !== -1)
+      items.value[idx] = { ...items.value[idx], ...data }
+    await useDashboardStore().fetchStats(true)
+  }
+
+  const deleteRating = async (slug: string) => {
+    await client.value.delete(`/api/v1/books/${slug}/rate`)
+    const idx = items.value.findIndex(e => e.book_slug === slug)
+    if (idx !== -1) {
+      items.value.splice(idx, 1)
+      total.value = Math.max(0, total.value - 1)
+    }
+    await useDashboardStore().fetchStats(true)
+  }
+
   return {
     items,
     total,
@@ -79,5 +110,7 @@ export const useRatingsStore = defineStore('ratings', () => {
     isEmpty,
     fetch,
     loadMore,
+    updateRating,
+    deleteRating,
   }
 })
