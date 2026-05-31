@@ -367,7 +367,7 @@ onUnmounted(() => {
               First sentence
             </h2>
 
-            <div style="max-width: 60%;">
+            <div class="max-w-full md:max-w-3/5">
               <p class="text-h5 mb-0 font-serif font-italic">
                 {{ formatFirstSentence(book.first_sentence) }}
               </p>

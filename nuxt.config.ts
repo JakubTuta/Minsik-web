@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import vuetify from 'vite-plugin-vuetify'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -14,6 +16,12 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
     '@nuxtjs/sitemap',
+    (_options, nuxt) => {
+      nuxt.hooks.hook('vite:extendConfig', (config) => {
+        config.plugins = config.plugins || []
+        config.plugins.push(vuetify({ autoImport: true }))
+      })
+    },
   ],
 
   // Runtime configuration
@@ -77,13 +85,6 @@ export default defineNuxtConfig({
   // Build configuration
   build: {
     transpile: ['vuetify'],
-  },
-
-  // Vite configuration
-  vite: {
-    ssr: {
-      noExternal: ['vuetify'],
-    },
   },
 
   // Route rules for SEO and caching

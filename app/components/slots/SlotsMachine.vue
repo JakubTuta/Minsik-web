@@ -14,7 +14,6 @@ const emit = defineEmits<{ spinComplete: [] }>()
 
 const { mobile } = useDisplay()
 
-const machineRef = ref<HTMLElement | null>(null)
 const reelsRef = ref<HTMLElement[]>([])
 
 const ICONS: Record<Rarity, string> = {
@@ -34,6 +33,11 @@ const GAP = computed(() => (mobile.value
   : 16))
 const TOTAL_ITEM_SIZE = computed(() => ITEM_SIZE.value + GAP.value)
 const MACHINE_EXTRA_HEIGHT = 40 // 16px padding * 2 + 4px border * 2
+
+const expanded = ref(false)
+const machineHeight = computed(() => (expanded.value
+  ? TOTAL_ITEM_SIZE.value * 3 - GAP.value + MACHINE_EXTRA_HEIGHT
+  : ITEM_SIZE.value + MACHINE_EXTRA_HEIGHT))
 
 // 3 columns
 const reelsContent = ref<Rarity[][]>([[], [], []])
@@ -58,7 +62,7 @@ function initializeReels() {
   const initial: Rarity[][] = [[], [], []]
   for (let c = 0; c < 3; c++) {
     // 30 items per reel for long spin
-    const col = Array.from({ length: 30 }).fill(getRandomRarity())
+    const col = Array.from({ length: 30 }, () => getRandomRarity())
 
     // We will land on index 27 (so indices 26, 27, 28 are visible in 3x3)
     // 27 is the middle row.
@@ -69,8 +73,11 @@ function initializeReels() {
       col[27] = getRandomRarity()
     }
 
-    // We need the first item to match the current view to avoid jump
-    col[1] = 'legendary' // changed from 'common' to 'legendary'
+    // Idle view shows index 1 centered; keep its neighbours legendary too so
+    // any slight peek above/below stays clean (highest rarity row).
+    col[0] = 'legendary'
+    col[1] = 'legendary'
+    col[2] = 'legendary'
 
     initial[c] = col
   }
@@ -81,6 +88,13 @@ onMounted(async () => {
   initializeReels()
   await nextTick()
   gsap.set(reelsRef.value, { y: -TOTAL_ITEM_SIZE.value }) // Start with index 1 in the middle
+})
+
+// Item size depends on viewport, which only resolves after hydration.
+// Re-align the idle reels whenever it changes so they don't sit half a row off.
+watch(TOTAL_ITEM_SIZE, () => {
+  if (!props.spinning)
+    gsap.set(reelsRef.value, { y: -TOTAL_ITEM_SIZE.value })
 })
 
 watch(() => props.data, (newData) => {
@@ -100,12 +114,8 @@ watch(() => props.spinning, async (isSpinning) => {
       }
     }
 
-    // Animate machine to show 3 rows
-    gsap.to(machineRef.value, {
-      height: TOTAL_ITEM_SIZE.value * 3 - GAP.value + MACHINE_EXTRA_HEIGHT,
-      duration: 0.5,
-      ease: 'power2.inOut',
-    })
+    // Expand machine to show 3 rows (CSS transition handles the animation)
+    expanded.value = true
 
     await nextTick()
 
@@ -128,16 +138,6 @@ watch(() => props.spinning, async (isSpinning) => {
       })
     })
   }
-  else {
-    // reset to 1 row
-    initializeReels() // reset contents for next spin
-    gsap.set(reelsRef.value, { y: -TOTAL_ITEM_SIZE.value })
-    gsap.to(machineRef.value, {
-      height: ITEM_SIZE.value + MACHINE_EXTRA_HEIGHT,
-      duration: 0.5,
-      ease: 'power2.inOut',
-    })
-  }
 })
 
 function getIconColor(rarity: Rarity) {
@@ -148,9 +148,8 @@ function getIconColor(rarity: Rarity) {
 <template>
   <div class="slots-container">
     <div
-      ref="machineRef"
       class="slots-machine"
-      :style="{'height': `${ITEM_SIZE + 40}px`}"
+      :style="{'height': `${machineHeight}px`}"
     >
       <!-- Gradient overlays for top and bottom -->
       <div
@@ -220,6 +219,8 @@ function getIconColor(rarity: Rarity) {
   padding: 16px;
   display: flex;
   align-items: flex-start;
+  box-sizing: border-box;
+  transition: height 0.5s ease;
 }
 
 .fade-top {

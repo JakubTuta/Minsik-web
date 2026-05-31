@@ -4,11 +4,11 @@ FROM oven/bun:1-alpine AS deps
 WORKDIR /app
 
 # Copy package files
-COPY package.json ./
+COPY package.json bun.lock ./
 COPY scripts/ ./scripts/
 
-# Install dependencies
-RUN bun install
+# Install dependencies (frozen = fail loud on lockfile drift, reproducible prod)
+RUN bun install --frozen-lockfile
 
 # Stage 2: Builder
 FROM oven/bun:1-alpine AS builder
@@ -41,5 +41,5 @@ USER nuxtjs
 
 EXPOSE 3000
 
-# Start the application
-CMD ["node", ".output/server/index.mjs"]
+# Start the application (bun image has no node; nitro bun preset)
+CMD ["bun", "run", ".output/server/index.mjs"]

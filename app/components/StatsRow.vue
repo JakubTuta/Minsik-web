@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useDisplay } from 'vuetify'
+
 interface StatItem {
   icon: string
   iconColor?: string
@@ -10,6 +12,8 @@ interface StatItem {
 defineProps<{
   stats: StatItem[]
 }>()
+
+const { mobile } = useDisplay()
 </script>
 
 <template>
@@ -22,11 +26,18 @@ defineProps<{
         <v-icon
           :icon="stat.icon"
           :color="stat.iconColor"
-          size="28"
+          :size="mobile
+            ? 22
+            : 28"
           class="mb-1"
         />
 
-        <div class="d-flex align-center text-h5 font-weight-bold">
+        <div
+          class="d-flex align-center font-weight-bold"
+          :class="mobile
+            ? 'text-subtitle-1'
+            : 'text-h5'"
+        >
           <span>
             {{ stat.value }}
             <v-tooltip
@@ -44,7 +55,12 @@ defineProps<{
           </span>
         </div>
 
-        <span class="text-body-2 text-medium-emphasis mt-1">{{ stat.label }}</span>
+        <span
+          class="text-medium-emphasis mt-1"
+          :class="mobile
+            ? 'text-caption'
+            : 'text-body-2'"
+        >{{ stat.label }}</span>
       </div>
 
       <v-divider

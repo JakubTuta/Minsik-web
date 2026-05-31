@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import CaseWinnerReveal from '~/components/case/CaseWinnerReveal.vue'
-import SlotsLever from '~/components/slots/SlotsLever.vue'
 import SlotsMachine from '~/components/slots/SlotsMachine.vue'
 import { useSlotsStore } from '~/stores/slots'
 import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
@@ -130,32 +129,31 @@ onUnmounted(() => {
           class="d-flex flex-column align-center w-100"
         >
           <div
-            class="slots-machine-wrapper d-flex flex-column flex-md-row align-center justify-center gap-4"
+            class="slots-machine-wrapper d-flex flex-column align-center justify-center"
           >
-            <div class="d-md-none lever-mobile mb-4">
-              <SlotsLever
-                :disabled="slotsStore.phase !== 'idle'"
-                @pull="handlePull"
-              />
-            </div>
-
             <SlotsMachine
               :data="slotsStore.slotsData"
               :spinning="slotsStore.phase === 'spinning' || slotsStore.phase === 'pulling'"
               @spin-complete="handleSpinComplete"
             />
-
-            <div class="d-none d-md-block lever-desktop ml-4">
-              <SlotsLever
-                :disabled="slotsStore.phase !== 'idle'"
-                @pull="handlePull"
-              />
-            </div>
           </div>
+
+          <!-- Spin button -->
+          <v-btn
+            class="spin-btn mt-8"
+            :class="{'spin-btn--pulse': slotsStore.phase === 'idle'}"
+            color="red"
+            size="x-large"
+            rounded="lg"
+            :disabled="slotsStore.phase !== 'idle'"
+            @click="handlePull"
+          >
+            SPIN!
+          </v-btn>
 
           <!-- Description below initial state -->
           <div
-            class="mt-8 text-center"
+            class="mt-6 text-center"
             :class="{'opacity-0': slotsStore.phase !== 'idle'}"
             style="transition: opacity 0.3s ease;"
           >
@@ -164,7 +162,7 @@ onUnmounted(() => {
             </div>
 
             <div class="text-body-2 text-medium-emphasis mt-1">
-              Pull the lever to reveal random book rarities
+              Press SPIN to reveal random book rarities
             </div>
           </div>
         </div>
@@ -227,8 +225,28 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-.gap-4 {
-  gap: 16px;
+.spin-btn {
+  color: #fff !important;
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+  min-width: 220px;
+  height: 64px !important;
+}
+
+.spin-btn--pulse {
+  animation: spin-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes spin-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4), 0 6px 16px rgba(244, 67, 54, 0.3);
+  }
+  50% {
+    transform: scale(1.025);
+    box-shadow: 0 0 0 9px rgba(244, 67, 54, 0), 0 6px 20px rgba(244, 67, 54, 0.45);
+  }
 }
 
 .fade-enter-active,
