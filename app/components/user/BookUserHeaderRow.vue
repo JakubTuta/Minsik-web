@@ -15,7 +15,7 @@ const { mobile } = useDisplay()
   <div
     v-if="!mobile"
     class="d-flex align-center px-3 py-2 text-caption text-medium-emphasis font-weight-bold text-uppercase"
-    style="position: sticky; top: 64px; z-index: 2; background: rgb(var(--v-theme-surface)); border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
+    style="position: sticky; top: var(--app-bar-height); z-index: 2; background: rgb(var(--v-theme-surface)); border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
     rounded-xl
   >
     <div style="width: 72px; flex-shrink: 0;" />

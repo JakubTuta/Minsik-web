@@ -1,21 +1,10 @@
-// Builds IPX-optimized URLs (resized WebP) for remote covers and photos.
-// Falls back to the original URL for anything IPX cannot proxy.
+// Cover/photo URLs come from openlibrary, which serves sized images straight
+// from its CDN (-S/-M/-L suffixes). Returning the URL untouched keeps every
+// image request on openlibrary's edge instead of funneling it through the
+// single-process Bun SSR container (which saturated it and caused 502s).
 export function useOptimizedImage() {
-  const img = useImage()
-
-  function optimized(src: string | null | undefined, width: number): string | undefined {
-    if (!src)
-      return undefined
-
-    if (!src.startsWith('http'))
-      return src
-
-    try {
-      return img(src, { width, format: 'webp' })
-    }
-    catch {
-      return src
-    }
+  function optimized(src: string | null | undefined, _width: number): string | undefined {
+    return src ?? undefined
   }
 
   return { optimized }

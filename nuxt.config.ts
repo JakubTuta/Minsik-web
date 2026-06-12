@@ -17,7 +17,6 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@nuxtjs/sitemap',
     '@nuxt/fonts',
-    '@nuxt/image',
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
         config.plugins = config.plugins || []
@@ -71,12 +70,6 @@ export default defineNuxtConfig({
     ],
   },
 
-  // Image optimization — covers proxied through IPX for resizing and WebP
-  image: {
-    domains: ['covers.openlibrary.org'],
-    formats: ['webp'],
-  },
-
   // Color mode configuration
   colorMode: {
     preference: 'system',
@@ -120,9 +113,6 @@ export default defineNuxtConfig({
     '/about': { ssr: true, swr: 3600 },
     '/privacy-policy': { ssr: true, swr: 3600 },
     '/terms-of-service': { ssr: true, swr: 3600 },
-
-    // Optimized images — covers are immutable per URL, cache aggressively
-    '/_ipx/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
 
     // Interactive pages — no SEO content, no data fetching
     '/open-case': { ssr: false },

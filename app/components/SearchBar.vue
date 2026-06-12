@@ -264,7 +264,9 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
         : 'Search...'"
       prepend-inner-icon="mdi-magnify"
       :clearable="localQuery.length > 0"
-      density="comfortable"
+      :density="variant === 'appbar'
+        ? 'compact'
+        : 'comfortable'"
       hide-details
       single-line
       variant="solo"

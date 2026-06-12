@@ -18,8 +18,14 @@
   </v-app>
 </template>
 
+<style>
+:root {
+  --app-bar-height: 56px;
+}
+</style>
+
 <style scoped>
 .page-content {
-  min-height: calc(100dvh - 64px);
+  min-height: calc(100dvh - var(--app-bar-height));
 }
 </style>

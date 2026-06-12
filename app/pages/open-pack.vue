@@ -189,7 +189,7 @@ onUnmounted(() => {
 
 <style scoped>
 .open-pack-page {
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - var(--app-bar-height));
   padding: 40px 16px;
   position: relative;
   overflow-x: hidden;

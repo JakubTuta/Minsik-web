@@ -16,11 +16,12 @@ onMounted(() => {
   <v-app-bar
     elevation="3"
     color="primary"
+    height="56"
     class="app-bar-container"
     :scroll-behavior="mobile
       ? 'hide'
       : undefined"
-    :scroll-threshold="64"
+    :scroll-threshold="56"
   >
     <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title
@@ -33,7 +34,7 @@ onMounted(() => {
       >
         <v-icon
           icon="mdi-snowflake"
-          size="x-large"
+          size="large"
           class="logo-icon"
         />
 
@@ -49,19 +50,14 @@ onMounted(() => {
     >
       <template #activator="{'props': menuProps}">
         <v-btn
-          class="d-none d-md-inline-flex ml-2"
+          class="d-none d-md-inline-flex ml-1"
           variant="text"
+          density="comfortable"
           prepend-icon="mdi-shape"
+          append-icon="mdi-menu-down"
           v-bind="menuProps"
         >
           Categories
-
-          <template #append>
-            <v-icon
-              icon="mdi-menu-down"
-              size="x-large"
-            />
-          </template>
         </v-btn>
       </template>
 
@@ -84,15 +80,18 @@ onMounted(() => {
 
     <!-- Desktop: Discover — left side after logo -->
     <v-btn
-      class="d-none d-md-inline-flex ml-2"
+      class="d-none d-md-inline-flex ml-1"
       variant="text"
+      density="comfortable"
       prepend-icon="mdi-compass"
       to="/discover"
     >
       Discover
     </v-btn>
 
-    <!-- Search Bar (absolutely centered) -->
+    <v-spacer class="d-none d-md-flex" />
+
+    <!-- Search Bar (centered between nav clusters) -->
     <div class="search-container">
       <SearchBar
         v-model="appBarSearchQuery"
@@ -110,19 +109,14 @@ onMounted(() => {
     >
       <template #activator="{'props': menuProps}">
         <v-btn
-          class="d-none d-md-inline-flex mr-2"
+          class="d-none d-md-inline-flex mr-1"
           variant="text"
+          density="comfortable"
           prepend-icon="mdi-slot-machine"
+          append-icon="mdi-menu-down"
           v-bind="menuProps"
         >
           Casino
-
-          <template #append>
-            <v-icon
-              icon="mdi-menu-down"
-              size="x-large"
-            />
-          </template>
         </v-btn>
       </template>
 
@@ -147,7 +141,7 @@ onMounted(() => {
       </v-list>
     </v-menu>
 
-    <div class="d-none d-md-flex align-center mr-2">
+    <div class="d-none d-md-flex align-center mr-1">
       <ThemeToggle />
     </div>
 
@@ -225,8 +219,8 @@ onMounted(() => {
 .logo-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 4px 8px;
+  gap: 8px;
+  padding: 2px 4px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   text-decoration: none;
@@ -250,7 +244,7 @@ onMounted(() => {
 }
 
 .logo-text {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: 0.5px;
   background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%);
@@ -286,24 +280,16 @@ onMounted(() => {
   transition: transform 0.1s ease;
 }
 
-/* Search container - absolutely centered */
+/* Search container - centered between nav clusters, shrinks instead of overlapping */
 .search-container {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  min-width: 300px;
-  max-width: 500px;
+  flex: 0 1 400px;
+  min-width: 0;
   z-index: 10;
 }
 
 @media (max-width: 959px) {
   .search-container {
-    position: static;
-    transform: none;
     flex: 1 1 auto;
-    width: auto;
-    max-width: 100%;
     margin: 0 8px;
   }
 }

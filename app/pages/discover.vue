@@ -179,7 +179,7 @@ onUnmounted(() => {
 
 <style scoped>
 .discover-page {
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - var(--app-bar-height));
   padding: 40px 16px;
   max-width: 900px;
   margin: 0 auto;
