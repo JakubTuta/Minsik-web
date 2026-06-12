@@ -1,8 +1,26 @@
+import type { IconProps, IconSet } from 'vuetify'
 import { createVuetify } from 'vuetify'
+import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
+import { mdiIconMap } from '~/utils/mdiIcons'
+
+// Resolves "mdi-*" name strings to @mdi/js SVG paths so the 400KB+ icon font is not needed
+const mdiSvg: IconSet = {
+  component: (props: IconProps) => h(mdi.component, {
+    ...props,
+    icon: mdiIconMap[props.icon as string] ?? props.icon,
+  }),
+}
 
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
     ssr: true,
+    icons: {
+      defaultSet: 'mdi',
+      aliases,
+      sets: {
+        mdi: mdiSvg,
+      },
+    },
     theme: {
       defaultTheme: 'light', // Always start with light for SSR to avoid hydration mismatch
       themes: {

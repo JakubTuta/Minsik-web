@@ -11,9 +11,11 @@ const subtitleRef = ref<HTMLElement | null>(null)
 const btnsRef = ref<HTMLElement | null>(null)
 const visualRef = ref<HTMLElement | null>(null)
 
-const { data: botw } = await useAsyncData<BookOfTheWeek | null>(
+// Lazy fetch — keeps book-of-the-week off the SSR critical path so the hero (LCP) renders immediately
+const { data: botw } = useLazyAsyncData<BookOfTheWeek | null>(
   'hero-book-of-the-week',
   () => recommendationsStore.fetchBookOfTheWeek(),
+  { default: () => null },
 )
 
 onMounted(() => {

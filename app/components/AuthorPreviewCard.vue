@@ -23,6 +23,9 @@ const props = withDefaults(defineProps<Props>(), {
   badgeColor: 'success',
 })
 
+const { optimized } = useOptimizedImage()
+const optimizedPhotoUrl = computed(() => optimized(props.photoUrl, 280))
+
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 
 const formattedRating = computed(() => (props.rating
@@ -65,7 +68,7 @@ const photoBg = computed(() => hashColor(props.name))
           class="author-avatar"
         >
           <v-img
-            :src="photoUrl || undefined"
+            :src="optimizedPhotoUrl"
             :alt="name"
             cover
           >

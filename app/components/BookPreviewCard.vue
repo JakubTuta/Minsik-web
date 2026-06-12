@@ -30,6 +30,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const cardLink = computed(() => props.linkTo ?? `/books/${props.slug}`)
 
+const { optimized } = useOptimizedImage()
+const optimizedCoverUrl = computed(() => optimized(props.coverUrl, 360))
+
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 
 const formattedRating = computed(() => (props.rating
@@ -71,7 +74,7 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
       >
         <v-img
           v-if="coverUrl"
-          :src="coverUrl"
+          :src="optimizedCoverUrl"
           :alt="title"
           contain
           class="cover-img"

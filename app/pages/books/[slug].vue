@@ -24,11 +24,25 @@ function resolvedLang(): string {
 
 const lang = ref(resolvedLang())
 
-// Fetch book data
-const { data: book, error } = await useAsyncData(
-  `book-${slug}-${lang.value}`,
-  () => booksStore.fetchBook(slug, lang.value),
-)
+// Fetch book data and language variants in parallel — variants drive SSR hreflang links
+const [{ data: book, error }, { data: langVariantsData }] = await Promise.all([
+  useAsyncData(
+    `book-${slug}-${lang.value}`,
+    () => booksStore.fetchBook(slug, lang.value),
+  ),
+  useAsyncData(
+    `book-lang-variants-${slug}`,
+    async () => {
+      try {
+        return await booksStore.fetchLanguageVariants(slug, lang.value)
+      }
+      catch {
+        return []
+      }
+    },
+    { default: () => [] },
+  ),
+])
 
 // Handle 404
 if (error.value || !book.value) {
@@ -38,9 +52,12 @@ if (error.value || !book.value) {
   })
 }
 
-// SEO
+// SEO — non-English editions live at ?lang=xx, so their canonical must include the query
 const config = useRuntimeConfig()
-const canonicalUrl = `${config.public.siteUrl}/books/${slug}`
+const baseUrl = `${config.public.siteUrl}/books/${slug}`
+const canonicalUrl = lang.value === 'en'
+  ? baseUrl
+  : `${baseUrl}?lang=${lang.value}`
 
 useSeo({
   title: book.value.title,
@@ -55,12 +72,50 @@ useSeo({
 useBookStructuredData({
   name: book.value.title,
   author: book.value.authors.map(a => a.name),
-  isbn: undefined,
+  isbn: book.value.isbn?.[0],
   description: book.value.description || undefined,
   image: book.value.primary_cover_url || undefined,
   url: canonicalUrl,
   datePublished: book.value.original_publication_year?.toString(),
   inLanguage: book.value.language,
+  numberOfPages: book.value.number_of_pages || undefined,
+  publisher: book.value.publisher || undefined,
+  genres: book.value.genres?.map(g => g.name),
+  ratingValue: book.value.avg_rating || undefined,
+  ratingCount: book.value.rating_count || undefined,
+})
+
+useBreadcrumbStructuredData([
+  { name: 'Home', url: config.public.siteUrl as string },
+  ...(book.value.authors[0]
+    ? [{ name: book.value.authors[0].name, url: `${config.public.siteUrl}/authors/${book.value.authors[0].slug}` }]
+    : []),
+  { name: book.value.title },
+])
+
+// hreflang — point search engines at other language editions (?lang=xx variants)
+function variantHref(variantSlug: string, language: string): string {
+  return language === 'en'
+    ? `${config.public.siteUrl}/books/${variantSlug}`
+    : `${config.public.siteUrl}/books/${variantSlug}?lang=${language}`
+}
+
+useHead(() => {
+  const variants = langVariantsData.value ?? []
+  const selfLang = book.value?.language || lang.value
+  const links = [
+    { rel: 'alternate', hreflang: selfLang, href: canonicalUrl },
+    ...variants
+      .filter(v => v.language !== selfLang)
+      .map(v => ({
+        rel: 'alternate',
+        hreflang: v.language,
+        href: variantHref(v.slug, v.language),
+      })),
+    { rel: 'alternate', hreflang: 'x-default', href: baseUrl },
+  ]
+
+  return { link: links }
 })
 
 const { data: primaryAuthor } = useLazyAsyncData<Author | null>(
@@ -95,7 +150,6 @@ const { data: seriesBooks } = useLazyAsyncData<BookSummary[]>(
 
 const bookRecommendations = ref<RecommendationSection[]>([])
 const personalizedBookRecs = ref<RecommendationSection[]>([])
-const langVariants = ref<import('~/types/api').BookLanguageVariant[]>([])
 const selectedRating = ref<number | null>(null)
 
 const avgRating = computed(() => bookPageStore.liveAvgRating ?? book.value?.avg_rating ?? 0)
@@ -216,7 +270,7 @@ async function handleBookEditSave(editedData: Record<string, any>) {
 async function fetchLangVariants() {
   if (book.value?.slug) {
     try {
-      langVariants.value = await booksStore.fetchLanguageVariants(book.value.slug, lang.value)
+      langVariantsData.value = await booksStore.fetchLanguageVariants(book.value.slug, lang.value)
     }
     catch { /* Silently fail */ }
   }
@@ -229,8 +283,6 @@ onMounted(async () => {
     }
     catch { /* Silently fail */ }
   }
-
-  fetchLangVariants()
 })
 
 watch(() => route.query.lang, async () => {
@@ -274,7 +326,7 @@ onUnmounted(() => {
           :slug="slug"
           :series-books="seriesBooks"
           :primary-author="primaryAuthor"
-          :lang-variants="langVariants"
+          :lang-variants="langVariantsData"
           :current-lang="lang"
         />
 

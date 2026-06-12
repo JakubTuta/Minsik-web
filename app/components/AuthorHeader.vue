@@ -25,7 +25,8 @@ interface Props {
 const adminStore = useAdminStore()
 const authorsStore = useAuthorsStore()
 
-const photoUrl = computed(() => props.author.photo_url || undefined)
+const { optimized } = useOptimizedImage()
+const photoUrl = computed(() => optimized(props.author.photo_url, 440))
 const photoBg = computed(() => hashColor(props.author.name))
 
 const age = computed(() => {

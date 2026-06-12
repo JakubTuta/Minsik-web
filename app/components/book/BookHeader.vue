@@ -21,7 +21,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const bookPageStore = useBookPageStore()
 
-const coverUrl = computed(() => props.book.primary_cover_url || undefined)
+const { optimized } = useOptimizedImage()
+const coverUrl = computed(() => optimized(props.book.primary_cover_url, 640))
 const coverBg = computed(() => coverColor(props.book))
 
 const coverRef = ref<HTMLElement | null>(null)
@@ -105,7 +106,7 @@ const externalLinks = computed<ExternalLink[]>(() => {
     result.push({
       title: 'Amazon',
       url: `https://www.amazon.com/dp/${exIds.amazon}`,
-      icon: 'mdi-amazon',
+      icon: 'mdi-cart',
       color: '#FF9900',
     })
   }

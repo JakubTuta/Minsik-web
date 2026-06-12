@@ -75,6 +75,7 @@ const canonicalUrl = `${config.public.siteUrl}/series/${slug}`
 useSeo({
   title: series.value.name,
   description: series.value.description || `${series.value.name} - A series of ${series.value.total_books} books`,
+  image: books.value?.[0]?.primary_cover_url || undefined,
   type: 'website',
   url: canonicalUrl,
   author: series.value.author?.name,
@@ -85,6 +86,14 @@ useSeriesStructuredData({
   description: series.value.description || undefined,
   url: canonicalUrl,
 })
+
+useBreadcrumbStructuredData([
+  { name: 'Home', url: config.public.siteUrl as string },
+  ...(series.value.author
+    ? [{ name: series.value.author.name, url: `${config.public.siteUrl}/authors/${series.value.author.slug}` }]
+    : []),
+  { name: series.value.name },
+])
 
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 const editError = ref('')

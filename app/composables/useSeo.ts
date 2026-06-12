@@ -72,12 +72,13 @@ export function useSeo(options: SeoOptions = {}) {
 }
 
 // Helper for structured data (JSON-LD)
+// Unhead v2 removed `children` — use `innerHTML` so the JSON renders as script content
 export function useStructuredData(data: Record<string, any>) {
   useHead({
     script: [
       {
         type: 'application/ld+json',
-        children: JSON.stringify(data),
+        innerHTML: JSON.stringify(data),
       },
     ],
   })
@@ -93,8 +94,13 @@ export function useBookStructuredData(book: {
   url: string
   datePublished?: string
   inLanguage?: string
+  numberOfPages?: number
+  publisher?: string
+  genres?: string[]
+  ratingValue?: number
+  ratingCount?: number
 }) {
-  const structuredData = {
+  const structuredData: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'Book',
     'name': book.name,
@@ -111,26 +117,64 @@ export function useBookStructuredData(book: {
   }
 
   if (book.isbn) {
-    Object.assign(structuredData, { isbn: book.isbn })
+    structuredData.isbn = book.isbn
   }
 
   if (book.description) {
-    Object.assign(structuredData, { description: book.description })
+    structuredData.description = book.description
   }
 
   if (book.image) {
-    Object.assign(structuredData, { image: book.image })
+    structuredData.image = book.image
   }
 
   if (book.datePublished) {
-    Object.assign(structuredData, { datePublished: book.datePublished })
+    structuredData.datePublished = book.datePublished
   }
 
   if (book.inLanguage) {
-    Object.assign(structuredData, { inLanguage: book.inLanguage })
+    structuredData.inLanguage = book.inLanguage
+  }
+
+  if (book.numberOfPages) {
+    structuredData.numberOfPages = book.numberOfPages
+  }
+
+  if (book.publisher) {
+    structuredData.publisher = { '@type': 'Organization', 'name': book.publisher }
+  }
+
+  if (book.genres && book.genres.length > 0) {
+    structuredData.genre = book.genres
+  }
+
+  if (book.ratingValue && book.ratingCount) {
+    structuredData.aggregateRating = {
+      '@type': 'AggregateRating',
+      'ratingValue': book.ratingValue,
+      'ratingCount': book.ratingCount,
+      'bestRating': 5,
+      'worstRating': 1,
+    }
   }
 
   useStructuredData(structuredData)
+}
+
+// Breadcrumb structured data helper
+export function useBreadcrumbStructuredData(items: { name: string, url?: string }[]) {
+  useStructuredData({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': items.map((item, index) => ({
+      '@type': 'ListItem',
+      'position': index + 1,
+      'name': item.name,
+      ...(item.url
+        ? { item: item.url }
+        : {}),
+    })),
+  })
 }
 
 // Author structured data helper

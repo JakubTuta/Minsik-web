@@ -63,7 +63,7 @@ const links = computed<ExternalLink[]>(() => {
     result.push({
       title: 'Amazon',
       url: `https://www.amazon.com/dp/${exIds.amazon}`,
-      icon: 'mdi-amazon',
+      icon: 'mdi-cart',
       color: '#FF9900',
     })
   }

@@ -11,6 +11,8 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
 })
 
+const { optimized } = useOptimizedImage()
+
 function bookWeightedRating(book: BookSummary): number {
   return weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count)
 }
@@ -79,7 +81,7 @@ const podiumOrder = computed(() => {
               style="height: 180px;"
             >
               <v-img
-                :src="entry.book.primary_cover_url || undefined"
+                :src="optimized(entry.book.primary_cover_url, 320)"
                 lazy-src="/placeholder-book-lazy.jpg"
                 :alt="entry.book.title"
                 width="120"

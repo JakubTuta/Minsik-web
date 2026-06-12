@@ -16,6 +16,8 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
     '@nuxtjs/sitemap',
+    '@nuxt/fonts',
+    '@nuxt/image',
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
         config.plugins = config.plugins || []
@@ -28,7 +30,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:8040',
-      siteUrl: 'http://localhost:3040',
+      siteUrl: 'https://minsik.jtuta.cloud',
       siteName: 'Minsik',
       siteDescription: 'Discover your next favorite book through emotional reading profiles and book influence networks.',
       googleClientId: '',
@@ -41,21 +43,38 @@ export default defineNuxtConfig({
   // App configuration
   app: {
     head: {
+      htmlAttrs: { lang: 'en' },
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
       title: 'Minsik - Discover Your Next Favorite Book',
       meta: [
         { name: 'description', content: 'Discover books through emotional reading profiles and influence networks.' },
         { name: 'theme-color', content: '#FF9B71' },
+        { property: 'og:site_name', content: 'Minsik' },
+        { name: 'twitter:card', content: 'summary_large_image' },
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/site.webmanifest' },
         { rel: 'preconnect', href: 'https://covers.openlibrary.org' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400;1,8..60,500;1,8..60,600&display=swap' },
       ],
     },
+  },
+
+  // Self-hosted fonts (replaces render-blocking Google Fonts stylesheet)
+  fonts: {
+    families: [
+      { name: 'Montserrat', provider: 'google', weights: [300, 400, 500, 600, 700, 800] },
+      { name: 'Source Serif 4', provider: 'google', weights: [300, 400, 500, 600, 700], styles: ['normal', 'italic'] },
+    ],
+  },
+
+  // Image optimization — covers proxied through IPX for resizing and WebP
+  image: {
+    domains: ['covers.openlibrary.org'],
+    formats: ['webp'],
   },
 
   // Color mode configuration
@@ -67,7 +86,6 @@ export default defineNuxtConfig({
 
   // CSS configuration
   css: [
-    '@mdi/font/css/materialdesignicons.css',
     'vuetify/styles',
     '~/assets/css/main.css',
   ],
@@ -89,18 +107,22 @@ export default defineNuxtConfig({
 
   // Route rules for SEO and caching
   routeRules: {
-    // Public content — SSR for SEO and fast first paint
-    '/': { ssr: true },
-    '/books/**': { ssr: true },
-    '/authors/**': { ssr: true },
-    '/series/**': { ssr: true },
+    // Public content — SSR for SEO and fast first paint.
+    // Auth is client-only, so SSR HTML is identical for all users — safe to cache with SWR.
+    '/': { ssr: true, swr: 300 },
+    '/books/**': { ssr: true, swr: 300 },
+    '/authors/**': { ssr: true, swr: 300 },
+    '/series/**': { ssr: true, swr: 300 },
     '/search': { ssr: true },
-    '/categories': { ssr: true },
+    '/categories': { ssr: true, swr: 600 },
     '/recommendations/**': { ssr: true },
     '/bookshelf/**': { ssr: true },
-    '/about': { ssr: true },
-    '/privacy-policy': { ssr: true },
-    '/terms-of-service': { ssr: true },
+    '/about': { ssr: true, swr: 3600 },
+    '/privacy-policy': { ssr: true, swr: 3600 },
+    '/terms-of-service': { ssr: true, swr: 3600 },
+
+    // Optimized images — covers are immutable per URL, cache aggressively
+    '/_ipx/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
 
     // Interactive pages — no SEO content, no data fetching
     '/open-case': { ssr: false },
@@ -108,14 +130,32 @@ export default defineNuxtConfig({
     '/play-slots': { ssr: false },
     '/discover': { ssr: false },
 
-    // Auth-required pages — skip SSR, client-only
-    '/auth/**': { ssr: false },
-    '/dashboard': { ssr: false },
-    '/admin': { ssr: false },
-    '/bookshelf': { ssr: false },
-    '/favourites': { ssr: false },
-    '/ratings': { ssr: false },
-    '/comments': { ssr: false },
+    // Auth-required pages — skip SSR, client-only, keep out of search results
+    '/auth/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/dashboard': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/admin': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/bookshelf': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/favourites': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/ratings': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/comments': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+  },
+
+  // Sitemap — static routes + dynamic book/author/series URLs from API
+  sitemap: {
+    sources: ['/api/__sitemap__/urls'],
+    cacheMaxAgeSeconds: 3600,
+    exclude: [
+      '/auth/**',
+      '/dashboard',
+      '/admin',
+      '/bookshelf',
+      '/favourites',
+      '/ratings',
+      '/comments',
+      '/open-case',
+      '/open-pack',
+      '/play-slots',
+    ],
   },
 
   nitro: {

@@ -39,6 +39,9 @@ COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./.output
 # Switch to non-root user
 USER nuxtjs
 
+# Bun kills requests after 10s by default — too short for slow SSR (cold API, sitemap build)
+ENV NITRO_BUN_IDLE_TIMEOUT=120
+
 EXPOSE 3000
 
 # Start the application (bun image has no node; nitro bun preset)

@@ -16,6 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
 const { sentinel } = useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
+const { optimized } = useOptimizedImage()
 
 function formatSeriesPosition(position: number | null | undefined) {
   if (!position)
@@ -49,7 +50,7 @@ function formatSeriesPosition(position: number | null | undefined) {
             style="width: 120px; height: 180px;"
           >
             <v-img
-              :src="book.primary_cover_url || undefined"
+              :src="optimized(book.primary_cover_url, 240)"
               :alt="book.title"
               width="120"
               height="180"

@@ -25,7 +25,6 @@ logs
 
 .github/copilot-instructions.md
 .vscode/
-bun.lock
 CLAUDE.md
 .claude/
 basic-app.md

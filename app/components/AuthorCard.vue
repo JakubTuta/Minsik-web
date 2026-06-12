@@ -16,7 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
 const authorLink = computed(() => (props.author
   ? `/authors/${props.author.slug}`
   : ''))
-const photoUrl = computed(() => props.author?.photo_url || undefined)
+const { optimized } = useOptimizedImage()
+const photoUrl = computed(() => optimized(props.author?.photo_url, 320))
 const name = computed(() => props.author?.name || '')
 const photoBg = computed(() => hashColor(name.value))
 const biography = computed(() => {

@@ -9,6 +9,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const photoBg = computed(() => hashColor(props.author.name))
+const { optimized } = useOptimizedImage()
 </script>
 
 <template>
@@ -31,7 +32,7 @@ const photoBg = computed(() => hashColor(props.author.name))
           class="author-avatar-shadow mb-3 flex-shrink-0"
         >
           <v-img
-            :src="author.photo_url || undefined"
+            :src="optimized(author.photo_url, 240)"
             :alt="author.name"
           >
             <template #placeholder>

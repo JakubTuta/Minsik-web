@@ -1,2 +1,13 @@
 User-Agent: *
-Disallow:
+Disallow: /auth/
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /bookshelf
+Disallow: /favourites
+Disallow: /ratings
+Disallow: /comments
+Disallow: /open-case
+Disallow: /open-pack
+Disallow: /play-slots
+
+Sitemap: https://minsik.jtuta.cloud/sitemap.xml

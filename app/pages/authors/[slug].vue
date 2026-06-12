@@ -138,6 +138,11 @@ useAuthorStructuredData({
   deathDate: author.value.death_date,
 })
 
+useBreadcrumbStructuredData([
+  { name: 'Home', url: config.public.siteUrl as string },
+  { name: author.value.name },
+])
+
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 
 const sortOptions = [

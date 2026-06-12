@@ -12,10 +12,12 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
 })
 
+const { optimized } = useOptimizedImage()
+
 const bookLink = computed(() => (props.book
   ? `/books/${props.book.slug}`
   : ''))
-const coverUrl = computed(() => props.book?.primary_cover_url || undefined)
+const coverUrl = computed(() => optimized(props.book?.primary_cover_url, 480))
 const coverBg = computed(() => coverColor(props.book))
 const title = computed(() => props.book?.title || '')
 

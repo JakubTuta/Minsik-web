@@ -12,6 +12,7 @@ const authorNames = computed(() => props.book.authors.map(a => a.name).join(', '
 )
 
 const coverBg = computed(() => hashColor(props.book.title, authorNames.value))
+const { optimized } = useOptimizedImage()
 </script>
 
 <template>
@@ -34,7 +35,7 @@ const coverBg = computed(() => hashColor(props.book.title, authorNames.value))
 
       <div class="d-flex ga-5">
         <v-img
-          :src="book.primary_cover_url || undefined"
+          :src="optimized(book.primary_cover_url, 240)"
           :alt="book.title"
           width="120"
           min-width="120"
