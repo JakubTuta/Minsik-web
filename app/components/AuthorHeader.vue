@@ -147,6 +147,7 @@ const authorEditFields: EditFieldConfig[] = [
   { key: 'wikidata_id', label: 'Wikidata ID', type: 'text' },
   { key: 'open_library_id', label: 'Open Library ID', type: 'text' },
   { key: 'alternate_names', label: 'Alternate Names', type: 'array' },
+  { key: 'remote_ids', label: 'Remote IDs', type: 'json' },
 ]
 
 const authorEditOriginalData = computed(() => ({
@@ -162,6 +163,7 @@ const authorEditOriginalData = computed(() => ({
   wikidata_id: props.author.wikidata_id ?? null,
   open_library_id: props.author.open_library_id ?? null,
   alternate_names: props.author.alternate_names ?? [],
+  remote_ids: props.author.remote_ids ?? {},
 }))
 
 async function handleAuthorDelete() {
@@ -358,7 +360,7 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
             <v-card-title>Delete Author?</v-card-title>
 
             <v-card-text>
-              This action cannot be undone. Are you sure you want to delete "{{ author.name }}"?
+              This action cannot be undone. Deleting "{{ author.name }}" will also permanently delete all books where they are the sole author, along with any series that only contained those books.
               <v-alert
                 v-if="deleteError"
                 type="error"

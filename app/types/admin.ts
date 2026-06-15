@@ -65,5 +65,5 @@ export interface AdminUpdateSeriesRequest {
 export interface EditFieldConfig {
   key: string
   label: string
-  type: 'text' | 'textarea' | 'number' | 'array'
+  type: 'text' | 'textarea' | 'number' | 'array' | 'json'
 }

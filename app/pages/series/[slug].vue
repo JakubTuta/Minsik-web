@@ -78,6 +78,7 @@ useBreadcrumbStructuredData([
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 const editError = ref('')
 const deleteError = ref('')
+const removeAuthorError = ref('')
 const editDialogOpen = ref(false)
 const deleteDialogOpen = ref(false)
 
@@ -94,6 +95,20 @@ const seriesEditOriginalData = computed(() => ({
   description: series.value?.description ?? null,
   total_books: series.value?.total_books ?? null,
 }))
+
+async function handleRemoveSeriesAuthors(authorIds: number[]) {
+  removeAuthorError.value = ''
+  const results = await Promise.all(
+    authorIds.map(id => adminStore.removeSeriesAuthor(series.value!.series_id, id)),
+  )
+  const failed = results.find(r => !r.success)
+  if (failed) {
+    removeAuthorError.value = (failed as any).error || 'Remove failed'
+
+    return
+  }
+  await seriesStore.fetchSeries(slug, true)
+}
 
 async function handleSeriesDelete() {
   deleteError.value = ''
@@ -151,11 +166,12 @@ onMounted(async () => {
           :edit-fields="seriesEditFields"
           :edit-original-data="seriesEditOriginalData"
           :edit-loading="adminStore.isUpdateLoading"
-          :edit-error="editError"
+          :edit-error="editError || removeAuthorError"
           :delete-loading="adminStore.isDeleteLoading"
           :delete-error="deleteError"
           @edit-save="handleSeriesEditSave"
           @delete-confirm="handleSeriesDelete"
+          @remove-series-authors="handleRemoveSeriesAuthors"
         />
       </v-col>
     </v-row>

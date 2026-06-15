@@ -200,6 +200,7 @@ const bookEditFields: EditFieldConfig[] = [
   { key: 'google_books_id', label: 'Google Books ID', type: 'text' },
   { key: 'series_id', label: 'Series ID', type: 'number' },
   { key: 'series_position', label: 'Series Position', type: 'number' },
+  { key: 'external_ids', label: 'External IDs', type: 'json' },
 ]
 
 const bookEditOriginalData = computed(() => ({
@@ -220,6 +221,7 @@ const bookEditOriginalData = computed(() => ({
     ? book.value.series.series_id
     : null,
   series_position: book.value?.series_position ?? null,
+  external_ids: book.value?.external_ids ?? {},
 }))
 
 async function handleRemoveAuthors(authorIds: number[]) {

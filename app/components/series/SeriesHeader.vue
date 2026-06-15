@@ -28,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   editSave: [data: Record<string, any>]
   deleteConfirm: []
+  removeSeriesAuthors: [authorIds: number[]]
 }>()
 
 const editDialogOpen = defineModel<boolean>('editDialogOpen', { default: false })
@@ -68,26 +69,20 @@ const seriesStats = computed(() => {
   const items: Array<{ icon: string, value: string | number, label: string }> = [
     {
       icon: 'mdi-book-multiple',
-      value: props.series.total_books ?? props.books.length,
+      value: props.books.length > 0 ? props.books.length : (props.series.total_books ?? 0),
       label: 'BOOKS',
     },
-  ]
-
-  if (totalPages.value > 0) {
-    items.push({
+    {
       icon: 'mdi-book-open-page-variant',
       value: totalPages.value.toLocaleString(),
       label: 'PAGES',
-    })
-  }
-
-  if (seriesReadingTime.value) {
-    items.push({
+    },
+    {
       icon: 'mdi-clock-outline',
-      value: `~${seriesReadingTime.value}`,
+      value: seriesReadingTime.value ? `~${seriesReadingTime.value}` : '—',
       label: 'READING TIME',
-    })
-  }
+    },
+  ]
 
   return items
 })
@@ -252,9 +247,11 @@ const seriesStats = computed(() => {
         title="Edit Series"
         :fields="editFields"
         :original-data="editOriginalData"
+        :authors="authorsLine"
         :loading="editLoading"
         :error="editError"
         @save="emit('editSave', $event)"
+        @remove-authors="emit('removeSeriesAuthors', $event)"
       />
 
       <v-dialog

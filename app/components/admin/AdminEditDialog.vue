@@ -25,11 +25,21 @@ const emit = defineEmits<{
 
 const editedData = ref<Record<string, any>>({})
 const authorsToRemove = ref<number[]>([])
+const jsonStrings = ref<Record<string, string>>({})
 
 watch(() => props.modelValue, (open) => {
   if (open) {
     editedData.value = { ...props.originalData }
     authorsToRemove.value = []
+    jsonStrings.value = {}
+    for (const field of props.fields) {
+      if (field.type === 'json') {
+        const v = props.originalData[field.key]
+        jsonStrings.value[field.key] = v && typeof v === 'object'
+          ? JSON.stringify(v, null, 2)
+          : '{}'
+      }
+    }
   }
 })
 
@@ -47,6 +57,16 @@ function setArrayValue(key: string, value: string) {
   editedData.value[key] = value
     ? value.split(',').map(s => s.trim()).filter(Boolean)
     : []
+}
+
+function updateJsonValue(key: string, value: string) {
+  jsonStrings.value[key] = value
+  try {
+    editedData.value[key] = value ? JSON.parse(value) : {}
+  }
+  catch {
+    // Keep previous parsed value until JSON is valid
+  }
 }
 
 function handleSave() {
@@ -129,6 +149,20 @@ function handleClose() {
                 variant="outlined"
                 density="compact"
                 @update:model-value="setArrayValue(field.key, $event)"
+              />
+
+              <v-textarea
+                v-else-if="field.type === 'json'"
+                :model-value="jsonStrings[field.key] ?? '{}'"
+                :label="`${field.label} (JSON)`"
+                variant="outlined"
+                density="compact"
+                rows="3"
+                auto-grow
+                hint='Format: {"key": "value"}'
+                persistent-hint
+                style="font-family: monospace;"
+                @update:model-value="updateJsonValue(field.key, $event)"
               />
 
               <v-text-field

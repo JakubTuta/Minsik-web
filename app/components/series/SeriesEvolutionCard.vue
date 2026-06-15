@@ -44,8 +44,18 @@ function bookWeightedRating(b: BookSummary): number {
 
 const ratings = computed(() => sortedBooks.value.map(b => bookWeightedRating(b)))
 
-const minRating = computed(() => Math.floor((Math.min(...ratings.value) - 0.4) * 10) / 10)
-const maxRating = computed(() => Math.ceil((Math.max(...ratings.value) + 0.4) * 10) / 10)
+const minRating = computed(() => {
+  const minVal = Math.min(...ratings.value)
+  if (minVal === 0)
+    return -0.2
+  return Math.max(0, Math.floor((minVal - 0.4) * 10) / 10)
+})
+const maxRating = computed(() => {
+  const maxVal = Math.max(...ratings.value)
+  if (maxVal === 5)
+    return 5.2
+  return Math.min(5, Math.ceil((maxVal + 0.4) * 10) / 10)
+})
 
 const primaryColor = computed(() => theme.current.value.colors.primary)
 
