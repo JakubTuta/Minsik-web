@@ -103,16 +103,16 @@ export default defineNuxtConfig({
     // Public content — SSR for SEO and fast first paint.
     // Auth is client-only, so SSR HTML is identical for all users — safe to cache with SWR.
     '/': { ssr: true, swr: 300 },
-    '/books/**': { ssr: true, swr: 300 },
-    '/authors/**': { ssr: true, swr: 300 },
-    '/series/**': { ssr: true, swr: 300 },
+    '/books/**': { ssr: true },
+    '/authors/**': { ssr: true },
+    '/series/**': { ssr: true },
     '/search': { ssr: true },
-    '/categories': { ssr: true, swr: 600 },
+    '/categories': { ssr: true },
     '/recommendations/**': { ssr: true },
     '/bookshelf/**': { ssr: true },
-    '/about': { ssr: true, swr: 3600 },
-    '/privacy-policy': { ssr: true, swr: 3600 },
-    '/terms-of-service': { ssr: true, swr: 3600 },
+    '/about': { ssr: true },
+    '/privacy-policy': { ssr: true },
+    '/terms-of-service': { ssr: true },
 
     // Interactive pages — no SEO content, no data fetching
     '/open-case': { ssr: false },

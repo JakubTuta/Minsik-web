@@ -64,7 +64,9 @@ export const useBooksStore = defineStore('books', () => {
 
         return fetchBook(slug, 'en', force)
       }
-      console.error('Error fetching book:', error)
+      if (error?.response?.status !== 404) {
+        console.error('Error fetching book:', error)
+      }
       currentBook.value = null
       throw error
     }

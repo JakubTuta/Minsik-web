@@ -7,9 +7,7 @@ const appBarSearchQuery = ref('')
 
 const categoriesStore = useCategoriesStore()
 
-onMounted(() => {
-  categoriesStore.fetchCategories()
-})
+await useAsyncData('appbar-categories', () => categoriesStore.fetchCategories())
 </script>
 
 <template>
@@ -44,9 +42,9 @@ onMounted(() => {
 
     <!-- Desktop: Categories menu — left side after logo -->
     <v-menu
-      class="d-none d-md-flex"
       location="bottom"
       open-on-hover
+      eager
     >
       <template #activator="{'props': menuProps}">
         <v-btn
@@ -103,7 +101,6 @@ onMounted(() => {
 
     <!-- Desktop: Casino menu -->
     <v-menu
-      class="d-none d-md-flex"
       location="bottom"
       open-on-hover
     >
@@ -280,11 +277,22 @@ onMounted(() => {
   transition: transform 0.1s ease;
 }
 
-/* Search container - centered between nav clusters, shrinks instead of overlapping */
+/* Search container - absolute center on desktop regardless of side clusters */
 .search-container {
   flex: 0 1 400px;
   min-width: 0;
   z-index: 10;
+}
+
+@media (min-width: 960px) {
+  .search-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    flex: none;
+  }
 }
 
 @media (max-width: 959px) {

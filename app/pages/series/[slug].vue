@@ -11,53 +11,33 @@ const recommendationsStore = useRecommendationsStore()
 
 const slug = route.params.slug as string
 
-const booksStore = useBooksStore()
-
-const [{ data: series, error: seriesError }, { data: books }] = await Promise.all([
-  useAsyncData(
-    `series-${slug}`,
-    () => seriesStore.fetchSeries(slug),
-  ),
-  useAsyncData(
-    `series-books-${slug}`,
-    () => seriesStore.fetchSeriesBooks(slug),
-  ),
-])
-
-const { data: firstBookDetails } = useLazyAsyncData(
-  `series-first-book-${slug}`,
-  async () => {
-    if (!books.value || books.value.length === 0)
-      return null
-
-    try {
-      const firstBook = books.value[0]
-      if (!firstBook?.slug)
-        return null
-
-      return await booksStore.fetchBook(firstBook.slug)
-    }
-    catch {
-      return null
-    }
-  },
-  { watch: [books], default: () => null },
+const { data: series, error: seriesError } = await useAsyncData(
+  `series-${slug}`,
+  () => seriesStore.fetchSeries(slug),
 )
 
-const { data: primaryAuthor } = useLazyAsyncData(
+// Books list is secondary to page identity — don't block navigation
+const { data: books } = useLazyAsyncData(
+  `series-books-${slug}`,
+  () => seriesStore.fetchSeriesBooks(slug),
+  { default: () => [] },
+)
+
+// Block on author for SSR/SEO — slug comes from series so no books dependency
+const { data: primaryAuthor } = await useAsyncData(
   `series-author-${slug}`,
   async () => {
-    if (!firstBookDetails.value?.authors?.[0]?.slug)
+    const authorSlug = series.value?.author?.slug
+    if (!authorSlug)
       return null
 
     try {
-      return await authorsStore.fetchAuthor(firstBookDetails.value.authors[0].slug)
+      return await authorsStore.fetchAuthor(authorSlug)
     }
     catch {
       return null
     }
   },
-  { watch: [firstBookDetails], default: () => null },
 )
 
 // Handle 404

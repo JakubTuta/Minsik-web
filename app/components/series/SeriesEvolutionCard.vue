@@ -44,8 +44,8 @@ function bookWeightedRating(b: BookSummary): number {
 
 const ratings = computed(() => sortedBooks.value.map(b => bookWeightedRating(b)))
 
-const minRating = computed(() => Math.max(0, Math.floor((Math.min(...ratings.value) - 0.2) * 10) / 10))
-const maxRating = computed(() => Math.min(5, Math.ceil((Math.max(...ratings.value) + 0.2) * 10) / 10))
+const minRating = computed(() => Math.floor((Math.min(...ratings.value) - 0.4) * 10) / 10)
+const maxRating = computed(() => Math.ceil((Math.max(...ratings.value) + 0.4) * 10) / 10)
 
 const primaryColor = computed(() => theme.current.value.colors.primary)
 
@@ -80,8 +80,8 @@ const chartData = computed<ChartData<'line'>>(() => ({
     {
       data: ratings.value,
       borderColor: primaryColor.value,
-      backgroundColor: '#fff',
-      pointBackgroundColor: '#fff',
+      backgroundColor: primaryColor.value,
+      pointBackgroundColor: primaryColor.value,
       pointBorderColor: primaryColor.value,
       pointBorderWidth: 2,
       pointRadius: 5,

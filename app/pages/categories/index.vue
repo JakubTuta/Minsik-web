@@ -6,18 +6,16 @@ const categoriesStore = useCategoriesStore()
 
 const selectedSlug = computed(() => route.query.category as string | null ?? null)
 
+if (!selectedSlug.value) {
+  await navigateTo('/')
+}
+
 const sortBy = ref<'popularity' | 'rating'>('popularity')
 const sortOptions = [
   { value: 'popularity', title: 'Most Popular' },
   { value: 'rating', title: 'Highest Rated' },
 ]
 
-const { data: categoriesData } = await useAsyncData(
-  'categories-list',
-  () => categoriesStore.fetchCategories(),
-)
-
-// Pagination state
 const allBooks = ref<BookSummary[]>([])
 const booksOffset = ref(0)
 const booksTotalCount = ref(0)
@@ -25,6 +23,21 @@ const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.valu
 
 async function loadBooks(slug: string, sort: 'popularity' | 'rating', offset: number) {
   return categoriesStore.fetchCategoryBooksPage(slug, sort, 'desc', offset, 20)
+}
+
+// Fetch categories and initial books in parallel
+const [{ data: categoriesData }, { data: initialBooksData }] = await Promise.all([
+  useAsyncData('categories-list', () => categoriesStore.fetchCategories()),
+  useAsyncData(
+    `category-books-${selectedSlug.value}-${sortBy.value}`,
+    () => loadBooks(selectedSlug.value!, sortBy.value, 0),
+  ),
+])
+
+if (initialBooksData.value) {
+  allBooks.value = initialBooksData.value.books
+  booksTotalCount.value = initialBooksData.value.total_count
+  booksOffset.value = initialBooksData.value.books.length
 }
 
 async function resetAndFetch() {
@@ -39,25 +52,6 @@ async function resetAndFetch() {
   allBooks.value = result.books
   booksTotalCount.value = result.total_count
   booksOffset.value = result.books.length
-}
-
-// Redirect to home when no category is selected
-if (!selectedSlug.value) {
-  await navigateTo('/')
-}
-
-// Initial fetch when a category is selected
-if (selectedSlug.value) {
-  const { data: initialBooksData } = await useAsyncData(
-    `category-books-${selectedSlug.value}-${sortBy.value}`,
-    () => loadBooks(selectedSlug.value!, sortBy.value, 0),
-  )
-
-  if (initialBooksData.value) {
-    allBooks.value = initialBooksData.value.books
-    booksTotalCount.value = initialBooksData.value.total_count
-    booksOffset.value = initialBooksData.value.books.length
-  }
 }
 
 watch(selectedSlug, resetAndFetch)

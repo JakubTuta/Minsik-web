@@ -24,25 +24,24 @@ function resolvedLang(): string {
 
 const lang = ref(resolvedLang())
 
-// Fetch book data and language variants in parallel — variants drive SSR hreflang links
-const [{ data: book, error }, { data: langVariantsData }] = await Promise.all([
-  useAsyncData(
-    `book-${slug}-${lang.value}`,
-    () => booksStore.fetchBook(slug, lang.value),
-  ),
-  useAsyncData(
-    `book-lang-variants-${slug}`,
-    async () => {
-      try {
-        return await booksStore.fetchLanguageVariants(slug, lang.value)
-      }
-      catch {
-        return []
-      }
-    },
-    { default: () => [] },
-  ),
-])
+const { data: book, error } = await useAsyncData(
+  `book-${slug}-${lang.value}`,
+  () => booksStore.fetchBook(slug, lang.value),
+)
+
+// Language variants are secondary (hreflang only) — don't block navigation
+const { data: langVariantsData } = useLazyAsyncData(
+  `book-lang-variants-${slug}`,
+  async () => {
+    try {
+      return await booksStore.fetchLanguageVariants(slug, lang.value)
+    }
+    catch {
+      return []
+    }
+  },
+  { default: () => [] },
+)
 
 // Handle 404
 if (error.value || !book.value) {

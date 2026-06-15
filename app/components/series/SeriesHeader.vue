@@ -55,7 +55,12 @@ const authorsLine = computed(() => {
   return out
 })
 
-const totalPages = computed(() => props.series.total_pages ?? 0)
+const totalPages = computed(() => {
+  if (props.series.total_pages > 0)
+    return props.series.total_pages
+
+  return props.books.reduce((sum, b) => sum + (b.number_of_pages ?? 0), 0)
+})
 
 const seriesReadingTime = computed(() => formatReadingTime(totalPages.value))
 
