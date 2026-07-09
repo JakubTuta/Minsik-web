@@ -6,18 +6,37 @@ const bookshelfStore = useBookshelfStore()
 const dashboardStore = useDashboardStore()
 const profileStore = useProfileStore()
 
+const { error: overviewError } = await useAsyncData(
+  `profile-overview-${username.value}`,
+  () => profileStore.fetchOverview(username.value),
+)
+
+if (overviewError.value) {
+  throw createError({
+    statusCode: (overviewError.value as any)?.response?.status === 404
+      ? 404
+      : 500,
+    message: (overviewError.value as any)?.response?.status === 404
+      ? 'User not found'
+      : 'Could not load this profile',
+  })
+}
+
 const currentYear = new Date().getFullYear()
 
 const statsItems = computed(() => {
   const s = dashboardStore.publicStats
   const totalBooks = (s?.want_to_read_count ?? 0) + (s?.reading_count ?? 0) + (s?.read_count ?? 0) + (s?.abandoned_count ?? 0)
+
   return [
     { icon: 'mdi-bookshelf', iconColor: 'primary', value: totalBooks, label: 'Books on shelves' },
     { icon: 'mdi-star', iconColor: 'amber', value: s?.ratings_count ?? 0, label: 'Ratings' },
     { icon: 'mdi-comment-text', iconColor: 'blue-grey', value: s?.reviews_count ?? 0, label: 'Reviews' },
     { icon: 'mdi-check-circle', iconColor: 'success', value: s?.read_count ?? 0, label: 'Finished' },
     { icon: 'mdi-file-document', iconColor: 'info', value: (s?.pages_read_total ?? 0).toLocaleString(), label: 'Pages read' },
-    { icon: 'mdi-star-half-full', iconColor: 'amber', value: s?.average_rating ? s.average_rating.toFixed(1) : '—', label: 'Avg rating' },
+    { icon: 'mdi-star-half-full', iconColor: 'amber', value: s?.average_rating
+      ? s.average_rating.toFixed(1)
+      : '—', label: 'Avg rating' },
   ]
 })
 
@@ -29,12 +48,17 @@ useSeo({
 function fetchAll(reset = true) {
   bookshelfStore.fetchByUsername(username.value, { sort_by: 'created_at', order: 'desc' }, reset)
   dashboardStore.fetchStatsByUsername(username.value)
-  profileStore.fetchOverview(username.value)
+  profileStore.fetchOverview(username.value).catch(() => {})
 }
 
+// Initial load's overview already came from useAsyncData above (with the 404 gate);
+// this only re-fetches everything when navigating client-side to a different username.
 watch(username, () => fetchAll(true))
 
-onMounted(() => fetchAll(true))
+onMounted(() => {
+  bookshelfStore.fetchByUsername(username.value, { sort_by: 'created_at', order: 'desc' }, true)
+  dashboardStore.fetchStatsByUsername(username.value)
+})
 
 const { sentinel } = useInfiniteScroll(
   () => bookshelfStore.loadMoreByUsername(username.value),
@@ -67,51 +91,59 @@ const { sentinel } = useInfiniteScroll(
       >
         <BookUserHeaderRow is-public-profile />
 
-        <div class="d-flex flex-column gap-2 mt-2">
-          <BookshelfItem
-            v-for="entry in bookshelfStore.publicItems"
-            :key="entry.book_id"
-            :entry="entry"
-            is-public-profile
-          />
-        </div>
+        <ErrorState
+          v-if="bookshelfStore.publicError"
+          message="Could not load this bookshelf."
+          @retry="fetchAll(true)"
+        />
 
-        <div
-          v-if="bookshelfStore.publicIsLoading && !bookshelfStore.publicHasData"
-          class="d-flex flex-column gap-2"
-        >
-          <v-skeleton-loader
-            v-for="i in 5"
-            :key="i"
-            type="list-item-avatar-three-line"
-          />
-        </div>
-
-        <div
-          v-if="bookshelfStore.publicIsLoading && bookshelfStore.publicHasData"
-          class="py-6 text-center"
-        >
-          <v-progress-circular
-            indeterminate
-            color="primary"
-          />
-        </div>
-
-        <div
-          v-if="bookshelfStore.publicIsEmpty"
-          class="py-12 text-center"
-        >
-          <v-icon
-            icon="mdi-bookshelf"
-            size="64"
-            color="secondary"
-            class="mb-4"
-          />
-
-          <div class="text-h6 text-secondary">
-            No books in this bookshelf
+        <template v-else>
+          <div class="d-flex flex-column mt-2 gap-2">
+            <BookshelfItem
+              v-for="entry in bookshelfStore.publicItems"
+              :key="entry.book_id"
+              :entry="entry"
+              is-public-profile
+            />
           </div>
-        </div>
+
+          <div
+            v-if="bookshelfStore.publicIsLoading && !bookshelfStore.publicHasData"
+            class="d-flex flex-column gap-2"
+          >
+            <v-skeleton-loader
+              v-for="i in 5"
+              :key="i"
+              type="list-item-avatar-three-line"
+            />
+          </div>
+
+          <div
+            v-if="bookshelfStore.publicIsLoading && bookshelfStore.publicHasData"
+            class="py-6 text-center"
+          >
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            />
+          </div>
+
+          <div
+            v-if="bookshelfStore.publicIsEmpty"
+            class="py-12 text-center"
+          >
+            <v-icon
+              icon="mdi-bookshelf"
+              size="64"
+              color="secondary"
+              class="mb-4"
+            />
+
+            <div class="text-h6 text-secondary">
+              No books in this bookshelf
+            </div>
+          </div>
+        </template>
 
         <div ref="sentinel" />
       </v-col>

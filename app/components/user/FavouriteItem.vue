@@ -8,7 +8,12 @@ const props = defineProps<{
 const favouritesStore = useFavouritesStore()
 
 async function remove() {
-  await favouritesStore.removeFavourite(props.entry.book_slug)
+  try {
+    await favouritesStore.removeFavourite(props.entry.book_slug)
+  }
+  catch {
+    // Toast already shown by the store
+  }
 }
 </script>
 
@@ -22,7 +27,7 @@ async function remove() {
     :series-name="entry.book_series_name"
     :status="entry.status"
     :updated-at="entry.updated_at"
-    :show-actions="true"
+    show-actions
   >
     <template #actions>
       <v-btn

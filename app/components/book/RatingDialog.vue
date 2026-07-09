@@ -62,7 +62,9 @@ function populateFromExisting() {
     overallRating.value = existing.overall_rating
     for (const dim of dimensions) {
       const val = existing[dim.key as keyof typeof existing]
-      subRatings.value[dim.key] = typeof val === 'number' ? val : null
+      subRatings.value[dim.key] = typeof val === 'number'
+        ? val
+        : null
     }
   }
   else {
@@ -103,7 +105,9 @@ async function handleSave() {
     emit('update:modelValue', false)
     emit('saved')
   }
-  catch { /* handled in store */ }
+  catch {
+    useToastStore().error('Could not save your rating. Please try again.')
+  }
   finally {
     saving.value = false
   }
@@ -120,7 +124,9 @@ async function handleDelete() {
     }
     emit('update:modelValue', false)
   }
-  catch { /* handled in store */ }
+  catch {
+    useToastStore().error('Could not delete your rating. Please try again.')
+  }
   finally {
     deleting.value = false
   }

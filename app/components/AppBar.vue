@@ -97,7 +97,7 @@ await useAsyncData('appbar-categories', () => categoriesStore.fetchCategories())
       />
     </div>
 
-    <v-spacer />
+    <v-spacer class="d-none d-md-flex" />
 
     <!-- Desktop: Casino menu -->
     <v-menu

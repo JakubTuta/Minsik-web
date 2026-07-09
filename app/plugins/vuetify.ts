@@ -12,6 +12,14 @@ const mdiSvg: IconSet = {
 }
 
 export default defineNuxtPlugin((app) => {
+  // @nuxtjs/color-mode resolves the user's theme (from cookie, falling back to
+  // system preference) identically on the server and the client, so Vuetify's
+  // initial theme matches what will be hydrated — no light->dark flash.
+  const colorMode = useColorMode()
+  const initialTheme = colorMode.value === 'dark'
+    ? 'dark'
+    : 'light'
+
   const vuetify = createVuetify({
     ssr: true,
     icons: {
@@ -22,7 +30,7 @@ export default defineNuxtPlugin((app) => {
       },
     },
     theme: {
-      defaultTheme: 'light', // Always start with light for SSR to avoid hydration mismatch
+      defaultTheme: initialTheme,
       themes: {
         light: {
           dark: false,
@@ -191,10 +199,10 @@ export default defineNuxtPlugin((app) => {
   app.vueApp.use(vuetify)
 
   if (import.meta.client) {
-    const themeStore = useThemeStore()
-
-    watch(() => themeStore.currentTheme, (newTheme) => {
-      vuetify.theme.change(newTheme)
-    }, { immediate: true })
+    watch(() => colorMode.value, (newTheme) => {
+      vuetify.theme.change(newTheme === 'dark'
+        ? 'dark'
+        : 'light')
+    })
   }
 })

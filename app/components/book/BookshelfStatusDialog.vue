@@ -52,7 +52,7 @@ async function save() {
     emit('saved')
   }
   catch {
-    // Error handled in store
+    useToastStore().error('Could not update your bookshelf. Please try again.')
   }
   finally {
     saving.value = false
@@ -72,7 +72,7 @@ async function remove() {
     emit('saved')
   }
   catch {
-    // Error handled in store
+    useToastStore().error('Could not remove this book. Please try again.')
   }
   finally {
     removing.value = false

@@ -9,9 +9,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const stats = ref<UserStats | null>(null)
   const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   const publicStats = ref<UserStats | null>(null)
   const publicIsLoading = ref(false)
+  const publicError = ref<string | null>(null)
 
   const fetchStats = async (force = false) => {
     const username = authStore.user?.username
@@ -21,14 +23,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
       return
 
     isLoading.value = true
+    error.value = null
     try {
       const response = await client.value.get<APIResponse<{ stats: UserStats }>>(
         `/api/v1/users/${username}/stats`,
       )
       stats.value = response.data.data!.stats
     }
-    catch (error) {
-      console.error('Failed to fetch stats:', error)
+    catch (err) {
+      console.error('Failed to fetch stats:', err)
+      error.value = 'Could not load your stats.'
     }
     finally {
       isLoading.value = false
@@ -37,14 +41,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const fetchStatsByUsername = async (username: string) => {
     publicIsLoading.value = true
+    publicError.value = null
     try {
       const response = await client.value.get<APIResponse<{ stats: UserStats }>>(
         `/api/v1/users/${username}/stats`,
       )
       publicStats.value = response.data.data!.stats
     }
-    catch (error) {
-      console.error('Failed to fetch public stats:', error)
+    catch (err) {
+      console.error('Failed to fetch public stats:', err)
+      publicError.value = 'Could not load stats for this user.'
     }
     finally {
       publicIsLoading.value = false
@@ -59,8 +65,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
   return {
     stats,
     isLoading,
+    error,
     publicStats,
     publicIsLoading,
+    publicError,
     fetchStats,
     fetchStatsByUsername,
     deleteAccount,

@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(async (_to, _from) => {
-  // Auth uses localStorage — skip on server, handle client-side only
+  // Auth lives in httpOnly cookies, invisible to SSR — resolve client-side only
   if (import.meta.server)
     return
 

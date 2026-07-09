@@ -52,7 +52,9 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       <div class="d-flex align-center justify-space-between w-100">
         <v-list-item-title>Theme</v-list-item-title>
 
-        <ThemeToggle />
+        <div @click.stop>
+          <ThemeToggle />
+        </div>
       </div>
     </v-list-item>
 

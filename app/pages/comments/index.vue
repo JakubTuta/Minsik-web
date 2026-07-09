@@ -13,6 +13,7 @@ const filteredItems = computed(() => {
   if (!titleFilter.value)
     return commentsStore.items
   const q = titleFilter.value.toLowerCase()
+
   return commentsStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
@@ -66,59 +67,76 @@ const { sentinel } = useInfiniteScroll(
         cols="12"
         md="9"
       >
-        <BookUserHeaderRow
-          v-if="commentsStore.hasData"
-          secondary-label="Updated"
+        <ErrorState
+          v-if="commentsStore.error"
+          message="Could not load your comments."
+          @retry="fetchWithFilters(true)"
         />
 
-        <div class="d-flex flex-column gap-2 mt-2">
-          <CommentItem
-            v-for="entry in filteredItems"
-            :key="entry.comment_id"
-            :entry="entry"
-          />
-        </div>
-
-        <div
-          v-if="commentsStore.isLoading && !commentsStore.hasData"
-          class="d-flex flex-column gap-2"
-        >
-          <v-skeleton-loader
-            v-for="i in 5"
-            :key="i"
-            type="list-item-avatar-three-line"
-          />
-        </div>
-
-        <div
-          v-if="commentsStore.isLoading && commentsStore.hasData"
-          class="py-6 text-center"
-        >
-          <v-progress-circular
-            indeterminate
-            color="primary"
-          />
-        </div>
-
-        <div
-          v-if="commentsStore.isEmpty"
-          class="py-12 text-center"
-        >
-          <v-icon
-            icon="mdi-comment-outline"
-            size="64"
-            color="secondary"
-            class="mb-4"
+        <template v-else>
+          <BookUserHeaderRow
+            v-if="commentsStore.hasData"
+            secondary-label="Updated"
           />
 
-          <div class="text-h6 text-secondary">
-            No comments yet
+          <div class="d-flex flex-column mt-2 gap-2">
+            <CommentItem
+              v-for="entry in filteredItems"
+              :key="entry.comment_id"
+              :entry="entry"
+            />
           </div>
 
-          <div class="text-secondary mt-2">
-            Comment on books while browsing to see them here
+          <div
+            v-if="commentsStore.hasData && filteredItems.length === 0"
+            class="py-12 text-center"
+          >
+            <div class="text-h6 text-secondary">
+              No comments match "{{ titleFilter }}"
+            </div>
           </div>
-        </div>
+
+          <div
+            v-if="commentsStore.isLoading && !commentsStore.hasData"
+            class="d-flex flex-column gap-2"
+          >
+            <v-skeleton-loader
+              v-for="i in 5"
+              :key="i"
+              type="list-item-avatar-three-line"
+            />
+          </div>
+
+          <div
+            v-if="commentsStore.isLoading && commentsStore.hasData"
+            class="py-6 text-center"
+          >
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            />
+          </div>
+
+          <div
+            v-if="commentsStore.isEmpty"
+            class="py-12 text-center"
+          >
+            <v-icon
+              icon="mdi-comment-outline"
+              size="64"
+              color="secondary"
+              class="mb-4"
+            />
+
+            <div class="text-h6 text-secondary">
+              No comments yet
+            </div>
+
+            <div class="text-secondary mt-2">
+              Comment on books while browsing to see them here
+            </div>
+          </div>
+        </template>
 
         <div ref="sentinel" />
       </v-col>

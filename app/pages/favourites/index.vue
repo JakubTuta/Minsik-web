@@ -66,59 +66,76 @@ const { sentinel } = useInfiniteScroll(
         cols="12"
         md="9"
       >
-        <BookUserHeaderRow
-          v-if="favouritesStore.hasData"
-          :is-public-profile="false"
+        <ErrorState
+          v-if="favouritesStore.error"
+          message="Could not load your favourites."
+          @retry="favouritesStore.fetch(true, 'created_at', order)"
         />
 
-        <div class="d-flex flex-column gap-2 mt-2">
-          <FavouriteItem
-            v-for="entry in filteredItems"
-            :key="entry.book_id"
-            :entry="entry"
-          />
-        </div>
-
-        <div
-          v-if="favouritesStore.isLoading && !favouritesStore.hasData"
-          class="d-flex flex-column gap-2"
-        >
-          <v-skeleton-loader
-            v-for="i in 5"
-            :key="i"
-            type="list-item-avatar-three-line"
-          />
-        </div>
-
-        <div
-          v-if="favouritesStore.isLoading && favouritesStore.hasData"
-          class="py-6 text-center"
-        >
-          <v-progress-circular
-            indeterminate
-            color="primary"
-          />
-        </div>
-
-        <div
-          v-if="favouritesStore.isEmpty"
-          class="py-12 text-center"
-        >
-          <v-icon
-            icon="mdi-heart-outline"
-            size="64"
-            color="secondary"
-            class="mb-4"
+        <template v-else>
+          <BookUserHeaderRow
+            v-if="favouritesStore.hasData"
+            :is-public-profile="false"
           />
 
-          <div class="text-h6 text-secondary">
-            No favourite books yet
+          <div class="d-flex flex-column mt-2 gap-2">
+            <FavouriteItem
+              v-for="entry in filteredItems"
+              :key="entry.book_id"
+              :entry="entry"
+            />
           </div>
 
-          <div class="text-secondary mt-2">
-            Mark books as favourites while browsing
+          <div
+            v-if="favouritesStore.hasData && filteredItems.length === 0"
+            class="py-12 text-center"
+          >
+            <div class="text-h6 text-secondary">
+              No books match "{{ titleFilter }}"
+            </div>
           </div>
-        </div>
+
+          <div
+            v-if="favouritesStore.isLoading && !favouritesStore.hasData"
+            class="d-flex flex-column gap-2"
+          >
+            <v-skeleton-loader
+              v-for="i in 5"
+              :key="i"
+              type="list-item-avatar-three-line"
+            />
+          </div>
+
+          <div
+            v-if="favouritesStore.isLoading && favouritesStore.hasData"
+            class="py-6 text-center"
+          >
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            />
+          </div>
+
+          <div
+            v-if="favouritesStore.isEmpty"
+            class="py-12 text-center"
+          >
+            <v-icon
+              icon="mdi-heart-outline"
+              size="64"
+              color="secondary"
+              class="mb-4"
+            />
+
+            <div class="text-h6 text-secondary">
+              No favourite books yet
+            </div>
+
+            <div class="text-secondary mt-2">
+              Mark books as favourites while browsing
+            </div>
+          </div>
+        </template>
 
         <div ref="sentinel" />
       </v-col>

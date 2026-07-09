@@ -75,7 +75,7 @@ useSeoMeta({
               </div>
 
               <p class="text-body-2 text-medium-emphasis">
-                Organize your reading life with three lists: Want to Read, Currently Reading, and Already Read. Your personal library is always a tap away.
+                Organize your reading life with four statuses: Want to Read, Reading, Read, and Abandoned. Your personal library is always a tap away.
               </p>
             </v-card>
           </v-col>
@@ -97,7 +97,7 @@ useSeoMeta({
               </div>
 
               <p class="text-body-2 text-medium-emphasis">
-                Rate books with nuanced sub-ratings covering writing style, plot, characters, and more. Write reviews that help the community discover great reads.
+                Rate books across 8 sub-dimensions — pacing, emotional impact, writing quality, and more — plus an overall score. Write reviews that help the community discover great reads.
               </p>
             </v-card>
           </v-col>
@@ -207,7 +207,7 @@ useSeoMeta({
               </div>
 
               <p class="text-body-2 text-medium-emphasis">
-                Try your luck with three game modes: spin the slots for a random recommendation, open a mystery case to reveal a book with collectible rarity tiers, or crack open a themed pack.
+                Try your luck with three game modes: spin the slots for a random recommendation, open a mystery case to reveal a book with collectible rarity tiers, or crack open a pack of books one card at a time.
               </p>
             </v-card>
           </v-col>

@@ -15,6 +15,7 @@ const filteredItems = computed(() => {
   if (!titleFilter.value)
     return ratingsStore.items
   const q = titleFilter.value.toLowerCase()
+
   return ratingsStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
@@ -103,75 +104,92 @@ const ratingsCount = computed(() => dashboardStore.stats?.ratings_count ?? 0)
         cols="12"
         md="9"
       >
-        <BookUserHeaderRow
-          v-if="ratingsStore.hasData"
-          secondary-label="Rated On"
-        >
-          <template #metaHeaders>
-            <div
-              class="flex-shrink-0 text-caption text-medium-emphasis font-weight-bold text-uppercase"
-              style="width: 140px;"
-            >
-              Your Rating
-            </div>
+        <ErrorState
+          v-if="ratingsStore.error"
+          message="Could not load your ratings."
+          @retry="fetchWithFilters(true)"
+        />
 
-            <div
-              class="flex-shrink-0 text-caption text-medium-emphasis font-weight-bold text-uppercase"
-              style="width: 140px;"
-            >
-              Community avg
-            </div>
-          </template>
-        </BookUserHeaderRow>
+        <template v-else>
+          <BookUserHeaderRow
+            v-if="ratingsStore.hasData"
+            secondary-label="Rated On"
+          >
+            <template #metaHeaders>
+              <div
+                class="text-caption text-medium-emphasis font-weight-bold text-uppercase flex-shrink-0"
+                style="width: 140px;"
+              >
+                Your Rating
+              </div>
 
-        <div class="d-flex flex-column gap-2 mt-2">
-          <RatingItem
-            v-for="entry in filteredItems"
-            :key="entry.book_id"
-            :entry="entry"
-          />
-        </div>
+              <div
+                class="text-caption text-medium-emphasis font-weight-bold text-uppercase flex-shrink-0"
+                style="width: 140px;"
+              >
+                Community avg
+              </div>
+            </template>
+          </BookUserHeaderRow>
 
-        <div
-          v-if="ratingsStore.isLoading && !ratingsStore.hasData"
-          class="d-flex flex-column gap-2"
-        >
-          <v-skeleton-loader
-            v-for="i in 5"
-            :key="i"
-            type="list-item-avatar-three-line"
-          />
-        </div>
-
-        <div
-          v-if="ratingsStore.isLoading && ratingsStore.hasData"
-          class="py-6 text-center"
-        >
-          <v-progress-circular
-            indeterminate
-            color="primary"
-          />
-        </div>
-
-        <div
-          v-if="ratingsStore.isEmpty"
-          class="py-12 text-center"
-        >
-          <v-icon
-            icon="mdi-star-outline"
-            size="64"
-            color="secondary"
-            class="mb-4"
-          />
-
-          <div class="text-h6 text-secondary">
-            No ratings yet
+          <div class="d-flex flex-column mt-2 gap-2">
+            <RatingItem
+              v-for="entry in filteredItems"
+              :key="entry.book_id"
+              :entry="entry"
+            />
           </div>
 
-          <div class="text-secondary mt-2">
-            Rate books while browsing to see them here
+          <div
+            v-if="ratingsStore.hasData && filteredItems.length === 0"
+            class="py-12 text-center"
+          >
+            <div class="text-h6 text-secondary">
+              No books match "{{ titleFilter }}"
+            </div>
           </div>
-        </div>
+
+          <div
+            v-if="ratingsStore.isLoading && !ratingsStore.hasData"
+            class="d-flex flex-column gap-2"
+          >
+            <v-skeleton-loader
+              v-for="i in 5"
+              :key="i"
+              type="list-item-avatar-three-line"
+            />
+          </div>
+
+          <div
+            v-if="ratingsStore.isLoading && ratingsStore.hasData"
+            class="py-6 text-center"
+          >
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            />
+          </div>
+
+          <div
+            v-if="ratingsStore.isEmpty"
+            class="py-12 text-center"
+          >
+            <v-icon
+              icon="mdi-star-outline"
+              size="64"
+              color="secondary"
+              class="mb-4"
+            />
+
+            <div class="text-h6 text-secondary">
+              No ratings yet
+            </div>
+
+            <div class="text-secondary mt-2">
+              Rate books while browsing to see them here
+            </div>
+          </div>
+        </template>
 
         <div ref="sentinel" />
       </v-col>

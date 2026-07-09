@@ -1,59 +1,27 @@
 export const useThemeStore = defineStore('theme', () => {
   type Themes = 'light' | 'dark'
 
-  const clientTheme = ref<Themes>('light')
-  const isInitialized = ref(false)
+  const colorMode = useColorMode()
 
-  const THEME_KEY = 'minsik-theme'
-  const LEGACY_THEME_KEY = 'tuta-theme'
+  const currentTheme = computed<Themes>(() => (colorMode.value === 'dark'
+    ? 'dark'
+    : 'light'))
+
+  const isDark = computed(() => currentTheme.value === 'dark')
 
   const setTheme = (theme: Themes) => {
-    clientTheme.value = theme
-
-    if (import.meta.client) {
-      const html = document.documentElement
-
-      html.setAttribute('data-theme', theme)
-
-      html.classList.remove('light-mode', 'dark-mode')
-      html.classList.add(`${theme}-mode`)
-
-      localStorage.setItem(THEME_KEY, theme)
-    }
+    colorMode.preference = theme
   }
 
   const toggleTheme = () => {
-    const newTheme = clientTheme.value === 'dark'
+    setTheme(isDark.value
       ? 'light'
-      : 'dark'
-    setTheme(newTheme)
+      : 'dark')
   }
 
-  const isDark = computed(() => clientTheme.value === 'dark')
-
-  const currentTheme = computed(() => clientTheme.value)
-
-  const initialize = () => {
-    if (isInitialized.value)
-      return
-
-    if (import.meta.client) {
-      // Migrate from legacy key if present
-      const legacyTheme = localStorage.getItem(LEGACY_THEME_KEY)
-      if (legacyTheme) {
-        localStorage.setItem(THEME_KEY, legacyTheme)
-        localStorage.removeItem(LEGACY_THEME_KEY)
-      }
-
-      const localTheme = localStorage.getItem(THEME_KEY)
-      const savedTheme: Themes = (localTheme === 'dark' || localTheme === 'light')
-        ? localTheme as Themes
-        : 'light'
-
-      setTheme(savedTheme)
-      isInitialized.value = true
-    }
-  }
+  // Kept for callers that used to gate on this; @nuxtjs/color-mode
+  // resolves the correct theme before hydration, so there's nothing to init.
+  const initialize = () => {}
 
   return {
     currentTheme,
@@ -61,6 +29,5 @@ export const useThemeStore = defineStore('theme', () => {
     setTheme,
     toggleTheme,
     initialize,
-    isInitialized,
   }
 })

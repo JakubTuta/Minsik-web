@@ -3,6 +3,7 @@ Disallow: /auth/
 Disallow: /dashboard
 Disallow: /admin
 Disallow: /bookshelf
+Allow: /bookshelf/
 Disallow: /favourites
 Disallow: /ratings
 Disallow: /comments

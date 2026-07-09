@@ -22,10 +22,11 @@ export const useUserCommentsStore = defineStore('userComments', () => {
   const total = ref(0)
   const isLoading = ref(false)
   const currentParams = ref<UserCommentsParams>({})
+  const error = ref<string | null>(null)
 
   const hasMore = ref(false)
   const hasData = computed(() => items.value.length > 0)
-  const isEmpty = computed(() => !isLoading.value && items.value.length === 0)
+  const isEmpty = computed(() => !isLoading.value && !error.value && items.value.length === 0)
 
   const LIMIT = 10
 
@@ -41,6 +42,7 @@ export const useUserCommentsStore = defineStore('userComments', () => {
 
     currentParams.value = params
     isLoading.value = true
+    error.value = null
 
     try {
       const offset = reset
@@ -57,8 +59,9 @@ export const useUserCommentsStore = defineStore('userComments', () => {
       total.value = data.total
       hasMore.value = data.has_more ?? (newItems.length >= LIMIT)
     }
-    catch (error) {
-      console.error('Failed to fetch comments:', error)
+    catch (err) {
+      console.error('Failed to fetch comments:', err)
+      error.value = 'Could not load your comments.'
     }
     finally {
       isLoading.value = false
@@ -97,6 +100,7 @@ export const useUserCommentsStore = defineStore('userComments', () => {
     hasMore,
     hasData,
     isEmpty,
+    error,
     fetch,
     loadMore,
     updateComment,

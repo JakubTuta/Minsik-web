@@ -65,6 +65,9 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
     catch (error) {
       console.error('Error fetching home recommendations:', error)
+      if (!hasHomeData.value)
+        throw error
+
       return homeCategories.value
     }
     finally {

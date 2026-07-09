@@ -30,10 +30,11 @@ export const useRatingsStore = defineStore('ratings', () => {
   const total = ref(0)
   const isLoading = ref(false)
   const currentParams = ref<RatingsParams>({})
+  const error = ref<string | null>(null)
 
   const hasMore = ref(false)
   const hasData = computed(() => items.value.length > 0)
-  const isEmpty = computed(() => !isLoading.value && items.value.length === 0)
+  const isEmpty = computed(() => !isLoading.value && !error.value && items.value.length === 0)
 
   const LIMIT = 10
 
@@ -49,6 +50,7 @@ export const useRatingsStore = defineStore('ratings', () => {
 
     currentParams.value = params
     isLoading.value = true
+    error.value = null
 
     try {
       const offset = reset
@@ -68,8 +70,9 @@ export const useRatingsStore = defineStore('ratings', () => {
       total.value = data.total
       hasMore.value = data.has_more ?? (newItems.length >= LIMIT)
     }
-    catch (error) {
-      console.error('Failed to fetch ratings:', error)
+    catch (err) {
+      console.error('Failed to fetch ratings:', err)
+      error.value = 'Could not load your ratings.'
     }
     finally {
       isLoading.value = false
@@ -108,6 +111,7 @@ export const useRatingsStore = defineStore('ratings', () => {
     hasMore,
     hasData,
     isEmpty,
+    error,
     fetch,
     loadMore,
     updateRating,

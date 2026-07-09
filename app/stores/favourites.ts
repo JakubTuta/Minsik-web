@@ -11,10 +11,11 @@ export const useFavouritesStore = defineStore('favourites', () => {
   const isLoading = ref(false)
   const currentSortBy = ref<string>('created_at')
   const currentOrder = ref<'asc' | 'desc'>('desc')
+  const error = ref<string | null>(null)
 
   const hasMore = ref(false)
   const hasData = computed(() => items.value.length > 0)
-  const isEmpty = computed(() => !isLoading.value && items.value.length === 0)
+  const isEmpty = computed(() => !isLoading.value && !error.value && items.value.length === 0)
 
   const LIMIT = 10
 
@@ -31,6 +32,7 @@ export const useFavouritesStore = defineStore('favourites', () => {
     }
 
     isLoading.value = true
+    error.value = null
 
     try {
       const offset = reset
@@ -47,8 +49,9 @@ export const useFavouritesStore = defineStore('favourites', () => {
       total.value = data.total
       hasMore.value = data.has_more ?? (newItems.length >= LIMIT)
     }
-    catch (error) {
-      console.error('Failed to fetch favourites:', error)
+    catch (err) {
+      console.error('Failed to fetch favourites:', err)
+      error.value = 'Could not load your favourites.'
     }
     finally {
       isLoading.value = false
@@ -70,8 +73,10 @@ export const useFavouritesStore = defineStore('favourites', () => {
         total.value--
       }
     }
-    catch (error) {
-      console.error('Failed to remove favourite:', error)
+    catch (err) {
+      console.error('Failed to remove favourite:', err)
+      useToastStore().error('Could not remove this favourite. Please try again.')
+      throw err
     }
   }
 
@@ -82,6 +87,7 @@ export const useFavouritesStore = defineStore('favourites', () => {
     hasMore,
     hasData,
     isEmpty,
+    error,
     fetch,
     loadMore,
     removeFavourite,

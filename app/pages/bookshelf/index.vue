@@ -10,7 +10,9 @@ const dashboardStore = useDashboardStore()
 
 const totalBooks = computed(() => {
   const s = dashboardStore.stats
-  if (!s) return 0
+  if (!s)
+    return 0
+
   return s.want_to_read_count + s.reading_count + s.read_count + s.abandoned_count
 })
 
@@ -23,6 +25,7 @@ const filteredItems = computed(() => {
   if (!titleFilter.value)
     return bookshelfStore.myItems
   const q = titleFilter.value.toLowerCase()
+
   return bookshelfStore.myItems.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
@@ -86,60 +89,77 @@ const { sentinel } = useInfiniteScroll(
         cols="12"
         md="9"
       >
-        <BookUserHeaderRow
-          v-if="bookshelfStore.myHasData"
-          :is-public-profile="false"
+        <ErrorState
+          v-if="bookshelfStore.myError"
+          message="Could not load your bookshelf."
+          @retry="fetchWithFilters(true)"
         />
 
-        <div class="d-flex flex-column gap-2 mt-2">
-          <BookshelfItem
-            v-for="entry in filteredItems"
-            :key="entry.book_id"
-            :entry="entry"
+        <template v-else>
+          <BookUserHeaderRow
+            v-if="bookshelfStore.myHasData"
             :is-public-profile="false"
           />
-        </div>
 
-        <div
-          v-if="bookshelfStore.myIsLoading && !bookshelfStore.myHasData"
-          class="d-flex flex-column gap-2"
-        >
-          <v-skeleton-loader
-            v-for="i in 5"
-            :key="i"
-            type="list-item-avatar-three-line"
-          />
-        </div>
-
-        <div
-          v-if="bookshelfStore.myIsLoading && bookshelfStore.myHasData"
-          class="py-6 text-center"
-        >
-          <v-progress-circular
-            indeterminate
-            color="primary"
-          />
-        </div>
-
-        <div
-          v-if="bookshelfStore.myIsEmpty"
-          class="py-12 text-center"
-        >
-          <v-icon
-            icon="mdi-bookshelf"
-            size="64"
-            color="secondary"
-            class="mb-4"
-          />
-
-          <div class="text-h6 text-secondary">
-            Your bookshelf is empty
+          <div class="d-flex flex-column mt-2 gap-2">
+            <BookshelfItem
+              v-for="entry in filteredItems"
+              :key="entry.book_id"
+              :entry="entry"
+              :is-public-profile="false"
+            />
           </div>
 
-          <div class="text-secondary mt-2">
-            Add books to your bookshelf while browsing
+          <div
+            v-if="bookshelfStore.myHasData && filteredItems.length === 0"
+            class="py-12 text-center"
+          >
+            <div class="text-h6 text-secondary">
+              No books match "{{ titleFilter }}"
+            </div>
           </div>
-        </div>
+
+          <div
+            v-if="bookshelfStore.myIsLoading && !bookshelfStore.myHasData"
+            class="d-flex flex-column gap-2"
+          >
+            <v-skeleton-loader
+              v-for="i in 5"
+              :key="i"
+              type="list-item-avatar-three-line"
+            />
+          </div>
+
+          <div
+            v-if="bookshelfStore.myIsLoading && bookshelfStore.myHasData"
+            class="py-6 text-center"
+          >
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            />
+          </div>
+
+          <div
+            v-if="bookshelfStore.myIsEmpty"
+            class="py-12 text-center"
+          >
+            <v-icon
+              icon="mdi-bookshelf"
+              size="64"
+              color="secondary"
+              class="mb-4"
+            />
+
+            <div class="text-h6 text-secondary">
+              Your bookshelf is empty
+            </div>
+
+            <div class="text-secondary mt-2">
+              Add books to your bookshelf while browsing
+            </div>
+          </div>
+        </template>
 
         <div ref="sentinel" />
       </v-col>

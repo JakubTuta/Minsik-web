@@ -18,9 +18,10 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
   const myIsLoading = ref(false)
   const myHasMore = ref(false)
   const myCurrentParams = ref<BookshelfParams>({})
+  const myError = ref<string | null>(null)
 
   const myHasData = computed(() => myItems.value.length > 0)
-  const myIsEmpty = computed(() => !myIsLoading.value && myItems.value.length === 0)
+  const myIsEmpty = computed(() => !myIsLoading.value && !myError.value && myItems.value.length === 0)
 
   // Public user bookshelf state
   const publicItems = ref<BookshelfEntry[]>([])
@@ -29,9 +30,10 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
   const publicHasMore = ref(false)
   const publicCurrentUsername = ref<string | null>(null)
   const publicCurrentParams = ref<BookshelfParams>({})
+  const publicError = ref<string | null>(null)
 
   const publicHasData = computed(() => publicItems.value.length > 0)
-  const publicIsEmpty = computed(() => !publicIsLoading.value && publicItems.value.length === 0)
+  const publicIsEmpty = computed(() => !publicIsLoading.value && !publicError.value && publicItems.value.length === 0)
 
   const LIMIT = 10
 
@@ -48,6 +50,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
 
     myCurrentParams.value = params
     myIsLoading.value = true
+    myError.value = null
 
     try {
       const offset = reset
@@ -66,6 +69,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     }
     catch (error) {
       console.error('Failed to fetch bookshelf:', error)
+      myError.value = 'Could not load your bookshelf.'
     }
     finally {
       myIsLoading.value = false
@@ -92,6 +96,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
 
     publicCurrentParams.value = params
     publicIsLoading.value = true
+    publicError.value = null
 
     try {
       const offset = reset
@@ -110,6 +115,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     }
     catch (error) {
       console.error('Failed to fetch public bookshelf:', error)
+      publicError.value = 'Could not load this bookshelf.'
     }
     finally {
       publicIsLoading.value = false
@@ -158,6 +164,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     myHasMore,
     myHasData,
     myIsEmpty,
+    myError,
     fetchMine,
     loadMoreMine,
     // Public bookshelf
@@ -168,6 +175,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     publicHasMore,
     publicHasData,
     publicIsEmpty,
+    publicError,
     fetchByUsername,
     loadMoreByUsername,
     // Actions

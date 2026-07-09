@@ -8,6 +8,8 @@
 
     <AuthDialog />
 
+    <AppToast />
+
     <v-main>
       <div class="page-content">
         <slot />

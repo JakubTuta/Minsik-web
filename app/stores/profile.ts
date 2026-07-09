@@ -16,9 +16,13 @@ export const useProfileStore = defineStore('profile', () => {
         `/api/v1/users/${username}/profile-overview`,
       )
       overview.value = response.data.data!
+
+      return overview.value
     }
     catch (error) {
       console.error('Failed to fetch profile overview:', error)
+      overview.value = null
+      throw error
     }
     finally {
       isLoading.value = false
