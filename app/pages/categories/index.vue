@@ -25,20 +25,21 @@ async function loadBooks(slug: string, sort: 'popularity' | 'rating', offset: nu
   return categoriesStore.fetchCategoryBooksPage(slug, sort, 'desc', offset, 20)
 }
 
-// Fetch categories and initial books in parallel
-const [{ data: categoriesData }, { data: initialBooksData }] = await Promise.all([
-  useAsyncData('categories-list', () => categoriesStore.fetchCategories()),
-  useAsyncData(
-    `category-books-${selectedSlug.value}-${sortBy.value}`,
-    () => loadBooks(selectedSlug.value!, sortBy.value, 0),
-  ),
-])
+// Categories list blocks (cheap, cached) — books load lazily so navigation isn't stuck waiting on it
+const { data: categoriesData } = await useAsyncData('categories-list', () => categoriesStore.fetchCategories())
 
-if (initialBooksData.value) {
-  allBooks.value = initialBooksData.value.books
-  booksTotalCount.value = initialBooksData.value.total_count
-  booksOffset.value = initialBooksData.value.books.length
-}
+const { data: initialBooksData } = useLazyAsyncData(
+  `category-books-${selectedSlug.value}-${sortBy.value}`,
+  () => loadBooks(selectedSlug.value!, sortBy.value, 0),
+)
+
+watch(initialBooksData, (data) => {
+  if (data) {
+    allBooks.value = data.books
+    booksTotalCount.value = data.total_count
+    booksOffset.value = data.books.length
+  }
+}, { immediate: true })
 
 async function resetAndFetch() {
   if (!selectedSlug.value)

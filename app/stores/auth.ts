@@ -1,8 +1,10 @@
 import type { APIResponse } from '~/types/api'
 import type { GoogleAuthRequest, LoginRequest, RegisterRequest, SessionData, UpdateProfileRequest, User } from '~/types/auth'
 import { defineStore } from 'pinia'
+import { deleteCookie, readCookie } from '~/utils/cookie'
 
 const LAST_REFRESH_KEY = 'minsik_last_refresh'
+const CSRF_COOKIE = 'csrf_token'
 const REFRESH_DEDUP_MS = 5000
 const REFRESH_LEAD_SECONDS = 60
 const MIN_REFRESH_DELAY_SECONDS = 30
@@ -59,6 +61,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (error.response?.status === 401) {
         user.value = null
         clearRefreshTimer()
+        localStorage.removeItem(LAST_REFRESH_KEY)
+        deleteCookie(CSRF_COOKIE)
       }
       else {
         console.error('Token refresh failed (transient), keeping session:', error)
@@ -180,6 +184,7 @@ export const useAuthStore = defineStore('auth', () => {
       clearRefreshTimer()
       user.value = null
       authInitialized.value = false
+      localStorage.removeItem(LAST_REFRESH_KEY)
 
       const middleware = route.meta.middleware
       const isProtected = middleware === 'auth' || (Array.isArray(middleware) && middleware.includes('auth'))
@@ -196,6 +201,15 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (authInitialized.value)
       return
+
+    // csrf_token is a non-httpOnly marker set alongside the refresh cookie on login/refresh.
+    // Its absence means there is no session to resume, so skip the network round-trip entirely.
+    if (!readCookie(CSRF_COOKIE)) {
+      authInitialized.value = true
+      _authReadyResolve?.()
+
+      return
+    }
 
     // The refresh endpoint reads the httpOnly refresh cookie and returns the user.
     // No stored token to read — a missing/expired cookie simply yields an unauthenticated state.

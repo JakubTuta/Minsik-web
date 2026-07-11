@@ -9,20 +9,42 @@ interface StatItem {
   tooltipLines?: string[]
 }
 
-defineProps<{
+const props = defineProps<{
   stats: StatItem[]
 }>()
 
 const { mobile } = useDisplay()
+
+const mobileColumns = computed(() => {
+  if (props.stats.length === 4)
+    return 2
+
+  return Math.max(1, Math.min(3, props.stats.length))
+})
 </script>
 
 <template>
-  <div class="d-flex align-center w-100">
+  <div
+    class="w-100"
+    :class="mobile
+      ? undefined
+      : 'd-flex align-center'"
+    :style="mobile
+      ? {'display': 'grid',
+         'gridTemplateColumns': `repeat(${mobileColumns}, 1fr)`,
+         'gap': '4px'}
+      : undefined"
+  >
     <template
       v-for="(stat, i) in stats"
       :key="i"
     >
-      <div class="d-flex flex-column align-center flex-1-1 py-2">
+      <div
+        class="d-flex flex-column align-center py-2"
+        :class="mobile
+          ? ''
+          : 'flex-1-1'"
+      >
         <v-icon
           :icon="stat.icon"
           :color="stat.iconColor"
@@ -56,7 +78,7 @@ const { mobile } = useDisplay()
         </div>
 
         <span
-          class="text-medium-emphasis mt-1"
+          class="text-medium-emphasis mt-1 text-center"
           :class="mobile
             ? 'text-caption'
             : 'text-body-2'"
@@ -64,7 +86,7 @@ const { mobile } = useDisplay()
       </div>
 
       <v-divider
-        v-if="i < stats.length - 1"
+        v-if="!mobile && i < stats.length - 1"
         vertical
         class="mx-0"
         style="height: 48px; align-self: center;"

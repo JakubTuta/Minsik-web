@@ -36,7 +36,7 @@ const { data: author, error: authorError } = await useAsyncData(
 
 // Handle 404 early
 if (authorError.value || !author.value) {
-  throw createError({ statusCode: 404, message: 'Author not found' })
+  throw createError({ statusCode: 404, message: 'Author not found', fatal: true })
 }
 
 // Pagination state

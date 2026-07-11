@@ -45,6 +45,7 @@ if (seriesError.value || !series.value) {
   throw createError({
     statusCode: 404,
     message: 'Series not found',
+    fatal: true,
   })
 }
 

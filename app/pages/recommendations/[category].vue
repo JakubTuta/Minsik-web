@@ -20,7 +20,7 @@ useSeo({
 })
 
 if (error.value || !categoryData.value) {
-  throw createError({ statusCode: 404, message: 'Category not found' })
+  throw createError({ statusCode: 404, message: 'Category not found', fatal: true })
 }
 
 const isAuthorCategory = computed(() => categoryData.value?.item_type === 'author')

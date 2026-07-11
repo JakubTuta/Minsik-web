@@ -1,20 +1,10 @@
 import type { AxiosError, AxiosInstance } from 'axios'
 import axios from 'axios'
 import { defineStore } from 'pinia'
+import { readCookie } from '~/utils/cookie'
 
 const CSRF_COOKIE = 'csrf_token'
 const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete'])
-
-function readCookie(name: string): string | null {
-  if (!import.meta.client)
-    return null
-
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
-  if (!match)
-    return null
-
-  return decodeURIComponent(match[1]!)
-}
 
 export const useApiStore = defineStore('api', () => {
   const config = useRuntimeConfig()
@@ -78,7 +68,13 @@ export const useApiStore = defineStore('api', () => {
           const originalRequest = error.config as any
           const isRefreshEndpoint = originalRequest?.url?.endsWith('/api/v1/auth/refresh')
 
-          if (error.response?.status === 401 && !originalRequest?._retry && !isRefreshEndpoint && import.meta.client) {
+          if (
+            error.response?.status === 401
+            && !originalRequest?._retry
+            && !isRefreshEndpoint
+            && import.meta.client
+            && readCookie(CSRF_COOKIE)
+          ) {
             originalRequest._retry = true
             const authStore = useAuthStore()
             const refreshed = await authStore.refreshAccessToken()

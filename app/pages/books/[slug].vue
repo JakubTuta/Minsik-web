@@ -48,6 +48,7 @@ if (error.value || !book.value) {
   throw createError({
     statusCode: 404,
     message: 'Book not found',
+    fatal: true,
   })
 }
 

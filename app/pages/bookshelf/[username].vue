@@ -19,6 +19,7 @@ if (overviewError.value) {
     message: (overviewError.value as any)?.response?.status === 404
       ? 'User not found'
       : 'Could not load this profile',
+    fatal: true,
   })
 }
 

@@ -600,13 +600,19 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
 
 @media (max-width: 599px) {
   .search-results-dropdown {
+    top: calc(var(--app-bar-height, 56px) + 8px) !important;
     left: 8px !important;
     right: 8px !important;
     transform: none !important;
     min-width: unset !important;
     width: calc(100vw - 16px) !important;
-    max-height: 80dvh;
+    max-height: calc(100dvh - var(--app-bar-height, 56px) - 16px);
     overflow-y: auto;
+  }
+
+  .search-results-dropdown .scrollable-list {
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
