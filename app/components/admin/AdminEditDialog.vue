@@ -59,6 +59,12 @@ function setArrayValue(key: string, value: string) {
     : []
 }
 
+function setNumberValue(key: string, value: string) {
+  editedData.value[key] = value === ''
+    ? null
+    : Number(value)
+}
+
 function updateJsonValue(key: string, value: string) {
   jsonStrings.value[key] = value
   try {
@@ -135,11 +141,13 @@ function handleClose() {
 
               <v-text-field
                 v-else-if="field.type === 'number'"
-                v-model.number="editedData[field.key]"
+                :model-value="editedData[field.key] ?? ''"
                 :label="field.label"
                 variant="outlined"
                 density="compact"
                 type="number"
+                clearable
+                @update:model-value="setNumberValue(field.key, $event)"
               />
 
               <v-text-field

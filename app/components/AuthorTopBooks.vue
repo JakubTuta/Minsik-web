@@ -21,23 +21,23 @@ function bookTotalRatings(book: BookSummary): number {
   return totalRatingCount(book.rating_count, book.ol_rating_count)
 }
 
-// Arrange: #2 left, #1 middle, #3 right (podium)
+// Mobile: natural rank order, no offsets. Desktop: podium (#2 left, #1 middle, #3 right) via md: order + offset classes.
 const podiumOrder = computed(() => {
-  if (props.books.length === 0)
-    return []
-  const [first, second, third] = props.books
+  return props.books.slice(0, 3).map((book, i) => {
+    const rank = i + 1
+    const mdOrderClass = rank === 1
+      ? 'md:order-2'
+      : rank === 2
+        ? 'md:order-1'
+        : 'md:order-3'
+    const cardTopClass = rank === 2
+      ? 'md:mt-8'
+      : rank === 3
+        ? 'md:mt-14'
+        : ''
 
-  return [
-    second
-      ? { book: second, rank: 2, cardTopClass: 'mt-8' }
-      : null,
-    first
-      ? { book: first, rank: 1, cardTopClass: '' }
-      : null,
-    third
-      ? { book: third, rank: 3, cardTopClass: 'mt-14' }
-      : null,
-  ].filter(Boolean) as { book: BookSummary, rank: number, cardTopClass: string }[]
+    return { book, rank, cardTopClass: `${cardTopClass} ${mdOrderClass}`.trim() }
+  })
 })
 </script>
 
