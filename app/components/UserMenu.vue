@@ -146,6 +146,12 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       />
 
       <v-list-item
+        prepend-icon="mdi-calendar-star"
+        title="Year in Review"
+        to="/year-in-review"
+      />
+
+      <v-list-item
         prepend-icon="mdi-bookshelf"
         title="My Bookshelf"
         to="/bookshelf"
@@ -274,6 +280,12 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           prepend-icon="mdi-view-dashboard"
           title="Dashboard"
           to="/dashboard"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-calendar-star"
+          title="Year in Review"
+          to="/year-in-review"
         />
 
         <v-list-item

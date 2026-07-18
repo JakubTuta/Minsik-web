@@ -128,6 +128,7 @@ export default defineNuxtConfig({
     '/favourites': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
     '/ratings': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
     '/comments': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/year-in-review': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
   },
 
   // Sitemap — static routes + dynamic book/author/series URLs from API
@@ -142,6 +143,7 @@ export default defineNuxtConfig({
       '/favourites',
       '/ratings',
       '/comments',
+      '/year-in-review',
       '/open-case',
       '/open-pack',
       '/play-slots',
