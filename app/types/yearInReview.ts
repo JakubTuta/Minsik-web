@@ -5,6 +5,7 @@ export interface MonthlyBucket {
   books_finished: number
   pages_read: number
   ratings_given: number
+  books: YearBook[]
 }
 
 export interface YearBook {
