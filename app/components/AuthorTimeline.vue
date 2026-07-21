@@ -24,6 +24,8 @@ const booksWithYearMarkers = computed(() => {
 
 const scrollEnabled = computed(() => props.hasMore && !props.loading)
 const { sentinel } = useInfiniteScroll(() => props.loadMore(), { enabled: scrollEnabled })
+
+useShelfStatuses(() => props.books)
 </script>
 
 <template>
@@ -74,7 +76,7 @@ const { sentinel } = useInfiniteScroll(() => props.loadMore(), { enabled: scroll
               class="d-flex flex-row overflow-hidden"
             >
               <div
-                class="d-flex align-center flex-shrink-0 justify-center"
+                class="d-flex align-center position-relative flex-shrink-0 justify-center"
                 :style="{'width': '80px',
                          'minWidth': '80px',
                          'height': '120px'}"
@@ -91,6 +93,11 @@ const { sentinel } = useInfiniteScroll(() => props.loadMore(), { enabled: scroll
                     <HashedFill :color="coverColor(entry.book)" />
                   </template>
                 </v-img>
+
+                <BookShelfBadge
+                  :book-id="entry.book.book_id"
+                  compact
+                />
               </div>
 
               <div

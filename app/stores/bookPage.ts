@@ -33,6 +33,27 @@ export const useBookPageStore = defineStore('bookPage', () => {
 
   const commentsHasMore = computed(() => comments.value.length < commentsTotal.value)
 
+  function extractError(error: any, fallback: string): string {
+    return error?.response?.data?.error?.message
+      || error?.response?.data?.message
+      || fallback
+  }
+
+  // Keep the shared "on shelf" cache (list pages) in sync after optimistic changes
+  function syncSharedStatus() {
+    const bookId = booksStore.currentBook?.book_id
+    if (!bookId)
+      return
+
+    const statusesStore = useBookStatusesStore()
+    const status = bookshelfStatus.value ?? (isFavourite.value
+      ? 'want_to_read'
+      : null)
+    statusesStore.setStatus(bookId, status
+      ? { status, is_favorite: isFavourite.value }
+      : null)
+  }
+
   // Fetch all user data for a book in a single call
   const fetchBookUserData = async (slug: string) => {
     if (!authStore.isAuthenticated) {
@@ -81,6 +102,8 @@ export const useBookPageStore = defineStore('bookPage', () => {
       else {
         userRating.value = null
       }
+
+      syncSharedStatus()
     }
     catch (error) {
       console.error('Failed to fetch book user data:', error)
@@ -90,84 +113,101 @@ export const useBookPageStore = defineStore('bookPage', () => {
     }
   }
 
-  // Upsert bookshelf status
-  const upsertBookshelf = async (slug: string, status: BookshelfStatus) => {
-    try {
-      await client.value.put(`/api/v1/users/me/bookshelves/${slug}`, { status })
-      bookshelfStatus.value = status
-    }
-    catch (error) {
-      console.error('Failed to update bookshelf:', error)
-      throw error
-    }
-  }
-
-  // Remove from bookshelf
-  const removeFromBookshelf = async (slug: string) => {
-    try {
-      await client.value.delete(`/api/v1/users/me/bookshelves/${slug}`)
-      bookshelfStatus.value = null
-    }
-    catch (error) {
-      console.error('Failed to remove from bookshelf:', error)
-      throw error
+  // Refresh aggregate rating stats after a rating write settles (background)
+  const refreshLiveRatingStats = async (slug: string) => {
+    const lang = booksStore.currentBook?.language ?? 'en'
+    const fresh = await booksStore.fetchBook(slug, lang, true)
+    if (fresh && currentSlug.value === slug) {
+      liveAvgRating.value = fresh.avg_rating
+      liveRatingCount.value = fresh.rating_count
+      liveSubRatingStats.value = fresh.sub_rating_stats ?? null
     }
   }
 
-  // Toggle favourite
-  const toggleFavourite = async (slug: string) => {
-    try {
-      if (isFavourite.value) {
-        await client.value.delete(`/api/v1/books/${slug}/favourite`)
-        isFavourite.value = false
-      }
-      else {
-        await client.value.post(`/api/v1/books/${slug}/favourite`)
-        isFavourite.value = true
-      }
-    }
-    catch (error) {
-      console.error('Failed to toggle favourite:', error)
-      throw error
-    }
+  // Upsert bookshelf status (optimistic — reverts on failure)
+  const upsertBookshelf = (slug: string, status: BookshelfStatus) => {
+    const previous = bookshelfStatus.value
+    bookshelfStatus.value = status
+    syncSharedStatus()
+
+    client.value.put(`/api/v1/users/me/bookshelves/${slug}`, { status })
+      .catch((error) => {
+        if (currentSlug.value === slug) {
+          bookshelfStatus.value = previous
+          syncSharedStatus()
+        }
+        useToastStore().error(extractError(error, 'Could not update your bookshelf.'))
+      })
   }
 
-  // Submit or update rating
-  const submitRating = async (slug: string, data: Record<string, any>) => {
-    try {
-      await client.value.post(`/api/v1/books/${slug}/rate`, data)
-      userRating.value = data as BookCommentRating
-      const lang = booksStore.currentBook?.language ?? 'en'
-      const fresh = await booksStore.fetchBook(slug, lang, true)
-      if (fresh) {
-        liveAvgRating.value = fresh.avg_rating
-        liveRatingCount.value = fresh.rating_count
-        liveSubRatingStats.value = fresh.sub_rating_stats ?? null
-      }
-    }
-    catch (error) {
-      console.error('Failed to submit rating:', error)
-      throw error
-    }
+  // Remove from bookshelf (optimistic)
+  const removeFromBookshelf = (slug: string) => {
+    const previousStatus = bookshelfStatus.value
+    const previousFav = isFavourite.value
+    bookshelfStatus.value = null
+    isFavourite.value = false
+    syncSharedStatus()
+
+    client.value.delete(`/api/v1/users/me/bookshelves/${slug}`)
+      .catch((error) => {
+        if (currentSlug.value === slug) {
+          bookshelfStatus.value = previousStatus
+          isFavourite.value = previousFav
+          syncSharedStatus()
+        }
+        useToastStore().error(extractError(error, 'Could not remove this book.'))
+      })
   }
 
-  // Delete rating
-  const deleteRating = async (slug: string) => {
-    try {
-      await client.value.delete(`/api/v1/books/${slug}/rate`)
-      userRating.value = null
-      const lang = booksStore.currentBook?.language ?? 'en'
-      const fresh = await booksStore.fetchBook(slug, lang, true)
-      if (fresh) {
-        liveAvgRating.value = fresh.avg_rating
-        liveRatingCount.value = fresh.rating_count
-        liveSubRatingStats.value = fresh.sub_rating_stats ?? null
+  // Toggle favourite (optimistic — favouriting also creates a shelf entry server-side)
+  const toggleFavourite = (slug: string) => {
+    const wasFav = isFavourite.value
+    const previousStatus = bookshelfStatus.value
+    isFavourite.value = !wasFav
+    if (!wasFav && bookshelfStatus.value === null)
+      bookshelfStatus.value = 'want_to_read'
+    syncSharedStatus()
+
+    const request = wasFav
+      ? client.value.delete(`/api/v1/books/${slug}/favourite`)
+      : client.value.post(`/api/v1/books/${slug}/favourite`)
+
+    request.catch((error) => {
+      if (currentSlug.value === slug) {
+        isFavourite.value = wasFav
+        bookshelfStatus.value = previousStatus
+        syncSharedStatus()
       }
-    }
-    catch (error) {
-      console.error('Failed to delete rating:', error)
-      throw error
-    }
+      useToastStore().error(extractError(error, 'Could not update favourites.'))
+    })
+  }
+
+  // Submit or update rating (optimistic — aggregate stats refresh in background)
+  const submitRating = (slug: string, data: Record<string, any>) => {
+    const previous = userRating.value
+    userRating.value = data as BookCommentRating
+
+    client.value.post(`/api/v1/books/${slug}/rate`, data)
+      .then(() => { refreshLiveRatingStats(slug).catch(() => {}) })
+      .catch((error) => {
+        if (currentSlug.value === slug)
+          userRating.value = previous
+        useToastStore().error(extractError(error, 'Could not save your rating.'))
+      })
+  }
+
+  // Delete rating (optimistic)
+  const deleteRating = (slug: string) => {
+    const previous = userRating.value
+    userRating.value = null
+
+    client.value.delete(`/api/v1/books/${slug}/rate`)
+      .then(() => { refreshLiveRatingStats(slug).catch(() => {}) })
+      .catch((error) => {
+        if (currentSlug.value === slug)
+          userRating.value = previous
+        useToastStore().error(extractError(error, 'Could not delete your rating.'))
+      })
   }
 
   // Fetch comments for a book
@@ -221,70 +261,100 @@ export const useBookPageStore = defineStore('bookPage', () => {
     await fetchComments(currentSlug.value, currentCommentParams.value, false)
   }
 
-  // Create comment
-  const createComment = async (slug: string, body: string, isSpoiler = false) => {
-    try {
-      const response = await client.value.post<APIResponse<any>>(
-        `/api/v1/books/${slug}/comments`,
-        { body, is_spoiler: isSpoiler },
-      )
-      const responseData = response.data.data!
-      // API returns nested structure: { comment: {...}, ... }
-      const data = responseData.comment || responseData
+  function mapCommentResponse(response: any): BookComment {
+    const responseData = response.data.data!
+    // API returns nested structure: { comment: {...}, ... }
+    const data = responseData.comment || responseData
 
-      // Map API response to BookComment interface
-      myComment.value = {
-        ...data,
-        comment_created_at: data.created_at,
-        comment_updated_at: data.updated_at,
-        user_id: data.user_id,
-        username: data.username,
-      }
-      commentsTotal.value++
-    }
-    catch (error) {
-      console.error('Failed to create comment:', error)
-      throw error
+    return {
+      ...data,
+      comment_created_at: data.created_at,
+      comment_updated_at: data.updated_at,
+      user_id: data.user_id,
+      username: data.username,
     }
   }
 
-  // Update comment
-  const updateComment = async (slug: string, commentId: number, body: string, isSpoiler = false) => {
-    try {
-      const response = await client.value.put<APIResponse<any>>(
-        `/api/v1/books/${slug}/comments/${commentId}`,
-        { body, is_spoiler: isSpoiler },
-      )
-      const responseData = response.data.data!
-      // API returns nested structure: { comment: {...}, ... }
-      const data = responseData.comment || responseData
+  // Create comment (optimistic — shows instantly, reconciles with server id)
+  const createComment = (slug: string, body: string, isSpoiler = false) => {
+    const nowIso = new Date().toISOString()
+    const optimistic: BookComment = {
+      comment_id: -Date.now(),
+      user_id: authStore.user?.user_id ?? 0,
+      username: authStore.user?.username ?? 'You',
+      book_id: 0,
+      book_slug: slug,
+      body,
+      is_spoiler: isSpoiler,
+      comment_created_at: nowIso,
+      comment_updated_at: nowIso,
+    }
+    myComment.value = optimistic
+    commentsTotal.value++
 
-      // Map API response to BookComment interface
-      myComment.value = {
-        ...data,
-        comment_created_at: data.created_at,
-        comment_updated_at: data.updated_at,
-        user_id: data.user_id,
-        username: data.username,
-      }
-    }
-    catch (error) {
-      console.error('Failed to update comment:', error)
-      throw error
-    }
+    client.value.post<APIResponse<any>>(
+      `/api/v1/books/${slug}/comments`,
+      { body, is_spoiler: isSpoiler },
+    )
+      .then((response) => {
+        if (currentSlug.value === slug)
+          myComment.value = mapCommentResponse(response)
+      })
+      .catch((error) => {
+        if (currentSlug.value === slug) {
+          myComment.value = null
+          commentsTotal.value = Math.max(0, commentsTotal.value - 1)
+        }
+        useToastStore().error(extractError(error, 'Could not post your comment.'))
+      })
   }
 
-  // Delete comment
-  const deleteComment = async (slug: string, commentId: number) => {
-    try {
-      await client.value.delete(`/api/v1/books/${slug}/comments/${commentId}`)
-      myComment.value = null
-      commentsTotal.value = Math.max(0, commentsTotal.value - 1)
+  // Update comment (optimistic)
+  const updateComment = (slug: string, commentId: number, body: string, isSpoiler = false) => {
+    const previous = myComment.value
+      ? { ...myComment.value }
+      : null
+    if (myComment.value) {
+      myComment.value = {
+        ...myComment.value,
+        body,
+        is_spoiler: isSpoiler,
+        comment_updated_at: new Date().toISOString(),
+      }
     }
-    catch (error) {
-      console.error('Failed to delete comment:', error)
-      throw error
-    }
+
+    client.value.put<APIResponse<any>>(
+      `/api/v1/books/${slug}/comments/${commentId}`,
+      { body, is_spoiler: isSpoiler },
+    )
+      .then((response) => {
+        if (currentSlug.value === slug)
+          myComment.value = mapCommentResponse(response)
+      })
+      .catch((error) => {
+        if (currentSlug.value === slug)
+          myComment.value = previous
+        useToastStore().error(extractError(error, 'Could not update your comment.'))
+      })
+  }
+
+  // Delete comment (optimistic)
+  const deleteComment = (slug: string, commentId: number) => {
+    const previous = myComment.value
+      ? { ...myComment.value }
+      : null
+    const previousTotal = commentsTotal.value
+    myComment.value = null
+    commentsTotal.value = Math.max(0, commentsTotal.value - 1)
+
+    client.value.delete(`/api/v1/books/${slug}/comments/${commentId}`)
+      .catch((error) => {
+        if (currentSlug.value === slug) {
+          myComment.value = previous
+          commentsTotal.value = previousTotal
+        }
+        useToastStore().error(extractError(error, 'Could not delete your comment.'))
+      })
   }
 
   // Reset all state (call when navigating away)

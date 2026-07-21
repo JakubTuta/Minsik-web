@@ -7,11 +7,11 @@ interface Props {
   loading?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  loading: false,
-})
+const props = defineProps<Props>()
 
 const { optimized } = useOptimizedImage()
+
+useShelfStatuses(() => props.books)
 
 function bookWeightedRating(book: BookSummary): number {
   return weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count)
@@ -80,17 +80,22 @@ const podiumOrder = computed(() => {
               class="position-relative mb-3"
               style="height: 180px;"
             >
-              <v-img
-                :src="optimized(entry.book.primary_cover_url, 320)"
-                lazy-src="/placeholder-book-lazy.jpg"
-                :alt="entry.book.title"
-                width="120"
-                height="180"
-                contain
-                position="left center"
-                class="rounded"
-                style="position: absolute; left: 0; top: 0;"
-              />
+              <div
+                class="position-relative overflow-hidden rounded"
+                style="position: absolute; left: 0; top: 0; width: 120px; height: 180px;"
+              >
+                <v-img
+                  :src="optimized(entry.book.primary_cover_url, 320)"
+                  lazy-src="/placeholder-book-lazy.jpg"
+                  :alt="entry.book.title"
+                  width="120"
+                  height="180"
+                  contain
+                  position="left center"
+                />
+
+                <BookShelfBadge :book-id="entry.book.book_id" />
+              </div>
 
               <span
                 class="text-h2 font-weight-bold text-primary"

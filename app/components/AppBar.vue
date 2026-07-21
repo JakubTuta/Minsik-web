@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { useDisplay } from 'vuetify'
-
-const { mobile } = useDisplay()
 const drawer = ref(false)
 const appBarSearchQuery = ref('')
 
@@ -16,10 +13,6 @@ await useAsyncData('appbar-categories', () => categoriesStore.fetchCategories())
     color="primary"
     height="56"
     class="app-bar-container"
-    :scroll-behavior="mobile
-      ? 'hide'
-      : undefined"
-    :scroll-threshold="56"
   >
     <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title

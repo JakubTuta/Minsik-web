@@ -18,6 +18,8 @@ const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
 const { sentinel } = useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
 const { optimized } = useOptimizedImage()
 
+useShelfStatuses(() => props.books)
+
 function formatSeriesPosition(position: number | null | undefined) {
   if (!position)
     return ''
@@ -68,6 +70,8 @@ function formatSeriesPosition(position: number | null | undefined) {
               class="position-absolute"
               style="top: 20px; left: 20px;"
             />
+
+            <BookShelfBadge :book-id="book.book_id" />
           </div>
 
           <v-card-text class="flex-grow-1">
