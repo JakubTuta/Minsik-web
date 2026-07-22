@@ -134,6 +134,13 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       />
 
       <v-list-item
+        v-if="user?.role === 'admin'"
+        prepend-icon="mdi-magnify-scan"
+        title="Data Quality Review"
+        to="/admin/quality-review"
+      />
+
+      <v-list-item
         prepend-icon="mdi-account"
         title="Public Profile"
         :to="`/bookshelf/${user?.username}`"
@@ -274,6 +281,13 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           prepend-icon="mdi-shield-crown"
           title="Admin Panel"
           to="/admin"
+        />
+
+        <v-list-item
+          v-if="user?.role === 'admin'"
+          prepend-icon="mdi-magnify-scan"
+          title="Data Quality Review"
+          to="/admin/quality-review"
         />
 
         <v-list-item

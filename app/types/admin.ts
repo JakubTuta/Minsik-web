@@ -67,3 +67,53 @@ export interface EditFieldConfig {
   label: string
   type: 'text' | 'textarea' | 'number' | 'array' | 'json'
 }
+
+export interface AuditBookItem {
+  book_id: number
+  title: string
+  slug: string
+  language: string
+  primary_cover_url: string | null
+  author_count: number
+  genre_count: number
+  original_publication_year: number | null
+  issues: string[]
+}
+
+export interface AuditAuthorItem {
+  author_id: number
+  name: string
+  slug: string
+  book_count: number
+  issues: string[]
+}
+
+export interface AuditSeriesItem {
+  series_id: number
+  name: string
+  slug: string
+  language: string
+  book_count: number
+  total_books: number
+  issues: string[]
+}
+
+export interface AuditBooksFilters {
+  limit?: number
+  maxAuthors?: number
+  maxGenres?: number
+  language?: string
+}
+
+export interface AuditAuthorsFilters {
+  limit?: number
+  minBooks?: number
+  maxBooks?: number
+}
+
+export interface AuditSeriesFilters {
+  limit?: number
+  minBooks?: number
+  maxBooks?: number
+  language?: string
+}
