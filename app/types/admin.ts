@@ -100,15 +100,23 @@ export interface AuditSeriesItem {
 
 export interface AuditBooksFilters {
   limit?: number
+  minAuthors?: number
   maxAuthors?: number
+  minGenres?: number
   maxGenres?: number
   language?: string
+  checkMissingDescription?: boolean
+  checkMissingCover?: boolean
+  checkImplausibleYear?: boolean
+  checkSuspiciousTitle?: boolean
 }
 
 export interface AuditAuthorsFilters {
   limit?: number
   minBooks?: number
   maxBooks?: number
+  checkMissingBio?: boolean
+  checkJunkName?: boolean
 }
 
 export interface AuditSeriesFilters {
@@ -116,4 +124,6 @@ export interface AuditSeriesFilters {
   minBooks?: number
   maxBooks?: number
   language?: string
+  checkMissingDescription?: boolean
+  checkCountDrift?: boolean
 }

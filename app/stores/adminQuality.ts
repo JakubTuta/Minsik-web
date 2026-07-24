@@ -24,9 +24,15 @@ export const useAdminQualityStore = defineStore('adminQuality', () => {
         {
           params: {
             limit: filters.limit,
+            min_authors: filters.minAuthors,
             max_authors: filters.maxAuthors,
+            min_genres: filters.minGenres,
             max_genres: filters.maxGenres,
             language: filters.language || undefined,
+            check_missing_description: filters.checkMissingDescription,
+            check_missing_cover: filters.checkMissingCover,
+            check_implausible_year: filters.checkImplausibleYear,
+            check_suspicious_title: filters.checkSuspiciousTitle,
           },
         },
       )
@@ -52,6 +58,8 @@ export const useAdminQualityStore = defineStore('adminQuality', () => {
             limit: filters.limit,
             min_books: filters.minBooks,
             max_books: filters.maxBooks,
+            check_missing_bio: filters.checkMissingBio,
+            check_junk_name: filters.checkJunkName,
           },
         },
       )
@@ -78,6 +86,8 @@ export const useAdminQualityStore = defineStore('adminQuality', () => {
             min_books: filters.minBooks,
             max_books: filters.maxBooks,
             language: filters.language || undefined,
+            check_missing_description: filters.checkMissingDescription,
+            check_count_drift: filters.checkCountDrift,
           },
         },
       )

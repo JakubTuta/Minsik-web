@@ -1,15 +1,9 @@
 <script setup lang="ts">
-interface Metric {
-  label: string
-  value: string | number
-}
-
 interface Props {
   to: string
   title: string
   imageUrl?: string | null
-  metrics: Metric[]
-  issues: string[]
+  chips: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -40,31 +34,19 @@ const fallbackColor = computed(() => hashColor(props.title))
     </v-img>
 
     <v-card-text class="d-flex flex-column flex-grow-1 pa-4">
-      <div class="text-subtitle-1 font-weight-bold line-clamp-2 mb-2">
+      <div class="text-subtitle-1 font-weight-bold line-clamp-2 mb-3">
         {{ title }}
-      </div>
-
-      <div class="d-flex mb-3 flex-wrap gap-2">
-        <v-chip
-          v-for="metric in metrics"
-          :key="metric.label"
-          size="small"
-          color="primary"
-          variant="tonal"
-        >
-          {{ metric.label }}: {{ metric.value }}
-        </v-chip>
       </div>
 
       <div class="d-flex mt-auto flex-wrap gap-2">
         <v-chip
-          v-for="issue in issues"
-          :key="issue"
+          v-for="chip in chips"
+          :key="chip"
           size="small"
           color="warning"
           variant="flat"
         >
-          {{ issue.replaceAll('_', ' ') }}
+          {{ chip }}
         </v-chip>
       </div>
     </v-card-text>
