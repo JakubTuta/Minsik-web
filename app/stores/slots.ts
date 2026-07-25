@@ -5,13 +5,14 @@ import { defineStore } from 'pinia'
 export const useSlotsStore = defineStore('slots', () => {
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
+  const { language: userLanguage } = useUserLanguage()
 
   const slotsData = ref<SpinSlotsData | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const phase = ref<SlotsPhase>('idle')
 
-  const spinSlots = async (language = 'en') => {
+  const spinSlots = async (language = userLanguage.value) => {
     if (isLoading.value)
       return
 

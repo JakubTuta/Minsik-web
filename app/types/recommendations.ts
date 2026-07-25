@@ -25,6 +25,7 @@ export type RecommendationSectionKey
 
 export interface RecommendationBookItem {
   book_id: number
+  work_id?: string | null
   title: string
   slug: string
   language: string

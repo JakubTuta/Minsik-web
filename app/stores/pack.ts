@@ -6,6 +6,7 @@ import { RARITY_ORDER } from '~/types/case'
 export const usePackStore = defineStore('pack', () => {
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
+  const { language: userLanguage } = useUserLanguage()
 
   const packData = ref<OpenPackData | null>(null)
   const isLoading = ref(false)
@@ -29,7 +30,7 @@ export const usePackStore = defineStore('pack', () => {
   const allRevealed = computed(() => !!packData.value && revealedCards.value.size >= packData.value.items.length,
   )
 
-  const openPack = async (language = 'en') => {
+  const openPack = async (language = userLanguage.value) => {
     if (isLoading.value)
       return
 

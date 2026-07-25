@@ -172,6 +172,11 @@ function langLabel(code: string): string {
   return languageNames.of(code) || code.toUpperCase()
 }
 
+// The backend falls back to the best available edition when the requested
+// language has none — surface that so the reader knows why they're seeing
+// e.g. English when they asked for Polish.
+const showFallbackNotice = computed(() => !!props.book.language && !!props.currentLang && props.book.language !== props.currentLang)
+
 const readingTime = computed(() => formatReadingTime(props.book.number_of_pages))
 
 const bookStats = computed(() => {
@@ -287,6 +292,16 @@ function formatSeriesPosition(position: number | null) {
             <h1 class="text-h4 font-weight-bold mb-3">
               {{ book.title }}
             </h1>
+
+            <v-alert
+              v-if="showFallbackNotice"
+              type="info"
+              variant="tonal"
+              density="compact"
+              class="mb-4"
+            >
+              Not yet available in {{ langLabel(currentLang) }} — showing the {{ langLabel(book.language) }} edition.
+            </v-alert>
 
             <!-- Series -->
             <div

@@ -29,12 +29,15 @@ const { data: book, error } = await useAsyncData(
   () => booksStore.fetchBook(slug, lang.value),
 )
 
-// Language variants are secondary (hreflang only) — don't block navigation
+// Language variants are secondary (hreflang only) — don't block navigation.
+// Excluded by the SERVED language (what's actually on the page after
+// edition-fallback), not the requested one — otherwise the edition already
+// shown can reappear as a clickable "other edition."
 const { data: langVariantsData } = useLazyAsyncData(
   `book-lang-variants-${slug}`,
   async () => {
     try {
-      return await booksStore.fetchLanguageVariants(slug, lang.value)
+      return await booksStore.fetchLanguageVariants(slug, book.value?.language || lang.value)
     }
     catch {
       return []
@@ -52,12 +55,16 @@ if (error.value || !book.value) {
   })
 }
 
-// SEO — non-English editions live at ?lang=xx, so their canonical must include the query
+// SEO — non-English editions live at ?lang=xx, so their canonical must include the query.
+// Built from the SERVED language (book.value.language), not the requested one: when the
+// backend falls back to a different edition than requested, the canonical/hreflang must
+// describe what's actually on the page, not what was asked for.
 const config = useRuntimeConfig()
 const baseUrl = `${config.public.siteUrl}/books/${slug}`
-const canonicalUrl = lang.value === 'en'
+const servedLang = book.value.language || lang.value
+const canonicalUrl = servedLang === 'en'
   ? baseUrl
-  : `${baseUrl}?lang=${lang.value}`
+  : `${baseUrl}?lang=${servedLang}`
 
 useSeo({
   title: book.value.title,
@@ -272,7 +279,7 @@ async function handleBookEditSave(editedData: Record<string, any>) {
 async function fetchLangVariants() {
   if (book.value?.slug) {
     try {
-      langVariantsData.value = await booksStore.fetchLanguageVariants(book.value.slug, lang.value)
+      langVariantsData.value = await booksStore.fetchLanguageVariants(book.value.slug, book.value.language || lang.value)
     }
     catch { /* Silently fail */ }
   }

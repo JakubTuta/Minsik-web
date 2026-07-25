@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useSeriesStore = defineStore('series', () => {
   const apiStore = useApiStore()
+  const { language } = useUserLanguage()
 
   // State
   const series = ref(new Map<string, Series>())
@@ -48,7 +49,9 @@ export const useSeriesStore = defineStore('series', () => {
     isLoading.value = true
 
     try {
-      const response = await apiStore.client.get<APIResponse<Series>>(`/api/v1/series/${slug}`)
+      const response = await apiStore.client.get<APIResponse<Series>>(`/api/v1/series/${slug}`, {
+        params: { language: language.value },
+      })
       const seriesData = response.data.data!
 
       // Cache the series
@@ -83,6 +86,7 @@ export const useSeriesStore = defineStore('series', () => {
         params: {
           limit: 100, // API maximum limit
           offset: 0,
+          language: language.value,
         },
       })
 

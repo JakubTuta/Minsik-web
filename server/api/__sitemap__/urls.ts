@@ -6,7 +6,7 @@ interface APIResponse<T> {
 }
 
 interface SitemapSlugsData {
-  items: { slug: string, updated_at: string | null }[]
+  items: { slug: string, updated_at: string | null, language: string | null }[]
   total_count: number
 }
 
@@ -65,8 +65,15 @@ async function fetchEntitySlugs(apiBase: string, entity: string): Promise<Sitema
       if (seen.has(item.slug))
         continue
       seen.add(item.slug)
+      // Non-English editions need ?lang= attached: a bare /books/{slug}
+      // resolves through the server's default-language fallback, which
+      // could serve a different edition's content to a crawler with no
+      // Accept-Language header for a slug that only exists in one language.
+      const langSuffix = entity === 'books' && item.language && item.language !== 'en'
+        ? `?lang=${item.language}`
+        : ''
       urls.push({
-        loc: `${prefix}${item.slug}`,
+        loc: `${prefix}${item.slug}${langSuffix}`,
         ...(item.updated_at
           ? { lastmod: item.updated_at }
           : {}),

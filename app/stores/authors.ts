@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useAuthorsStore = defineStore('authors', () => {
   const apiStore = useApiStore()
+  const { language } = useUserLanguage()
 
   // State
   const authors = ref(new Map<string, Author>())
@@ -61,7 +62,9 @@ export const useAuthorsStore = defineStore('authors', () => {
     isLoading.value = true
 
     try {
-      const response = await apiStore.client.get<APIResponse<Author>>(`/api/v1/authors/${slug}`)
+      const response = await apiStore.client.get<APIResponse<Author>>(`/api/v1/authors/${slug}`, {
+        params: { language: language.value },
+      })
       const author = response.data.data!
 
       // Compute display dates
@@ -96,7 +99,7 @@ export const useAuthorsStore = defineStore('authors', () => {
 
     try {
       const response = await apiStore.client.get<APIResponse<AuthorBooksResponse>>(`/api/v1/authors/${slug}/books`, {
-        params: { limit, offset, sort_by: sortBy, order },
+        params: { limit, offset, sort_by: sortBy, order, language: language.value },
       })
 
       return response.data.data!
@@ -132,6 +135,7 @@ export const useAuthorsStore = defineStore('authors', () => {
           offset: 0,
           sort_by: sortBy,
           order,
+          language: language.value,
         },
       })
 

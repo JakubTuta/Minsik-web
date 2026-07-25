@@ -139,6 +139,8 @@ export interface Series extends SeriesMinimal {
 
 export interface BookSummary {
   book_id: number
+  work_id?: string | null
+  language?: string | null
   slug: string
   title: string
   description?: string | null
@@ -162,6 +164,7 @@ export interface BookSummary {
 
 export interface Book {
   book_id: number
+  work_id: string
   slug: string
   title: string
   description?: string | null
@@ -240,6 +243,7 @@ export interface SearchResult {
   book_count: number
   readers: number
   language?: string
+  work_id?: string
 }
 
 export interface SearchResultsData {
@@ -273,6 +277,7 @@ export interface SuggestItem {
   ol_avg_rating: number
   ol_rating_count: number
   language?: string
+  work_id?: string
 }
 
 export interface SuggestResultsData {

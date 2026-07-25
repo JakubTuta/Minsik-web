@@ -3,13 +3,20 @@ interface Dedupable {
   slug: string
   language?: string
   readers: number
+  work_id?: string
 }
 
-export function dedupBySlug<T extends Dedupable>(items: T[], preferredLanguage: string): T[] {
+export function dedupByWork<T extends Dedupable>(items: T[], preferredLanguage: string): T[] {
   const groups = new Map<string, T[]>()
 
   for (const item of items) {
-    const key = `${item.type}:${item.slug}`
+    // Books group by work_id (falls back to slug for older responses or
+    // items missing it); authors/series have no work_id and group by slug,
+    // since each is a single global/per-language entity, not a translation.
+    const identity = item.type === 'book'
+      ? (item.work_id || item.slug)
+      : item.slug
+    const key = `${item.type}:${identity}`
     const group = groups.get(key)
     if (group)
       group.push(item)
