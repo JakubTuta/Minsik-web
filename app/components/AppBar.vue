@@ -7,10 +7,9 @@ const { categories } = useCategories()
 
 <template>
   <v-app-bar
-    elevation="3"
-    color="primary"
-    height="56"
-    class="app-bar-container"
+    flat
+    height="64"
+    class="app-bar-glass"
   >
     <!-- Desktop: Full Logo with Text -->
     <v-app-bar-title
@@ -39,7 +38,7 @@ const { categories } = useCategories()
     >
       <template #activator="{'props': menuProps}">
         <v-btn
-          class="d-none d-md-inline-flex ml-1"
+          class="d-none d-md-inline-flex nav-btn ml-2"
           variant="text"
           density="comfortable"
           prepend-icon="mdi-shape"
@@ -50,7 +49,10 @@ const { categories } = useCategories()
         </v-btn>
       </template>
 
-      <v-list min-width="200">
+      <v-list
+        min-width="220"
+        class="nav-menu-list"
+      >
         <v-list-item
           v-for="cat in categories"
           :key="cat.slug"
@@ -63,7 +65,7 @@ const { categories } = useCategories()
 
     <!-- Desktop: Discover — left side after logo -->
     <v-btn
-      class="d-none d-md-inline-flex ml-1"
+      class="d-none d-md-inline-flex nav-btn ml-1"
       variant="text"
       density="comfortable"
       prepend-icon="mdi-compass"
@@ -91,7 +93,7 @@ const { categories } = useCategories()
     >
       <template #activator="{'props': menuProps}">
         <v-btn
-          class="d-none d-md-inline-flex mr-1"
+          class="d-none d-md-inline-flex nav-btn mr-1"
           variant="text"
           density="comfortable"
           prepend-icon="mdi-slot-machine"
@@ -102,7 +104,10 @@ const { categories } = useCategories()
         </v-btn>
       </template>
 
-      <v-list min-width="200">
+      <v-list
+        min-width="220"
+        class="nav-menu-list"
+      >
         <v-list-item
           prepend-icon="mdi-fruit-cherries"
           title="Play Slots"
@@ -146,6 +151,7 @@ const { categories } = useCategories()
     <v-btn
       class="d-md-none"
       icon
+      variant="text"
       @click="drawer = !drawer"
     >
       <v-icon>mdi-menu</v-icon>
@@ -173,7 +179,7 @@ const { categories } = useCategories()
           />
         </template>
 
-        <v-list-item-title class="text-h6 font-weight-bold">
+        <v-list-item-title class="text-h6 font-weight-bold logo-text">
           Minsik
         </v-list-item-title>
       </v-list-item>
@@ -189,8 +195,12 @@ const { categories } = useCategories()
 </template>
 
 <style scoped>
-.app-bar-container {
-  position: relative;
+/* Frosted-glass surface bar — sits on any page background, subtle bottom hairline */
+.app-bar-glass {
+  background: rgba(var(--v-theme-surface), 0.72) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .logo-container {
@@ -202,71 +212,87 @@ const { categories } = useCategories()
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 2px 4px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  padding: 4px 8px;
+  border-radius: 12px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
 }
 
 .logo-icon {
-  color: white;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
+  color: rgb(var(--v-theme-primary));
+  filter: drop-shadow(0 0 6px rgba(var(--v-theme-primary), 0.45));
+  transition: filter 0.3s ease;
 }
 
-@keyframes iconPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
-  }
-  50% {
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
-  }
-}
-
+/* Brand wordmark — solid primary */
 .logo-text {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%);
-  background-size: 200% 200%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
-  animation: gradientShift 3s ease infinite;
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes gradientShift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  letter-spacing: 0.3px;
+  color: rgb(var(--v-theme-primary));
 }
 
 .logo-wrapper:hover {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .logo-wrapper:hover .logo-icon {
-  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
+  filter: drop-shadow(0 0 14px rgba(var(--v-theme-primary), 0.7));
 }
 
 .logo-wrapper:active {
   transform: scale(0.98);
-  transition: transform 0.1s ease;
 }
 
-/* Search container - absolute center on desktop regardless of side clusters */
+/* Nav buttons — pill hover with primary tint, no shouty uppercase */
+.nav-btn {
+  text-transform: none;
+  letter-spacing: 0.2px;
+  font-weight: 600;
+  border-radius: 12px;
+  color: rgb(var(--v-theme-on-surface));
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(var(--v-theme-primary), 0.12);
+  color: rgb(var(--v-theme-primary));
+}
+
+.nav-btn.router-link-active {
+  color: rgb(var(--v-theme-primary));
+  background: rgba(var(--v-theme-primary), 0.1);
+}
+
+.nav-menu-list {
+  border-radius: 16px;
+  padding: 6px;
+}
+
+/* Search container — absolute center on desktop regardless of side clusters */
 .search-container {
-  flex: 0 1 400px;
+  flex: 0 1 420px;
   min-width: 0;
   z-index: 10;
+}
+
+/* Raised pill search field — stands out against the glass bar */
+.search-container :deep(.v-field) {
+  background: rgb(var(--v-theme-surface-bright));
+  border-radius: 14px;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-container :deep(.v-field):hover {
+  border-color: rgba(var(--v-theme-primary), 0.5);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+}
+
+.search-container :deep(.v-field--focused) {
+  border-color: rgb(var(--v-theme-primary));
+  box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.28), 0 3px 12px rgba(0, 0, 0, 0.16);
 }
 
 @media (min-width: 960px) {
@@ -275,7 +301,7 @@ const { categories } = useCategories()
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
+    width: 420px;
     flex: none;
   }
 }
@@ -292,6 +318,6 @@ const { categories } = useCategories()
 }
 
 .drawer-logo:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
 }
 </style>
