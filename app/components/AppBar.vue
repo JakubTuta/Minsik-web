@@ -2,9 +2,7 @@
 const drawer = ref(false)
 const appBarSearchQuery = ref('')
 
-const categoriesStore = useCategoriesStore()
-
-await useAsyncData('appbar-categories', () => categoriesStore.fetchCategories())
+const { categories } = useCategories()
 </script>
 
 <template>
@@ -54,13 +52,7 @@ await useAsyncData('appbar-categories', () => categoriesStore.fetchCategories())
 
       <v-list min-width="200">
         <v-list-item
-          v-if="categoriesStore.isLoading"
-          title="Loading..."
-          disabled
-        />
-
-        <v-list-item
-          v-for="cat in categoriesStore.categories"
+          v-for="cat in categories"
           :key="cat.slug"
           :title="cat.name"
           :to="`/categories?category=${cat.slug}`"

@@ -4,33 +4,16 @@ import type { Category } from '~/types/categories'
 interface Props {
   categories: Category[]
   selectedSlug: string | null
-  loading?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
-  loading: false,
-})
+defineProps<Props>()
 </script>
 
 <template>
   <!-- Desktop: vertical list (md and up) -->
   <v-card class="d-none d-md-block">
     <v-card-text class="pa-0">
-      <div
-        v-if="loading"
-        class="pa-6 text-center"
-      >
-        <v-progress-circular
-          indeterminate
-          color="primary"
-          size="24"
-        />
-      </div>
-
-      <v-list
-        v-else
-        nav
-      >
+      <v-list nav>
         <v-list-item
           v-for="category in categories"
           :key="category.slug"
@@ -55,21 +38,7 @@ withDefaults(defineProps<Props>(), {
       </v-expansion-panel-title>
 
       <v-expansion-panel-text class="pa-0">
-        <div
-          v-if="loading"
-          class="pa-6 text-center"
-        >
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="24"
-          />
-        </div>
-
-        <v-list
-          v-else
-          nav
-        >
+        <v-list nav>
           <v-list-item
             v-for="category in categories"
             :key="category.slug"

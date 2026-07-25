@@ -8,7 +8,7 @@ defineProps<Props>()
 const authStore = useAuthStore()
 const authDialogStore = useAuthDialogStore()
 const themeStore = useThemeStore()
-const categoriesStore = useCategoriesStore()
+const { categories } = useCategories()
 const { isAuthenticated, user } = storeToRefs(authStore)
 
 const userDisplayName = computed(() => user.value?.display_name || user.value?.username || 'User')
@@ -75,13 +75,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       </template>
 
       <v-list-item
-        v-if="categoriesStore.isLoading"
-        title="Loading..."
-        disabled
-      />
-
-      <v-list-item
-        v-for="cat in categoriesStore.categories"
+        v-for="cat in categories"
         :key="cat.slug"
         :title="cat.name"
         :to="`/categories?category=${cat.slug}`"

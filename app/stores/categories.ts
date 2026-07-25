@@ -1,5 +1,5 @@
 import type { APIResponse } from '~/types/api'
-import type { Category, CategoryBooksData, PopularCategory } from '~/types/categories'
+import type { CategoryBooksData, PopularCategory } from '~/types/categories'
 import { defineStore } from 'pinia'
 
 export const useCategoriesStore = defineStore('categories', () => {
@@ -7,53 +7,12 @@ export const useCategoriesStore = defineStore('categories', () => {
   const { language } = useUserLanguage()
 
   // State
-  const categories = ref<Category[]>([])
   const popularCategories = ref<PopularCategory[]>([])
-  const isLoading = ref(false)
   const isLoadingBooks = ref(false)
-  const categoriesLastFetch = ref(0)
   const popularCategoriesLastFetch = ref(0)
 
   // Cache TTL
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
-  // Computed
-  const hasCategories = computed(() => categories.value.length > 0)
-
-  const isCacheFresh = () => {
-    if (!categoriesLastFetch.value)
-      return false
-
-    return Date.now() - categoriesLastFetch.value < CACHE_TTL
-  }
-
-  const getCategoryBySlug = (slug: string) => {
-    return categories.value.find(c => c.slug === slug) ?? null
-  }
-
-  const fetchCategories = async (force = false): Promise<Category[]> => {
-    if (!force && hasCategories.value && isCacheFresh()) {
-      return categories.value
-    }
-
-    isLoading.value = true
-
-    try {
-      const response = await apiStore.client.get<APIResponse<{ categories: Category[] }>>('/api/v1/categories')
-      categories.value = response.data.data!.categories
-      categoriesLastFetch.value = Date.now()
-
-      return categories.value
-    }
-    catch (error) {
-      console.error('Error fetching categories:', error)
-
-      return []
-    }
-    finally {
-      isLoading.value = false
-    }
-  }
 
   const fetchPopularCategories = async (limit = 12, force = false): Promise<PopularCategory[]> => {
     const isFresh = popularCategoriesLastFetch.value && Date.now() - popularCategoriesLastFetch.value < CACHE_TTL
@@ -113,14 +72,9 @@ export const useCategoriesStore = defineStore('categories', () => {
   }
 
   return {
-    categories,
     popularCategories,
-    isLoading,
     isLoadingBooks,
-    hasCategories,
-    fetchCategories,
     fetchPopularCategories,
     fetchCategoryBooksPage,
-    getCategoryBySlug,
   }
 })

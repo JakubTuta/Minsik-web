@@ -3,6 +3,7 @@ import type { BookSummary } from '~/types/api'
 
 const route = useRoute()
 const categoriesStore = useCategoriesStore()
+const { categories, getCategoryBySlug } = useCategories()
 
 const selectedSlug = computed(() => route.query.category as string | null ?? null)
 
@@ -24,9 +25,6 @@ const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.valu
 async function loadBooks(slug: string, sort: 'popularity' | 'rating', offset: number) {
   return categoriesStore.fetchCategoryBooksPage(slug, sort, 'desc', offset, 20)
 }
-
-// Categories list blocks (cheap, cached) — books load lazily so navigation isn't stuck waiting on it
-const { data: categoriesData } = await useAsyncData('categories-list', () => categoriesStore.fetchCategories())
 
 const { data: initialBooksData } = useLazyAsyncData(
   `category-books-${selectedSlug.value}-${sortBy.value}`,
@@ -69,7 +67,7 @@ async function loadMoreBooks() {
 }
 
 const currentCategory = computed(() => (selectedSlug.value
-  ? categoriesStore.getCategoryBySlug(selectedSlug.value)
+  ? getCategoryBySlug(selectedSlug.value)
   : null))
 
 const pageTitle = computed(() => currentCategory.value?.name ?? 'Browse Categories')
@@ -88,9 +86,8 @@ useSeo({
         md="3"
       >
         <CategorySidebar
-          :categories="categoriesData ?? []"
+          :categories="categories"
           :selected-slug="selectedSlug"
-          :loading="categoriesStore.isLoading"
         />
       </v-col>
 
