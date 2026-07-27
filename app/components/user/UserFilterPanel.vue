@@ -27,12 +27,14 @@ const emit = defineEmits<{
   'update:status': [value: BookshelfStatus | null]
 }>()
 
-const statusOptions: { label: string, value: BookshelfStatus, color: string }[] = [
-  { label: 'Want to Read', value: 'want_to_read', color: 'orange' },
-  { label: 'Reading', value: 'reading', color: 'blue' },
-  { label: 'Read', value: 'read', color: 'green' },
-  { label: 'Abandoned', value: 'abandoned', color: 'grey' },
-]
+const { t } = useI18n()
+
+const statusOptions = computed<{ label: string, value: BookshelfStatus, color: string }[]>(() => [
+  { label: t('bookshelf.wantToRead'), value: 'want_to_read', color: 'orange' },
+  { label: t('bookshelf.reading'), value: 'reading', color: 'blue' },
+  { label: t('bookshelf.read'), value: 'read', color: 'green' },
+  { label: t('bookshelf.abandoned'), value: 'abandoned', color: 'grey' },
+])
 
 const { mobile } = useDisplay()
 const expanded = ref(false)
@@ -51,7 +53,7 @@ const showContent = computed(() => !mobile.value || expanded.value)
       class="d-flex align-center justify-space-between mb-2 cursor-pointer"
       @click="expanded = !expanded"
     >
-      <span class="text-body-1 font-weight-bold">Filters</span>
+      <span class="text-body-1 font-weight-bold">{{ t('filter.filters') }}</span>
 
       <v-icon
         :icon="expanded
@@ -64,7 +66,7 @@ const showContent = computed(() => !mobile.value || expanded.value)
       <!-- Title Search -->
       <v-text-field
         :model-value="titleFilter"
-        label="Search by title"
+        :label="t('filter.searchByTitle')"
         prepend-inner-icon="mdi-magnify"
         variant="outlined"
         density="compact"
@@ -76,7 +78,7 @@ const showContent = computed(() => !mobile.value || expanded.value)
 
       <!-- Sort By -->
       <div class="text-medium-emphasis font-weight-bold text-uppercase mb-2">
-        Sort By
+        {{ t('filter.sortBy') }}
       </div>
 
       <v-select
@@ -105,7 +107,7 @@ const showContent = computed(() => !mobile.value || expanded.value)
           class="mx-1 flex-1"
           prepend-icon="mdi-sort-descending"
         >
-          Descending
+          {{ t('filter.descending') }}
         </v-btn>
 
         <v-btn
@@ -114,7 +116,7 @@ const showContent = computed(() => !mobile.value || expanded.value)
           class="mx-1 flex-1"
           prepend-icon="mdi-sort-ascending"
         >
-          Ascending
+          {{ t('filter.ascending') }}
         </v-btn>
       </v-btn-toggle>
 
@@ -123,7 +125,7 @@ const showContent = computed(() => !mobile.value || expanded.value)
         <v-divider class="my-4" />
 
         <div class="text-medium-emphasis font-weight-bold text-uppercase mb-3">
-          Reading Status
+          {{ t('filter.readingStatus') }}
         </div>
 
         <div class="d-flex flex-column gap-2">
@@ -138,7 +140,7 @@ const showContent = computed(() => !mobile.value || expanded.value)
             class="cursor-pointer"
             @click="emit('update:status', null)"
           >
-            All
+            {{ t('filter.all') }}
           </v-chip>
 
           <v-chip

@@ -4,6 +4,7 @@ import { totalRatingCount, weightedRating } from '~/utils/format'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const searchStore = useSearchStore()
 
 const selectedType = computed({
@@ -60,10 +61,10 @@ useSeo({
     const q = (route.query.q as string) || searchStore.query
 
     return q
-      ? `Search: ${q}`
-      : 'Search'
+      ? t('searchPage.titleWithQuery', { query: q })
+      : t('nav.search')
   }),
-  description: 'Search for books, authors, and series on Minsik.',
+  description: t('searchPage.pageDescription'),
 })
 
 function resultBadgeColor(type: SearchResult['type']) {
@@ -77,11 +78,11 @@ function resultBadgeColor(type: SearchResult['type']) {
 
 function resultBadgeLabel(type: SearchResult['type']) {
   if (type === 'book')
-    return 'Book'
+    return t('searchPage.badgeBook')
   if (type === 'author')
-    return 'Author'
+    return t('searchPage.badgeAuthor')
 
-  return 'Series'
+  return t('searchPage.badgeSeries')
 }
 
 function resultRating(result: SearchResult) {
@@ -113,9 +114,7 @@ function resultRatingCount(result: SearchResult) {
           v-if="searchStore.query && searchStore.hasData"
           class="text-h6 text-secondary mb-2"
         >
-          {{ searchStore.total }} {{ searchStore.total === 1
-            ? 'result'
-            : 'results' }}
+          {{ t('searchPage.resultCount', {"count": searchStore.total}, searchStore.total) }}
         </div>
       </v-col>
     </v-row>
@@ -198,11 +197,11 @@ function resultRatingCount(result: SearchResult) {
         />
 
         <div class="text-h6 text-secondary">
-          No results found for "{{ searchStore.query }}"
+          {{ t('searchPage.noResults', {"query": searchStore.query}) }}
         </div>
 
         <div class="text-secondary mt-2">
-          Try different keywords or filters
+          {{ t('searchPage.noResultsHint') }}
         </div>
       </v-col>
     </v-row>
@@ -221,7 +220,7 @@ function resultRatingCount(result: SearchResult) {
         />
 
         <div class="text-h6 text-secondary">
-          Start typing to search
+          {{ t('searchPage.startTyping') }}
         </div>
       </v-col>
     </v-row>

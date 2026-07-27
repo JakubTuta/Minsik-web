@@ -3,7 +3,9 @@ import type { BookshelfStatus } from '~/types/user'
 
 definePageMeta({ middleware: 'auth' })
 
-useSeo({ title: 'My Bookshelf', description: 'Your personal reading list.' })
+const { t } = useI18n()
+
+useSeo({ title: t('nav.myBookshelf'), description: t('bookshelfPage.pageDescription') })
 
 const bookshelfStore = useBookshelfStore()
 const dashboardStore = useDashboardStore()
@@ -29,11 +31,11 @@ const filteredItems = computed(() => {
   return bookshelfStore.myItems.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
-const sortOptions = [
-  { label: 'Date Added', value: 'created_at' },
-  { label: 'Last Updated', value: 'updated_at' },
-  { label: 'Title', value: 'book_title' },
-]
+const sortOptions = computed(() => [
+  { label: t('filter.dateAdded'), value: 'created_at' },
+  { label: t('filter.lastUpdated'), value: 'updated_at' },
+  { label: t('filter.titleSort'), value: 'book_title' },
+])
 
 function fetchWithFilters(reset = true) {
   bookshelfStore.fetchMine(
@@ -62,11 +64,11 @@ const { sentinel } = useInfiniteScroll(
 
     <div class="mb-6 mt-4">
       <div class="text-h2 font-weight-bold">
-        {{ totalBooks }} books on your shelf
+        {{ t('bookshelfPage.booksOnShelf', {"count": totalBooks}, totalBooks) }}
       </div>
 
       <div class="text-body-1 text-medium-emphasis mt-1">
-        Everything you've added to read, are reading, or have finished — in one place.
+        {{ t('bookshelfPage.pageHint') }}
       </div>
     </div>
 
@@ -91,7 +93,7 @@ const { sentinel } = useInfiniteScroll(
       >
         <ErrorState
           v-if="bookshelfStore.myError"
-          message="Could not load your bookshelf."
+          :message="t('bookshelfPage.loadFailed')"
           @retry="fetchWithFilters(true)"
         />
 
@@ -115,7 +117,7 @@ const { sentinel } = useInfiniteScroll(
             class="py-12 text-center"
           >
             <div class="text-h6 text-secondary">
-              No books match "{{ titleFilter }}"
+              {{ t('filter.noMatch', {"query": titleFilter}) }}
             </div>
           </div>
 
@@ -152,11 +154,11 @@ const { sentinel } = useInfiniteScroll(
             />
 
             <div class="text-h6 text-secondary">
-              Your bookshelf is empty
+              {{ t('bookshelfPage.empty') }}
             </div>
 
             <div class="text-secondary mt-2">
-              Add books to your bookshelf while browsing
+              {{ t('bookshelfPage.emptyHint') }}
             </div>
           </div>
         </template>

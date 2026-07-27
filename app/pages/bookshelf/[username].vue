@@ -2,6 +2,7 @@
 const route = useRoute()
 const username = computed(() => route.params.username as string)
 
+const { t, n } = useI18n()
 const bookshelfStore = useBookshelfStore()
 const dashboardStore = useDashboardStore()
 const profileStore = useProfileStore()
@@ -17,8 +18,8 @@ if (overviewError.value) {
       ? 404
       : 500,
     message: (overviewError.value as any)?.response?.status === 404
-      ? 'User not found'
-      : 'Could not load this profile',
+      ? t('profile.userNotFound')
+      : t('profile.loadFailed'),
     fatal: true,
   })
 }
@@ -30,20 +31,20 @@ const statsItems = computed(() => {
   const totalBooks = (s?.want_to_read_count ?? 0) + (s?.reading_count ?? 0) + (s?.read_count ?? 0) + (s?.abandoned_count ?? 0)
 
   return [
-    { icon: 'mdi-bookshelf', iconColor: 'primary', value: totalBooks, label: 'Books on shelves' },
-    { icon: 'mdi-star', iconColor: 'amber', value: s?.ratings_count ?? 0, label: 'Ratings' },
-    { icon: 'mdi-comment-text', iconColor: 'blue-grey', value: s?.reviews_count ?? 0, label: 'Reviews' },
-    { icon: 'mdi-check-circle', iconColor: 'success', value: s?.read_count ?? 0, label: 'Finished' },
-    { icon: 'mdi-file-document', iconColor: 'info', value: (s?.pages_read_total ?? 0).toLocaleString(), label: 'Pages read' },
+    { icon: 'mdi-bookshelf', iconColor: 'primary', value: totalBooks, label: t('profile.booksOnShelves') },
+    { icon: 'mdi-star', iconColor: 'amber', value: s?.ratings_count ?? 0, label: t('nav.ratings') },
+    { icon: 'mdi-comment-text', iconColor: 'blue-grey', value: s?.reviews_count ?? 0, label: t('profile.reviews') },
+    { icon: 'mdi-check-circle', iconColor: 'success', value: s?.read_count ?? 0, label: t('profile.finished') },
+    { icon: 'mdi-file-document', iconColor: 'info', value: n(s?.pages_read_total ?? 0), label: t('profile.pagesRead') },
     { icon: 'mdi-star-half-full', iconColor: 'amber', value: s?.average_rating
       ? s.average_rating.toFixed(1)
-      : '—', label: 'Avg rating' },
+      : '—', label: t('profile.avgRating') },
   ]
 })
 
 useSeo({
-  title: computed(() => `${username.value}'s Bookshelf`),
-  description: computed(() => `View ${username.value}'s reading list.`),
+  title: computed(() => t('profile.usersBookshelf', { username: username.value })),
+  description: computed(() => t('profile.usersBookshelfDescription', { username: username.value })),
 })
 
 function fetchAll(reset = true) {
@@ -94,7 +95,7 @@ const { sentinel } = useInfiniteScroll(
 
         <ErrorState
           v-if="bookshelfStore.publicError"
-          message="Could not load this bookshelf."
+          :message="t('profile.bookshelfLoadFailed')"
           @retry="fetchAll(true)"
         />
 
@@ -141,7 +142,7 @@ const { sentinel } = useInfiniteScroll(
             />
 
             <div class="text-h6 text-secondary">
-              No books in this bookshelf
+              {{ t('profile.noBooksInBookshelf') }}
             </div>
           </div>
         </template>

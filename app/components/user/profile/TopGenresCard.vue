@@ -4,6 +4,8 @@ import type { TopGenre } from '~/types/user'
 defineProps<{
   genres: TopGenre[]
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -12,7 +14,7 @@ defineProps<{
     class="mb-6"
   >
     <v-card-title class="text-h6 font-weight-bold">
-      Top genres
+      {{ t('profile.topGenres') }}
     </v-card-title>
 
     <v-card-text class="pt-2">
@@ -43,7 +45,7 @@ defineProps<{
         v-else
         class="text-body-2 text-medium-emphasis"
       >
-        No genre data yet.
+        {{ t('profile.noGenreData') }}
       </div>
     </v-card-text>
   </v-card>

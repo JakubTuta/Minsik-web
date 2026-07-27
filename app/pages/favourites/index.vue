@@ -1,14 +1,16 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
 
-useSeo({ title: 'My Favourites', description: 'Books you have marked as favourites.' })
+const { t } = useI18n()
+
+useSeo({ title: t('favourites.pageTitle'), description: t('favourites.pageDescription') })
 
 const favouritesStore = useFavouritesStore()
 const dashboardStore = useDashboardStore()
 
-const sortOptions = [
-  { label: 'Date Added', value: 'created_at' },
-]
+const sortOptions = computed(() => [
+  { label: t('filter.dateAdded'), value: 'created_at' },
+])
 
 const order = ref<'asc' | 'desc'>('desc')
 const titleFilter = ref('')
@@ -41,11 +43,11 @@ const { sentinel } = useInfiniteScroll(
 
     <div class="mb-6 mt-4">
       <div class="text-h2 font-weight-bold">
-        {{ dashboardStore.stats?.favourites_count ?? 0 }} liked books
+        {{ t('favourites.likedBooksCount', {"count": dashboardStore.stats?.favourites_count ?? 0}, dashboardStore.stats?.favourites_count ?? 0) }}
       </div>
 
       <div class="text-body-1 text-medium-emphasis mt-1">
-        Your collection of recommended-to-others — the books you'd press into a friend's hand.
+        {{ t('favourites.pageHint') }}
       </div>
     </div>
 
@@ -68,7 +70,7 @@ const { sentinel } = useInfiniteScroll(
       >
         <ErrorState
           v-if="favouritesStore.error"
-          message="Could not load your favourites."
+          :message="t('favourites.loadFailed')"
           @retry="favouritesStore.fetch(true, 'created_at', order)"
         />
 
@@ -91,7 +93,7 @@ const { sentinel } = useInfiniteScroll(
             class="py-12 text-center"
           >
             <div class="text-h6 text-secondary">
-              No books match "{{ titleFilter }}"
+              {{ t('filter.noMatch', {"query": titleFilter}) }}
             </div>
           </div>
 
@@ -128,11 +130,11 @@ const { sentinel } = useInfiniteScroll(
             />
 
             <div class="text-h6 text-secondary">
-              No favourite books yet
+              {{ t('favourites.empty') }}
             </div>
 
             <div class="text-secondary mt-2">
-              Mark books as favourites while browsing
+              {{ t('favourites.emptyHint') }}
             </div>
           </div>
         </template>

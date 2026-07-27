@@ -8,6 +8,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t, n } = useI18n()
 const cardRef = ref<HTMLElement | null>(null)
 
 useScrollReveal(cardRef)
@@ -42,7 +43,7 @@ function starPercent(star: number): number {
   >
     <v-card-text class="text-center">
       <h2 class="text-h6 font-weight-bold mb-4">
-        How you rated
+        {{ t('yearReview.howYouRated') }}
       </h2>
 
       <div class="avg-number text-primary font-weight-black">
@@ -60,9 +61,7 @@ function starPercent(star: number): number {
       />
 
       <div class="text-body-2 text-medium-emphasis mb-6">
-        across {{ ratingsGiven.toLocaleString() }} {{ ratingsGiven === 1
-          ? 'rating'
-          : 'ratings' }}
+        {{ t('yearReview.acrossRatings', {"count": n(ratingsGiven)}, ratingsGiven) }}
       </div>
 
       <div class="d-flex flex-column ga-2 text-left">
@@ -111,9 +110,7 @@ function starPercent(star: number): number {
             icon="mdi-comment-text-outline"
             size="small"
           />
-          {{ reviewsWritten }} written {{ reviewsWritten === 1
-            ? 'review'
-            : 'reviews' }}
+          {{ t('yearReview.reviewsWritten', {"count": reviewsWritten}, reviewsWritten) }}
         </div>
       </template>
     </v-card-text>

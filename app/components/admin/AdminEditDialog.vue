@@ -23,6 +23,8 @@ const emit = defineEmits<{
   'removeAuthors': [authorIds: number[]]
 }>()
 
+const { t } = useI18n()
+
 const editedData = ref<Record<string, any>>({})
 const authorsToRemove = ref<number[]>([])
 const jsonStrings = ref<Record<string, string>>({})
@@ -68,7 +70,9 @@ function setNumberValue(key: string, value: string) {
 function updateJsonValue(key: string, value: string) {
   jsonStrings.value[key] = value
   try {
-    editedData.value[key] = value ? JSON.parse(value) : {}
+    editedData.value[key] = value
+      ? JSON.parse(value)
+      : {}
   }
   catch {
     // Keep previous parsed value until JSON is valid
@@ -153,7 +157,7 @@ function handleClose() {
               <v-text-field
                 v-else-if="field.type === 'array'"
                 :model-value="getArrayValue(field.key)"
-                :label="`${field.label} (comma-separated)`"
+                :label="`${field.label} (${t('admin.commaSeparated')})`"
                 variant="outlined"
                 density="compact"
                 @update:model-value="setArrayValue(field.key, $event)"
@@ -162,12 +166,12 @@ function handleClose() {
               <v-textarea
                 v-else-if="field.type === 'json'"
                 :model-value="jsonStrings[field.key] ?? '{}'"
-                :label="`${field.label} (JSON)`"
+                :label="`${field.label} (${t('admin.json')})`"
                 variant="outlined"
                 density="compact"
                 rows="3"
                 auto-grow
-                hint='Format: {"key": "value"}'
+                :hint="t('admin.jsonHint')"
                 persistent-hint
                 style="font-family: monospace;"
                 @update:model-value="updateJsonValue(field.key, $event)"
@@ -192,11 +196,11 @@ function handleClose() {
               :items="authors"
               item-title="name"
               item-value="author_id"
-              label="Remove authors"
-              placeholder="Select authors to remove"
+              :label="t('admin.removeAuthors')"
+              :placeholder="t('admin.selectAuthorsToRemove')"
               :custom-filter="(_: string, query: string, item?: any) =>
-                item?.raw?.name?.toLowerCase().includes(query.toLowerCase())
-                || item?.raw?.slug?.toLowerCase().includes(query.toLowerCase())"
+                item?.raw?.name?.toLowerCase().includes(query.toLowerCase()) ||
+                item?.raw?.slug?.toLowerCase().includes(query.toLowerCase())"
               variant="outlined"
               density="compact"
               multiple
@@ -218,7 +222,7 @@ function handleClose() {
           variant="text"
           @click="handleClose"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -227,7 +231,7 @@ function handleClose() {
           :loading="loading"
           @click="handleSave"
         >
-          Save
+          {{ t('common.save') }}
         </v-btn>
       </v-card-actions>
     </v-card>

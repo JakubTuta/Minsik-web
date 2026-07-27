@@ -2,7 +2,9 @@
 import type { PopularCategory } from '~/types/categories'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
+const { t, n } = useI18n()
 const categoriesStore = useCategoriesStore()
+const genreLabel = useGenreLabel()
 
 const containerRef = ref<HTMLElement | null>(null)
 useScrollReveal(containerRef, { stagger: 0.06, y: 20 })
@@ -43,14 +45,14 @@ const { data: categories } = await useAsyncData<PopularCategory[]>(
   >
     <div class="mb-10 text-center">
       <h2 class="text-h3 font-weight-bold mb-4">
-        Browse by Genre
+        {{ t('home.browseByGenre') }}
       </h2>
 
       <p
         class="text-h6 text-medium-emphasis mx-auto"
         style="max-width: 600px;"
       >
-        Explore our curated collection across every genre.
+        {{ t('home.browseByGenreSubtitle') }}
       </p>
     </div>
 
@@ -66,7 +68,7 @@ const { data: categories } = await useAsyncData<PopularCategory[]>(
         md="3"
         lg="2"
       >
-        <NuxtLink
+        <NuxtLinkLocale
           :to="`/categories?category=${cat.slug}`"
           class="text-decoration-none"
         >
@@ -93,15 +95,15 @@ const { data: categories } = await useAsyncData<PopularCategory[]>(
               </v-avatar>
 
               <div class="text-body-1 font-weight-bold text-high-emphasis mb-1">
-                {{ cat.name }}
+                {{ genreLabel(cat.slug) }}
               </div>
 
               <div class="text-caption text-medium-emphasis">
-                {{ cat.book_count.toLocaleString() }} books
+                {{ t('common.bookCount', {'count': n(cat.book_count)}, cat.book_count) }}
               </div>
             </v-card-text>
           </v-card>
-        </NuxtLink>
+        </NuxtLinkLocale>
       </v-col>
     </v-row>
   </section>

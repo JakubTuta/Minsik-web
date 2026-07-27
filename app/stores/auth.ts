@@ -10,10 +10,12 @@ const REFRESH_LEAD_SECONDS = 60
 const MIN_REFRESH_DELAY_SECONDS = 30
 
 export const useAuthStore = defineStore('auth', () => {
+  const { t, te } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const router = useRouter()
   const route = useRoute()
+  const localePath = useLocalePath()
 
   const user = ref<User | null>(null)
   const isAuthenticated = computed(() => !!user.value)
@@ -117,10 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
     catch (error: any) {
       console.error('Login failed:', error)
 
-      const errorMessage = error.response?.data?.error?.message
-        || error.response?.data?.message
-        || error.message
-        || 'Login failed'
+      const errorMessage = apiErrorMessage(error, t, te, 'storeErrors.authLoginFailed')
 
       return { success: false, error: errorMessage }
     }
@@ -140,10 +139,7 @@ export const useAuthStore = defineStore('auth', () => {
     catch (error: any) {
       console.error('Registration failed:', error)
 
-      const errorMessage = error.response?.data?.error?.message
-        || error.response?.data?.message
-        || error.message
-        || 'Registration failed'
+      const errorMessage = apiErrorMessage(error, t, te, 'storeErrors.authRegistrationFailed')
 
       return { success: false, error: errorMessage }
     }
@@ -166,10 +162,7 @@ export const useAuthStore = defineStore('auth', () => {
     catch (error: any) {
       console.error('Google auth failed:', error)
 
-      const errorMessage = error.response?.data?.error?.message
-        || error.response?.data?.message
-        || error.message
-        || 'Google sign-in failed'
+      const errorMessage = apiErrorMessage(error, t, te, 'storeErrors.authGoogleSignInFailed')
 
       return { success: false, error: errorMessage }
     }
@@ -189,7 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
       const middleware = route.meta.middleware
       const isProtected = middleware === 'auth' || (Array.isArray(middleware) && middleware.includes('auth'))
       if (isProtected) {
-        await router.push('/')
+        await router.push(localePath('index'))
       }
     }
   }
@@ -231,10 +224,7 @@ export const useAuthStore = defineStore('auth', () => {
     catch (error: any) {
       console.error('Failed to update profile:', error)
 
-      const errorMessage = error.response?.data?.error?.message
-        || error.response?.data?.message
-        || error.message
-        || 'Failed to update profile'
+      const errorMessage = apiErrorMessage(error, t, te, 'storeErrors.authProfileUpdateFailed')
 
       return { success: false, error: errorMessage }
     }

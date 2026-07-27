@@ -1,11 +1,13 @@
 <script setup lang="ts">
+const localePath = useLocalePath()
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const yearInReviewStore = useYearInReviewStore()
 
 useSeo({
-  title: 'Year in Review',
-  description: 'Your reading journey this year, so far.',
+  title: t('nav.yearInReview'),
+  description: t('yearReview.seoDescription'),
 })
 
 onMounted(() => {
@@ -31,7 +33,7 @@ const isEmpty = computed(() => {
 
     <ErrorState
       v-if="yearInReviewStore.error"
-      message="Could not load your year in review."
+      :message="t('yearReview.loadFailed')"
       @retry="yearInReviewStore.fetch(true)"
     />
 
@@ -50,29 +52,29 @@ const isEmpty = computed(() => {
           />
 
           <div class="text-h5 font-weight-bold">
-            Your {{ review.year }} is still a blank page
+            {{ t('yearReview.blankPage', {"year": review.year}) }}
           </div>
 
           <div class="text-body-1 text-medium-emphasis mb-6 mt-2">
-            Finish a book or leave a rating to start your year in review.
+            {{ t('yearReview.blankPageHint') }}
           </div>
 
           <div class="d-flex ga-4 flex-wrap justify-center">
             <v-btn
-              to="/discover"
+              :to="localePath('/discover')"
               color="primary"
               variant="elevated"
               prepend-icon="mdi-compass"
             >
-              Discover books
+              {{ t('yearReview.discoverBooks') }}
             </v-btn>
 
             <v-btn
-              to="/bookshelf"
+              :to="localePath('/bookshelf')"
               variant="tonal"
               prepend-icon="mdi-bookshelf"
             >
-              Go to bookshelf
+              {{ t('yearReview.goToBookshelf') }}
             </v-btn>
           </div>
         </div>

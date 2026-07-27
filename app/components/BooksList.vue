@@ -10,9 +10,9 @@ interface Props {
   hasMore?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  emptyMessage: 'No books found.',
-})
+const props = defineProps<Props>()
+
+const { t, n } = useI18n()
 
 const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
 const { sentinel } = useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
@@ -37,7 +37,7 @@ function formatSeriesPosition(position: number | null | undefined) {
       v-if="books && books.length > 0"
       class="books-list"
     >
-      <NuxtLink
+      <NuxtLinkLocale
         v-for="book in books"
         :key="book.book_id"
         :to="`/books/${book.slug}`"
@@ -87,13 +87,13 @@ function formatSeriesPosition(position: number | null | undefined) {
                 v-for="(author, index) in book.authors"
                 :key="author.author_id"
               >
-                <NuxtLink
+                <NuxtLinkLocale
                   :to="`/authors/${author.slug}`"
                   class="text-body-2 text-medium-emphasis text-decoration-none author-link"
                   @click.stop
                 >
                   {{ author.name }}
-                </NuxtLink>
+                </NuxtLinkLocale>
 
                 <span
                   v-if="index < book.authors.length - 1"
@@ -111,17 +111,21 @@ function formatSeriesPosition(position: number | null | undefined) {
                 />
 
                 <span class="text-body-2">
-                  {{ weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count).toFixed(1) }} ({{ totalRatingCount(book.rating_count, book.ol_rating_count).toLocaleString() }})
+                  {{ weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count).toFixed(1) }} ({{ n(totalRatingCount(book.rating_count, book.ol_rating_count)) }})
                 </span>
 
                 <v-tooltip
                   activator="parent"
                   location="bottom"
                 >
-                  <div>Minsik: {{ book.avg_rating.toFixed(1) }} ({{ book.rating_count }} ratings)</div>
+                  <div>
+                    {{ t('stats.minsikRatings', {'rating': book.avg_rating.toFixed(1),
+                                                 'count': n(book.rating_count)}) }}
+                  </div>
 
                   <div class="mt-1">
-                    Open Library: {{ book.ol_avg_rating.toFixed(1) }} ({{ book.ol_rating_count }} ratings)
+                    {{ t('stats.olRatings', {'rating': book.ol_avg_rating.toFixed(1),
+                                             'count': n(book.ol_rating_count)}) }}
                   </div>
                 </v-tooltip>
               </div>
@@ -133,25 +137,25 @@ function formatSeriesPosition(position: number | null | undefined) {
                   color="info"
                 />
 
-                <span class="text-body-2">{{ totalReaders(book.app_want_to_read_count, book.app_reading_count, book.app_read_count, book.ol_want_to_read_count, book.ol_currently_reading_count, book.ol_already_read_count).toLocaleString() }}</span>
+                <span class="text-body-2">{{ n(totalReaders(book.app_want_to_read_count, book.app_reading_count, book.app_read_count, book.ol_want_to_read_count, book.ol_currently_reading_count, book.ol_already_read_count)) }}</span>
 
                 <v-tooltip
                   activator="parent"
                   location="bottom"
                 >
-                  <div>Minsik - Want to Read: {{ (book.app_want_to_read_count ?? 0).toLocaleString() }}</div>
+                  <div>{{ t('stats.minsikWantToRead', {'count': n(book.app_want_to_read_count ?? 0)}) }}</div>
 
-                  <div>Minsik - Reading: {{ (book.app_reading_count ?? 0).toLocaleString() }}</div>
+                  <div>{{ t('stats.minsikReading', {'count': n(book.app_reading_count ?? 0)}) }}</div>
 
-                  <div>Minsik - Read: {{ (book.app_read_count ?? 0).toLocaleString() }}</div>
+                  <div>{{ t('stats.minsikRead', {'count': n(book.app_read_count ?? 0)}) }}</div>
 
                   <div class="mt-1">
-                    Open Library - Want to Read: {{ (book.ol_want_to_read_count ?? 0).toLocaleString() }}
+                    {{ t('stats.olWantToRead', {'count': n(book.ol_want_to_read_count ?? 0)}) }}
                   </div>
 
-                  <div>Open Library - Reading: {{ (book.ol_currently_reading_count ?? 0).toLocaleString() }}</div>
+                  <div>{{ t('stats.olReading', {'count': n(book.ol_currently_reading_count ?? 0)}) }}</div>
 
-                  <div>Open Library - Read: {{ (book.ol_already_read_count ?? 0).toLocaleString() }}</div>
+                  <div>{{ t('stats.olRead', {'count': n(book.ol_already_read_count ?? 0)}) }}</div>
                 </v-tooltip>
               </div>
             </div>
@@ -168,7 +172,7 @@ function formatSeriesPosition(position: number | null | undefined) {
             </p>
           </v-card-text>
         </v-card>
-      </NuxtLink>
+      </NuxtLinkLocale>
     </div>
 
     <!-- No Books State -->
@@ -177,7 +181,7 @@ function formatSeriesPosition(position: number | null | undefined) {
       type="info"
       variant="tonal"
     >
-      {{ emptyMessage }}
+      {{ emptyMessage ?? t('books.emptyList') }}
     </v-alert>
 
     <!-- Loading -->

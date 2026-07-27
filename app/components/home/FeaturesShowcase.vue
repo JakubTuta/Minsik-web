@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
+const { t } = useI18n()
 const containerRef = ref<HTMLElement | null>(null)
 
 useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
@@ -10,14 +11,14 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
   <section class="mb-16 mt-8">
     <div class="mb-10 text-center">
       <h2 class="text-h3 font-weight-bold mb-4">
-        Gamified Discovery
+        {{ t('home.gamifiedDiscovery') }}
       </h2>
 
       <p
         class="text-h6 text-medium-emphasis mx-auto"
         style="max-width: 600px;"
       >
-        Finding your next favorite book shouldn't be boring. Experience the thrill of discovery through our unique mini-games.
+        {{ t('home.gamifiedDiscoverySubtitle') }}
       </p>
     </div>
 
@@ -31,7 +32,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
         cols="12"
         md="8"
       >
-        <NuxtLink
+        <NuxtLinkLocale
           to="/play-slots"
           class="text-decoration-none"
         >
@@ -48,17 +49,17 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
                 size="small"
                 class="align-self-start font-weight-bold text-uppercase mb-6"
               >
-                Try your luck
+                {{ t('home.tryYourLuck') }}
               </v-chip>
 
               <div class="d-flex justify-space-between flex-grow-1 align-start">
                 <div>
                   <h3 class="text-h4 font-weight-black text-high-emphasis mb-3">
-                    Book Slots
+                    {{ t('home.bookSlots') }}
                   </h3>
 
                   <p class="text-body-1 text-medium-emphasis max-w-sm">
-                    Pull the lever and let the reels spin. Win books ranging from Common to Legendary rarity and add them directly to your bookshelf.
+                    {{ t('home.bookSlotsDescription') }}
                   </p>
                 </div>
 
@@ -71,14 +72,14 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
               </div>
 
               <div class="d-flex align-center text-warning font-weight-bold mt-auto pt-6">
-                Play now <v-icon
+                {{ t('home.playNow') }} <v-icon
                   icon="mdi-arrow-right"
                   class="arrow-icon ml-2 transition-transform"
                 />
               </div>
             </v-card-text>
           </v-card>
-        </NuxtLink>
+        </NuxtLinkLocale>
       </v-col>
 
       <!-- Mystery Cases (Medium) -->
@@ -86,7 +87,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
         cols="12"
         md="4"
       >
-        <NuxtLink
+        <NuxtLinkLocale
           to="/open-case"
           class="text-decoration-none"
         >
@@ -111,19 +112,19 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
                   size="small"
                   class="font-weight-bold text-uppercase mb-4"
                 >
-                  Unlock
+                  {{ t('home.unlock') }}
                 </v-chip>
 
                 <h3 class="text-h5 font-weight-black text-high-emphasis mb-2">
-                  Mystery Cases
+                  {{ t('home.mysteryCases') }}
                 </h3>
 
                 <p class="text-body-2 text-medium-emphasis mb-6">
-                  Open a chest to reveal a single, high-quality book. Will you strike gold?
+                  {{ t('home.mysteryCasesDescription') }}
                 </p>
 
                 <div class="d-flex align-center text-primary font-weight-bold">
-                  Open case <v-icon
+                  {{ t('home.openCaseCta') }} <v-icon
                     icon="mdi-arrow-right"
                     class="arrow-icon ml-2 transition-transform"
                   />
@@ -131,7 +132,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
               </div>
             </v-card-text>
           </v-card>
-        </NuxtLink>
+        </NuxtLinkLocale>
       </v-col>
 
       <!-- Book Packs (Medium) -->
@@ -139,7 +140,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
         cols="12"
         md="4"
       >
-        <NuxtLink
+        <NuxtLinkLocale
           to="/open-pack"
           class="text-decoration-none"
         >
@@ -164,19 +165,19 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
                   size="small"
                   class="font-weight-bold text-uppercase mb-4"
                 >
-                  Collection
+                  {{ t('home.collection') }}
                 </v-chip>
 
                 <h3 class="text-h5 font-weight-black text-high-emphasis mb-2">
-                  Book Packs
+                  {{ t('home.bookPacks') }}
                 </h3>
 
                 <p class="text-body-2 text-medium-emphasis mb-6">
-                  Tear open a booster pack containing 8 random books. Perfect for bulk discovery.
+                  {{ t('home.bookPacksDescription') }}
                 </p>
 
                 <div class="d-flex align-center text-info font-weight-bold">
-                  Crack a pack <v-icon
+                  {{ t('home.crackAPack') }} <v-icon
                     icon="mdi-arrow-right"
                     class="arrow-icon ml-2 transition-transform"
                   />
@@ -184,7 +185,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
               </div>
             </v-card-text>
           </v-card>
-        </NuxtLink>
+        </NuxtLinkLocale>
       </v-col>
 
       <!-- Deep Discovery (Large) -->
@@ -192,7 +193,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
         cols="12"
         md="8"
       >
-        <NuxtLink
+        <NuxtLinkLocale
           to="/discover"
           class="text-decoration-none"
         >
@@ -209,21 +210,21 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
                 size="small"
                 class="align-self-start font-weight-bold text-uppercase mb-6"
               >
-                Smart Rating Algorithm
+                {{ t('home.smartRatingAlgorithm') }}
               </v-chip>
 
               <div class="d-flex justify-space-between flex-grow-1 align-end">
                 <div class="pr-8">
                   <h3 class="text-h4 font-weight-black text-high-emphasis mb-3">
-                    Deep Discovery
+                    {{ t('home.deepDiscovery') }}
                   </h3>
 
                   <p class="text-body-1 text-medium-emphasis max-w-sm">
-                    Not feeling lucky? Use our advanced recommendation engine to find books based on genres, emotional profiles, and your reading history.
+                    {{ t('home.deepDiscoveryDescription') }}
                   </p>
 
                   <div class="d-flex align-center text-success font-weight-bold mt-6">
-                    Explore now <v-icon
+                    {{ t('home.exploreNow') }} <v-icon
                       icon="mdi-arrow-right"
                       class="arrow-icon ml-2 transition-transform"
                     />
@@ -248,7 +249,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
               </div>
             </v-card-text>
           </v-card>
-        </NuxtLink>
+        </NuxtLinkLocale>
       </v-col>
     </v-row>
   </section>

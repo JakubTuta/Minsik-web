@@ -8,10 +8,11 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   description: null,
-  emptyMessage: 'There is no description yet, we will add it soon.',
   charLimit: 500,
   truncationWindow: 20,
 })
+
+const { t } = useI18n()
 
 const expanded = ref(false)
 const descriptionRef = ref<HTMLElement>()
@@ -36,7 +37,7 @@ function toggle() {
   <v-card>
     <v-card-text>
       <h2 class="text-h6 font-weight-bold mb-3">
-        Description
+        {{ t('common.description') }}
       </h2>
 
       <template v-if="description">
@@ -65,8 +66,8 @@ function toggle() {
           @click="toggle"
         >
           {{ expanded
-            ? 'Read less'
-            : 'Read more' }}
+            ? t('common.readLess')
+            : t('common.readMore') }}
         </v-btn>
       </template>
 
@@ -74,7 +75,7 @@ function toggle() {
         v-else
         class="text-body-1 text-medium-emphasis mb-0 font-italic"
       >
-        {{ emptyMessage }}
+        {{ emptyMessage ?? t('common.noDescription') }}
       </p>
     </v-card-text>
   </v-card>

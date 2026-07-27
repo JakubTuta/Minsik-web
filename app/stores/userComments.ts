@@ -15,6 +15,7 @@ export interface UserCommentsParams {
 }
 
 export const useUserCommentsStore = defineStore('userComments', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 
@@ -61,7 +62,7 @@ export const useUserCommentsStore = defineStore('userComments', () => {
     }
     catch (err) {
       console.error('Failed to fetch comments:', err)
-      error.value = 'Could not load your comments.'
+      error.value = t('storeErrors.commentsLoadFailed')
     }
     finally {
       isLoading.value = false

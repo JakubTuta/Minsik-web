@@ -11,6 +11,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t, n } = useI18n()
+
 const booksWithYearMarkers = computed(() => {
   return props.books.map((book, index) => {
     const year = book.original_publication_year ?? null
@@ -35,7 +37,7 @@ useShelfStatuses(() => props.books)
       class="text-medium-emphasis text-center"
       style="padding: 32px 0;"
     >
-      No books found.
+      {{ t('books.emptyList') }}
     </div>
 
     <div
@@ -67,7 +69,7 @@ useShelfStatuses(() => props.books)
             <div class="entry-dot" />
           </div>
 
-          <NuxtLink
+          <NuxtLinkLocale
             :to="`/books/${entry.book.slug}`"
             class="entry-card text-decoration-none"
           >
@@ -137,15 +139,15 @@ useShelfStatuses(() => props.books)
                   />
 
                   <span class="text-caption">
-                    {{ totalReaders(
+                    {{ n(totalReaders(
                       entry.book.app_want_to_read_count, entry.book.app_reading_count, entry.book.app_read_count,
                       entry.book.ol_want_to_read_count, entry.book.ol_currently_reading_count, entry.book.ol_already_read_count,
-                    ).toLocaleString() }}
+                    )) }}
                   </span>
                 </div>
               </div>
             </v-card>
-          </NuxtLink>
+          </NuxtLinkLocale>
         </div>
       </template>
     </div>

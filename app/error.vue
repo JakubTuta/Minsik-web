@@ -5,18 +5,22 @@ const props = defineProps<{
   error: NuxtError
 }>()
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
+
 const is404 = computed(() => props.error.statusCode === 404)
 
 const title = computed(() => {
   return is404.value
-    ? 'Page Not Found'
-    : 'Something Went Wrong'
+    ? t('errorPage.notFoundTitle')
+    : t('errorPage.genericTitle')
 })
 
 const message = computed(() => {
   return is404.value
-    ? 'The page you are looking for does not exist or has been moved.'
-    : 'An unexpected error occurred. Please try again later.'
+    ? t('errorPage.notFoundMessage')
+    : t('errorPage.genericMessage')
 })
 
 useHead(() => ({
@@ -65,16 +69,16 @@ function handleClearError() {
               prepend-icon="mdi-home"
               @click="handleClearError"
             >
-              Back to Home
+              {{ t('common.backToHome') }}
             </v-btn>
 
             <v-btn
               variant="tonal"
               size="large"
               prepend-icon="mdi-magnify"
-              to="/search"
+              :to="localePath('/search')"
             >
-              Search Books
+              {{ t('errorPage.searchBooks') }}
             </v-btn>
           </div>
         </div>

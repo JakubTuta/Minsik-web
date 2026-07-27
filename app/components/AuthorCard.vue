@@ -13,6 +13,8 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
 })
 
+const localePath = useLocalePath()
+
 const authorLink = computed(() => (props.author
   ? `/authors/${props.author.slug}`
   : ''))
@@ -32,7 +34,7 @@ const biography = computed(() => {
 
 <template>
   <v-card
-    :to="authorLink"
+    :to="localePath(authorLink)"
     :loading="loading"
     hover
     class="author-card d-flex flex-column h-100"

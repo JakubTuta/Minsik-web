@@ -11,16 +11,18 @@ const emit = defineEmits<{
   delete: []
 }>()
 
-const dimensionConfig: Record<string, { label: string, rgb: string }> = {
-  pacing: { label: 'Pacing', rgb: '33, 150, 243' },
-  emotional_impact: { label: 'Emotional Impact', rgb: '244, 67, 54' },
-  intellectual_depth: { label: 'Intellectual Depth', rgb: '156, 39, 176' },
-  writing_quality: { label: 'Writing Quality', rgb: '0, 150, 136' },
-  rereadability: { label: 'Rereadability', rgb: '255, 193, 7' },
-  readability: { label: 'Readability', rgb: '76, 175, 80' },
-  plot_complexity: { label: 'Plot Complexity', rgb: '255, 152, 0' },
-  humor: { label: 'Humor', rgb: '233, 30, 99' },
-}
+const { t, locale } = useI18n()
+
+const dimensionConfig = computed<Record<string, { label: string, rgb: string }>>(() => ({
+  pacing: { label: t('rating.dimensions.pacing'), rgb: '33, 150, 243' },
+  emotional_impact: { label: t('rating.dimensions.emotionalImpact'), rgb: '244, 67, 54' },
+  intellectual_depth: { label: t('rating.dimensions.intellectualDepth'), rgb: '156, 39, 176' },
+  writing_quality: { label: t('rating.dimensions.writingQuality'), rgb: '0, 150, 136' },
+  rereadability: { label: t('rating.dimensions.rereadability'), rgb: '255, 193, 7' },
+  readability: { label: t('rating.dimensions.readability'), rgb: '76, 175, 80' },
+  plot_complexity: { label: t('rating.dimensions.plotComplexity'), rgb: '255, 152, 0' },
+  humor: { label: t('rating.dimensions.humor'), rgb: '233, 30, 99' },
+}))
 
 interface DateInfo {
   relative: string
@@ -30,10 +32,10 @@ interface DateInfo {
 function formatDate(dateStr: string): DateInfo {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) {
-    return { relative: 'Unknown', exact: 'Unknown' }
+    return { relative: t('time.unknown'), exact: t('time.unknown') }
   }
 
-  const exact = date.toLocaleDateString('en-US', {
+  const exact = date.toLocaleDateString(locale.value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -51,33 +53,25 @@ function formatDate(dateStr: string): DateInfo {
   const diffMonths = Math.floor(diffDays / 30)
   const diffYears = Math.floor(diffDays / 365)
 
-  let relative = 'just now'
+  let relative = t('time.justNow')
 
   if (diffMins < 60) {
-    relative = 'less than an hour ago'
+    relative = t('time.lessThanHourAgo')
   }
   else if (diffHours < 24) {
-    relative = 'today'
+    relative = t('time.today')
   }
   else if (diffDays < 7) {
-    relative = `${diffDays} day${diffDays !== 1
-      ? 's'
-      : ''} ago`
+    relative = t('time.daysAgo', { count: diffDays })
   }
   else if (diffWeeks < 4) {
-    relative = `${diffWeeks} week${diffWeeks !== 1
-      ? 's'
-      : ''} ago`
+    relative = t('time.weeksAgo', { count: diffWeeks })
   }
   else if (diffMonths < 12) {
-    relative = `${diffMonths} month${diffMonths !== 1
-      ? 's'
-      : ''} ago`
+    relative = t('time.monthsAgo', { count: diffMonths })
   }
   else {
-    relative = `${diffYears} year${diffYears !== 1
-      ? 's'
-      : ''} ago`
+    relative = t('time.yearsAgo', { count: diffYears })
   }
 
   return { relative, exact }
@@ -87,12 +81,12 @@ function getSubRatings(comment: BookComment) {
   if (!comment.rating)
     return []
 
-  return Object.keys(dimensionConfig)
+  return Object.keys(dimensionConfig.value)
     .filter(key => comment.rating?.[key as keyof typeof comment.rating] != null)
     .map(key => ({
       key,
-      label: dimensionConfig[key]!.label,
-      rgb: dimensionConfig[key]!.rgb,
+      label: dimensionConfig.value[key]!.label,
+      rgb: dimensionConfig.value[key]!.rgb,
       value: comment.rating![key as keyof typeof comment.rating] as number,
     }))
 }
@@ -121,7 +115,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
   >
     <div class="d-flex gap-3">
       <!-- User Avatar -->
-      <NuxtLink
+      <NuxtLinkLocale
         :to="`/bookshelf/${comment.username || comment.user?.username}`"
         class="text-decoration-none flex-shrink-0"
       >
@@ -133,18 +127,18 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
             {{ userInitial(comment) }}
           </span>
         </v-avatar>
-      </NuxtLink>
+      </NuxtLinkLocale>
 
       <!-- Comment Content -->
       <div class="min-w-0 flex-grow-1">
         <div class="d-flex align-center justify-space-between mb-1">
           <div class="d-flex align-center gap-2">
-            <NuxtLink
+            <NuxtLinkLocale
               :to="`/bookshelf/${comment.username || comment.user?.username}`"
               class="text-body-2 font-weight-bold text-decoration-none text-primary"
             >
               {{ comment.username || comment.user?.username }}
-            </NuxtLink>
+            </NuxtLinkLocale>
 
             <v-chip
               v-if="isOwn"
@@ -152,7 +146,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
               color="primary"
               variant="tonal"
             >
-              You
+              {{ t('comment.you') }}
             </v-chip>
 
             <v-chip
@@ -162,7 +156,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
               variant="tonal"
               prepend-icon="mdi-alert"
             >
-              Spoiler
+              {{ t('comment.spoiler') }}
             </v-chip>
           </div>
 
@@ -199,7 +193,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
             />
 
             <span class="text-body-2 text-medium-emphasis mb-2">
-              This comment contains spoilers
+              {{ t('comment.spoilerHidden') }}
             </span>
 
             <v-btn
@@ -209,7 +203,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
               prepend-icon="mdi-eye"
               @click="spoilerRevealed = true"
             >
-              Show Spoiler
+              {{ t('comment.showSpoiler') }}
             </v-btn>
           </div>
         </template>
@@ -240,7 +234,7 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
                   class="text-secondary cursor-pointer"
                   style="text-decoration: underline dotted;"
                 >
-                  Detailed rating
+                  {{ t('comment.detailedRating') }}
                 </span>
               </template>
 

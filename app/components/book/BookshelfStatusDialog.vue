@@ -18,6 +18,7 @@ const emit = defineEmits<{
 
 const { currentStatus } = toRefs(props)
 
+const { t } = useI18n()
 const bookPageStore = useBookPageStore()
 const { bookshelfStatus } = storeToRefs(bookPageStore)
 
@@ -25,12 +26,12 @@ const selectedStatus = ref<BookshelfStatus | null>(currentStatus.value)
 const saving = ref(false)
 const removing = ref(false)
 
-const statusOptions: { label: string, value: BookshelfStatus, color: string, icon: string }[] = [
-  { label: 'Want to Read', value: 'want_to_read', color: 'orange', icon: 'mdi-bookmark-outline' },
-  { label: 'Reading', value: 'reading', color: 'blue', icon: 'mdi-book-open-page-variant' },
-  { label: 'Read', value: 'read', color: 'green', icon: 'mdi-check-circle-outline' },
-  { label: 'Abandoned', value: 'abandoned', color: 'grey', icon: 'mdi-close-circle-outline' },
-]
+const statusOptions = computed<{ label: string, value: BookshelfStatus, color: string, icon: string }[]>(() => [
+  { label: t('bookshelf.wantToRead'), value: 'want_to_read', color: 'orange', icon: 'mdi-bookmark-outline' },
+  { label: t('bookshelf.reading'), value: 'reading', color: 'blue', icon: 'mdi-book-open-page-variant' },
+  { label: t('bookshelf.read'), value: 'read', color: 'green', icon: 'mdi-check-circle-outline' },
+  { label: t('bookshelf.abandoned'), value: 'abandoned', color: 'grey', icon: 'mdi-close-circle-outline' },
+])
 
 watch(() => props.currentStatus, (val) => {
   selectedStatus.value = val
@@ -52,7 +53,7 @@ async function save() {
     emit('saved')
   }
   catch {
-    useToastStore().error('Could not update your bookshelf. Please try again.')
+    useToastStore().error(t('bookshelf.updateFailed'))
   }
   finally {
     saving.value = false
@@ -72,7 +73,7 @@ async function remove() {
     emit('saved')
   }
   catch {
-    useToastStore().error('Could not remove this book. Please try again.')
+    useToastStore().error(t('bookshelf.removeFailed'))
   }
   finally {
     removing.value = false
@@ -88,7 +89,7 @@ async function remove() {
   >
     <v-card>
       <v-card-title class="text-h6">
-        Set Reading Status
+        {{ t('bookshelf.setStatus') }}
       </v-card-title>
 
       <v-card-text>
@@ -125,7 +126,7 @@ async function remove() {
             :loading="removing"
             @click="remove"
           >
-            Remove from Bookshelf
+            {{ t('bookshelf.removeFromBookshelf') }}
           </v-chip>
         </div>
       </v-card-text>
@@ -137,7 +138,7 @@ async function remove() {
           variant="text"
           @click="emit('update:modelValue', false)"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -147,7 +148,7 @@ async function remove() {
           :disabled="!selectedStatus"
           @click="save"
         >
-          Save
+          {{ t('common.save') }}
         </v-btn>
       </v-card-actions>
     </v-card>

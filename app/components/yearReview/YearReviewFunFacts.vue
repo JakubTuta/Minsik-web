@@ -14,20 +14,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
+const { t, n } = useI18n()
+const { monthName } = useMonthName()
 
 interface Award {
   key: string
@@ -42,16 +30,16 @@ interface Award {
 const awards = computed<Award[]>(() => {
   const out: Award[] = []
   if (props.longestBook) {
-    out.push({ key: 'longest', icon: 'mdi-book-open-page-variant', label: 'Chunkiest read', tooltip: 'Your longest book this year', accent: 'deep-purple', book: props.longestBook, caption: `${props.longestBook.number_of_pages.toLocaleString()} pages` })
+    out.push({ key: 'longest', icon: 'mdi-book-open-page-variant', label: t('yearReview.chunkiestRead'), tooltip: t('yearReview.longestBookTooltip'), accent: 'deep-purple', book: props.longestBook, caption: t('yearReview.pagesCount', { count: n(props.longestBook.number_of_pages) }) })
   }
   if (props.shortestBook && props.shortestBook.book_slug !== props.longestBook?.book_slug) {
-    out.push({ key: 'shortest', icon: 'mdi-flash', label: 'Quick escape', tooltip: 'Your shortest book this year', accent: 'teal', book: props.shortestBook, caption: `${props.shortestBook.number_of_pages.toLocaleString()} pages` })
+    out.push({ key: 'shortest', icon: 'mdi-flash', label: t('yearReview.quickEscape'), tooltip: t('yearReview.shortestBookTooltip'), accent: 'teal', book: props.shortestBook, caption: t('yearReview.pagesCount', { count: n(props.shortestBook.number_of_pages) }) })
   }
   if (props.firstFinished) {
-    out.push({ key: 'first', icon: 'mdi-flag-checkered', label: 'First finish', tooltip: 'First book you finished this year', accent: 'blue', book: props.firstFinished, caption: 'Kicked off the year' })
+    out.push({ key: 'first', icon: 'mdi-flag-checkered', label: t('yearReview.firstFinish'), tooltip: t('yearReview.firstFinishTooltip'), accent: 'blue', book: props.firstFinished, caption: t('yearReview.kickedOffYear') })
   }
   if (props.highestRated && props.highestRated.my_rating !== null) {
-    out.push({ key: 'highest', icon: 'mdi-trophy', label: 'Top rated', tooltip: 'Your highest-rated book this year', accent: 'amber', book: props.highestRated, caption: `You gave it ${props.highestRated.my_rating.toFixed(1)} stars` })
+    out.push({ key: 'highest', icon: 'mdi-trophy', label: t('yearReview.topRated'), tooltip: t('yearReview.highestRatedTooltip'), accent: 'amber', book: props.highestRated, caption: t('yearReview.gaveItStars', { rating: props.highestRated.my_rating.toFixed(1) }) })
   }
 
   return out
@@ -68,13 +56,13 @@ interface Stat {
 const stats = computed<Stat[]>(() => {
   const out: Stat[] = []
   if (props.averagePagesPerBook > 0) {
-    out.push({ key: 'avg-pages', icon: 'mdi-file-document-outline', label: 'Average length', value: `${Math.round(props.averagePagesPerBook).toLocaleString()} pages`, accent: 'indigo' })
+    out.push({ key: 'avg-pages', icon: 'mdi-file-document-outline', label: t('yearReview.averageLength'), value: t('yearReview.pagesCount', { count: n(Math.round(props.averagePagesPerBook)) }), accent: 'indigo' })
   }
   if (props.busiestMonthCount > 0) {
-    out.push({ key: 'busiest', icon: 'mdi-fire', label: 'Busiest month', value: `${monthNames[props.busiestMonth - 1]}`, accent: 'deep-orange' })
+    out.push({ key: 'busiest', icon: 'mdi-fire', label: t('yearReview.busiestMonth'), value: monthName(props.busiestMonth), accent: 'deep-orange' })
   }
   if (props.averageDaysToFinish > 0) {
-    out.push({ key: 'pace', icon: 'mdi-clock-fast', label: 'Reading pace', value: `${Math.round(props.averageDaysToFinish)} days / book`, accent: 'cyan' })
+    out.push({ key: 'pace', icon: 'mdi-clock-fast', label: t('yearReview.readingPace'), value: t('yearReview.daysPerBook', { count: Math.round(props.averageDaysToFinish) }), accent: 'cyan' })
   }
 
   return out
@@ -88,14 +76,14 @@ useScrollReveal(gridRef, { stagger: 0.1 })
 <template>
   <div v-if="awards.length > 0 || stats.length > 0">
     <h2 class="text-h5 font-weight-bold mb-6">
-      Highlights
+      {{ t('yearReview.highlights') }}
     </h2>
 
     <div
       ref="gridRef"
       class="highlights-grid"
     >
-      <NuxtLink
+      <NuxtLinkLocale
         v-for="award in awards"
         :key="award.key"
         :to="`/books/${award.book.book_slug}`"
@@ -144,7 +132,7 @@ useScrollReveal(gridRef, { stagger: 0.1 })
             </div>
           </div>
         </div>
-      </NuxtLink>
+      </NuxtLinkLocale>
 
       <div
         v-for="stat in stats"

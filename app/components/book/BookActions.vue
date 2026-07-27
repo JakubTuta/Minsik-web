@@ -5,6 +5,7 @@ interface Props {
 
 defineProps<Props>()
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const authDialogStore = useAuthDialogStore()
 const bookPageStore = useBookPageStore()
@@ -22,12 +23,12 @@ function showSnackbar(text: string, color = 'success') {
   snackbar.value = true
 }
 
-const statusLabels: Record<string, string> = {
-  want_to_read: 'Want to Read',
-  reading: 'Reading',
-  read: 'Read',
-  abandoned: 'Abandoned',
-}
+const statusLabels = computed<Record<string, string>>(() => ({
+  want_to_read: t('bookshelf.wantToRead'),
+  reading: t('bookshelf.reading'),
+  read: t('bookshelf.read'),
+  abandoned: t('bookshelf.abandoned'),
+}))
 
 const statusColors: Record<string, string> = {
   want_to_read: 'orange',
@@ -64,20 +65,20 @@ async function handleFavouriteClick(slug: string) {
     const wasFav = bookPageStore.isFavourite
     await bookPageStore.toggleFavourite(slug)
     showSnackbar(wasFav
-      ? 'Removed from favourites'
-      : 'Added to favourites')
+      ? t('favourites.removed')
+      : t('favourites.added'))
   }
   catch {
-    showSnackbar('Failed to update favourites', 'error')
+    showSnackbar(t('favourites.updateFailed'), 'error')
   }
 }
 
 function handleBookshelfSaved() {
-  showSnackbar('Bookshelf updated')
+  showSnackbar(t('bookshelf.updated'))
 }
 
 function handleRatingSaved() {
-  showSnackbar('Rating saved')
+  showSnackbar(t('rating.saved'))
 }
 </script>
 
@@ -97,7 +98,7 @@ function handleRatingSaved() {
     >
       {{ bookPageStore.bookshelfStatus
         ? statusLabels[bookPageStore.bookshelfStatus]
-        : 'Add to Bookshelf' }}
+        : t('bookshelf.addToBookshelf') }}
     </v-btn>
 
     <!-- Favourite Button -->
@@ -122,8 +123,8 @@ function handleRatingSaved() {
       @click="handleRateClick"
     >
       {{ bookPageStore.userRating
-        ? 'Edit Rating'
-        : 'Rate this book' }}
+        ? t('rating.edit')
+        : t('rating.rateThisBook') }}
     </v-btn>
 
     <!-- Bookshelf Dialog -->

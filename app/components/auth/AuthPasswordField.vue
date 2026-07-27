@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { passwordRequirements, passwordRules } from '~/utils/validation'
-
 defineProps<{
   disabled?: boolean
 }>()
+const { t } = useI18n()
+const { passwordRules, passwordRequirements } = useValidationRules()
 
 const model = defineModel<string>({ default: '' })
 
 const showPassword = ref(false)
 const passwordFocused = ref(false)
 
-const isValid = computed(() => model.value && passwordRules.every(rule => rule(model.value) === true))
-const isInvalid = computed(() => model.value && passwordRules.some(rule => rule(model.value) !== true))
+const isValid = computed(() => model.value && passwordRules.value.every(rule => rule(model.value) === true))
+const isInvalid = computed(() => model.value && passwordRules.value.some(rule => rule(model.value) !== true))
 </script>
 
 <template>
   <v-text-field
     v-model="model"
-    label="Password"
+    :label="t('auth.password')"
     :type="showPassword
       ? 'text'
       : 'password'"
@@ -72,7 +72,7 @@ const isInvalid = computed(() => model.value && passwordRules.some(rule => rule(
         class="pa-3"
       >
         <div class="font-weight-medium mb-2">
-          Password requirements:
+          {{ t('auth.passwordRequirements') }}
         </div>
 
         <div

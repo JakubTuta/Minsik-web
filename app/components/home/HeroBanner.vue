@@ -2,6 +2,9 @@
 import type { BookOfTheWeek } from '~/types/recommendations'
 import gsap from 'gsap'
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
 const themeStore = useThemeStore()
 const recommendationsStore = useRecommendationsStore()
 
@@ -73,7 +76,7 @@ onMounted(() => {
                 icon="mdi-star-shooting"
                 class="mr-2"
               />
-              Welcome to Minsik
+              {{ t('home.welcomeToMinsik') }}
             </v-chip>
           </div>
 
@@ -81,18 +84,18 @@ onMounted(() => {
             ref="titleRef"
             class="text-h3 text-md-h2 font-weight-black hero-title mb-6"
           >
-            Read.<br>
+            {{ t('home.heroLine1') }}<br>
 
-            Discover.<br>
+            {{ t('home.heroLine2') }}<br>
 
-            <span class="text-primary glow-text">Have Fun.</span>
+            <span class="text-primary glow-text">{{ t('home.heroLine3') }}</span>
           </h1>
 
           <p
             ref="subtitleRef"
             class="text-h6 text-medium-emphasis hero-subtitle mx-md-0 mx-auto mb-8"
           >
-            A gamified reading experience. Track your journey, unlock mystery chests, pull the slot lever, and explore curated recommendations.
+            {{ t('home.heroSubtitle') }}
           </p>
 
           <div
@@ -100,7 +103,7 @@ onMounted(() => {
             class="d-flex ga-4 justify-md-start flex-wrap justify-center"
           >
             <v-btn
-              to="/search"
+              :to="localePath('/search')"
               color="primary"
               size="x-large"
               variant="elevated"
@@ -108,18 +111,18 @@ onMounted(() => {
               class="font-weight-bold px-8"
               elevation="8"
             >
-              Start Exploring
+              {{ t('home.startExploring') }}
             </v-btn>
 
             <v-btn
-              to="/play-slots"
+              :to="localePath('/play-slots')"
               size="x-large"
               variant="tonal"
               color="warning"
               prepend-icon="mdi-slot-machine"
               class="font-weight-bold px-8"
             >
-              Test Your Luck
+              {{ t('home.testYourLuck') }}
             </v-btn>
           </div>
         </v-col>

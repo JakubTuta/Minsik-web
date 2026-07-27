@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import { RARITY_ORDER } from '~/types/case'
 
 export const usePackStore = defineStore('pack', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language: userLanguage } = useUserLanguage()
@@ -44,7 +45,7 @@ export const usePackStore = defineStore('pack', () => {
       packData.value = response.data.data!
     }
     catch (err: any) {
-      error.value = err.response?.data?.message || err.response?.data?.detail || 'Failed to open pack'
+      error.value = err.response?.data?.message || err.response?.data?.detail || t('storeErrors.packOpenFailed')
       console.error('Pack open error:', err)
     }
     finally {

@@ -31,6 +31,8 @@ const emit = defineEmits<{
   removeSeriesAuthors: [authorIds: number[]]
 }>()
 
+const { t, n } = useI18n()
+
 const editDialogOpen = defineModel<boolean>('editDialogOpen', { default: false })
 const deleteDialogOpen = defineModel<boolean>('deleteDialogOpen', { default: false })
 
@@ -69,18 +71,22 @@ const seriesStats = computed(() => {
   const items: Array<{ icon: string, value: string | number, label: string }> = [
     {
       icon: 'mdi-book-multiple',
-      value: props.books.length > 0 ? props.books.length : (props.series.total_books ?? 0),
-      label: 'BOOKS',
+      value: props.books.length > 0
+        ? props.books.length
+        : (props.series.total_books ?? 0),
+      label: t('stats.books'),
     },
     {
       icon: 'mdi-book-open-page-variant',
-      value: totalPages.value.toLocaleString(),
-      label: 'PAGES',
+      value: n(totalPages.value),
+      label: t('book.pages'),
     },
     {
       icon: 'mdi-clock-outline',
-      value: seriesReadingTime.value ? `~${seriesReadingTime.value}` : '—',
-      label: 'READING TIME',
+      value: seriesReadingTime.value
+        ? `~${seriesReadingTime.value}`
+        : '—',
+      label: t('book.readingTime'),
     },
   ]
 
@@ -108,7 +114,7 @@ const seriesStats = computed(() => {
         <v-card-text class="d-flex flex-column h-100">
           <div>
             <div class="text-secondary text-h6 mb-1">
-              Book Series
+              {{ t('series.bookSeries') }}
             </div>
 
             <div class="d-flex align-center justify-space-between">
@@ -144,17 +150,17 @@ const seriesStats = computed(() => {
               v-if="authorsLine.length > 0"
               class="text-body-1 mt-2"
             >
-              by
+              {{ t('book.byAuthor') }}
               <template
                 v-for="(author, i) in authorsLine"
                 :key="author.author_id"
               >
-                <NuxtLink
+                <NuxtLinkLocale
                   :to="`/authors/${author.slug}`"
                   class="font-weight-bold text-primary text-decoration-none"
                 >
                   {{ author.name }}
-                </NuxtLink>
+                </NuxtLinkLocale>
 
                 <span v-if="i < authorsLine.length - 1">, </span>
               </template>
@@ -170,7 +176,7 @@ const seriesStats = computed(() => {
                 <div class="d-flex align-stretch">
                   <div class="d-flex flex-column align-center flex-1 pa-2 text-center">
                     <div class="text-caption text-secondary mb-1">
-                      Minsik readers
+                      {{ t('book.minsikReaders') }}
                     </div>
 
                     <div class="text-h4 font-weight-bold text-primary">
@@ -188,7 +194,7 @@ const seriesStats = computed(() => {
                     />
 
                     <div class="text-caption text-secondary mt-1">
-                      {{ (series.rating_count ?? 0).toLocaleString() }} ratings
+                      {{ t('stats.ratingsCountPlain', {"count": n(series.rating_count ?? 0)}) }}
                     </div>
                   </div>
 
@@ -196,7 +202,7 @@ const seriesStats = computed(() => {
 
                   <div class="d-flex flex-column align-center flex-1 pa-2 text-center">
                     <div class="text-caption text-secondary mb-1">
-                      Other platforms
+                      {{ t('book.otherPlatforms') }}
                     </div>
 
                     <div class="text-h4 font-weight-bold text-primary">
@@ -214,7 +220,7 @@ const seriesStats = computed(() => {
                     />
 
                     <div class="text-caption text-secondary mt-1">
-                      {{ (series.ol_rating_count ?? 0).toLocaleString() }} ratings
+                      {{ t('stats.ratingsCountPlain', {"count": n(series.ol_rating_count ?? 0)}) }}
                     </div>
                   </div>
                 </div>
@@ -244,7 +250,7 @@ const seriesStats = computed(() => {
     <ClientOnly>
       <AdminEditDialog
         v-model="editDialogOpen"
-        title="Edit Series"
+        :title="t('series.editSeries')"
         :fields="editFields"
         :original-data="editOriginalData"
         :authors="authorsLine"
@@ -259,10 +265,10 @@ const seriesStats = computed(() => {
         max-width="400"
       >
         <v-card>
-          <v-card-title>Delete Series?</v-card-title>
+          <v-card-title>{{ t('series.deleteConfirmTitle') }}</v-card-title>
 
           <v-card-text>
-            This action cannot be undone. Are you sure you want to delete "{{ series.name }}"?
+            {{ t('series.deleteConfirmBody', {"name": series.name}) }}
             <v-alert
               v-if="deleteError"
               type="error"
@@ -279,7 +285,7 @@ const seriesStats = computed(() => {
               variant="text"
               @click="deleteDialogOpen = false"
             >
-              Cancel
+              {{ t('common.cancel') }}
             </v-btn>
 
             <v-btn
@@ -288,7 +294,7 @@ const seriesStats = computed(() => {
               :loading="deleteLoading"
               @click="emit('deleteConfirm')"
             >
-              Delete
+              {{ t('common.delete') }}
             </v-btn>
           </v-card-actions>
         </v-card>

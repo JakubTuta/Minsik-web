@@ -12,6 +12,8 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
 })
 
+const localePath = useLocalePath()
+
 const { optimized } = useOptimizedImage()
 
 const bookLink = computed(() => (props.book
@@ -45,7 +47,7 @@ const seriesText = computed(() => {
 
 <template>
   <v-card
-    :to="bookLink"
+    :to="localePath(bookLink)"
     :loading="loading"
     hover
     class="book-card h-100"
@@ -79,12 +81,12 @@ const seriesText = computed(() => {
             v-for="(author, index) in book.authors"
             :key="author.slug"
           >
-            <NuxtLink
+            <NuxtLinkLocale
               class="author-link text-secondary"
               :to="`/authors/${author.slug}`"
             >
               {{ author.name }}
-            </NuxtLink>
+            </NuxtLinkLocale>
 
             <span
               v-if="index < book.authors.length - 1"

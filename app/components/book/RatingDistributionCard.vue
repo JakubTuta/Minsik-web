@@ -16,6 +16,8 @@ const emit = defineEmits<{
   'update:selectedStar': [value: number | null]
 }>()
 
+const { t, n } = useI18n()
+
 const roundedAvg = computed(() => Math.floor(props.avgRating * 2) / 2)
 
 function distributionCount(star: number): number {
@@ -63,7 +65,7 @@ function handleStarClick(star: number) {
       />
 
       <div class="text-body-2 text-secondary mt-1">
-        with {{ ratingCount.toLocaleString() }} ratings
+        {{ t('rating.withCount', {'count': n(ratingCount)}) }}
       </div>
     </v-col>
 
@@ -103,7 +105,7 @@ function handleStarClick(star: number) {
         <span
           class="text-body-2"
           style="min-width: 40px; text-align: right;"
-        >{{ distributionCount(star).toLocaleString() }}</span>
+        >{{ n(distributionCount(star)) }}</span>
 
         <span
           class="text-caption text-secondary"

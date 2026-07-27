@@ -1,12 +1,22 @@
 <script setup lang="ts">
+interface CategoryChip {
+  slug: string
+  name: string
+}
+
 interface Props {
-  categories: string[]
+  categories: CategoryChip[]
   maxVisible?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   maxVisible: 5,
 })
+
+const localePath = useLocalePath()
+
+const { t } = useI18n()
+const genreLabel = useGenreLabel()
 
 const expanded = ref(false)
 
@@ -23,18 +33,18 @@ const hasMore = computed(() => props.categories.length > props.maxVisible)
 <template>
   <div v-if="categories.length > 0">
     <div class="text-secondary mb-2">
-      Categories
+      {{ t('nav.categories') }}
     </div>
 
     <div class="d-flex flex-wrap gap-2">
       <v-chip
         v-for="category in visibleCategories"
-        :key="category"
+        :key="category.slug"
         size="small"
         variant="tonal"
-        :to="`/search?q=${encodeURIComponent(category)}&type=categories`"
+        :to="localePath(`/search?q=${encodeURIComponent(category.name)}&type=categories`)"
       >
-        {{ toTitleCase(category) }}
+        {{ genreLabel(category.slug) }}
       </v-chip>
 
       <v-chip

@@ -1,4 +1,7 @@
 import type { SitemapUrlInput } from '#sitemap/types'
+import { APP_LOCALES, DEFAULT_LOCALE } from '~~/locales.config'
+
+const SUPPORTED_LOCALES = new Set(APP_LOCALES.map(entry => entry.code))
 
 interface APIResponse<T> {
   success: boolean
@@ -62,18 +65,31 @@ async function fetchEntitySlugs(apiBase: string, entity: string): Promise<Sitema
       total = data.total_count
 
     for (const item of data.items) {
-      if (seen.has(item.slug))
-        continue
-      seen.add(item.slug)
-      // Non-English editions need ?lang= attached: a bare /books/{slug}
-      // resolves through the server's default-language fallback, which
-      // could serve a different edition's content to a crawler with no
-      // Accept-Language header for a slug that only exists in one language.
-      const langSuffix = entity === 'books' && item.language && item.language !== 'en'
-        ? `?lang=${item.language}`
+      // Each language edition lives at its own path: the default locale is
+      // unprefixed, every other configured locale is UI-locale-prefixed —
+      // matching the `prefix_except_default` i18n routing strategy, and
+      // matching how the book/author/series pages default their content
+      // language from the UI locale (see app/pages/books/[slug].vue).
+      //
+      // The catalogue holds editions in languages the app ships no locale for.
+      // Those have no prefixed route, so they are served at the unprefixed
+      // path; prefixing them anyway would fill the sitemap with 404s.
+      const localePrefix = item.language
+        && item.language !== DEFAULT_LOCALE
+        && SUPPORTED_LOCALES.has(item.language)
+        ? `/${item.language}`
         : ''
+      // Dedupe on the resulting URL, not the slug: two editions of one work
+      // often slugify identically, and whether that is a duplicate depends on
+      // the locale prefix. Same path (two unconfigured-locale editions) is one
+      // entry; `/books/x` and `/pl/books/x` are two distinct pages.
+      const loc = `${localePrefix}${prefix}${item.slug}`
+      if (seen.has(loc))
+        continue
+      seen.add(loc)
+
       urls.push({
-        loc: `${prefix}${item.slug}${langSuffix}`,
+        loc,
         ...(item.updated_at
           ? { lastmod: item.updated_at }
           : {}),

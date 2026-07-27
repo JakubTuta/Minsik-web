@@ -3,6 +3,7 @@ import type { UserStats } from '~/types/user'
 import { defineStore } from 'pinia'
 
 export const useDashboardStore = defineStore('dashboard', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const authStore = useAuthStore()
   const { client } = storeToRefs(apiStore)
@@ -32,7 +33,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
     catch (err) {
       console.error('Failed to fetch stats:', err)
-      error.value = 'Could not load your stats.'
+      error.value = t('storeErrors.dashboardStatsLoadFailed')
     }
     finally {
       isLoading.value = false
@@ -50,7 +51,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
     catch (err) {
       console.error('Failed to fetch public stats:', err)
-      publicError.value = 'Could not load stats for this user.'
+      publicError.value = t('storeErrors.publicStatsLoadFailed')
     }
     finally {
       publicIsLoading.value = false

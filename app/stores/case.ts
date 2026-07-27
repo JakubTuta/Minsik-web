@@ -3,6 +3,7 @@ import type { CasePhase, OpenCaseData } from '~/types/case'
 import { defineStore } from 'pinia'
 
 export const useCaseStore = defineStore('case', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language } = useUserLanguage()
@@ -26,7 +27,7 @@ export const useCaseStore = defineStore('case', () => {
       caseData.value = response.data.data!
     }
     catch (err: any) {
-      error.value = err.response?.data?.message || err.response?.data?.detail || 'Failed to open case'
+      error.value = err.response?.data?.message || err.response?.data?.detail || t('storeErrors.caseOpenFailed')
       console.error('Case open error:', err)
     }
     finally {

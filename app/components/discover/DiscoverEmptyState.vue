@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const emit = defineEmits<{ 'reset-filters': [] }>()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -17,11 +18,11 @@ const emit = defineEmits<{ 'reset-filters': [] }>()
     </v-icon>
 
     <h3 class="text-h5 font-weight-bold mb-3">
-      No Matching Books
+      {{ t('discover.noMatchingBooks') }}
     </h3>
 
     <p class="text-body-1 text-medium-emphasis mb-6">
-      We couldn't find any books matching your filters. Try adjusting your criteria to discover more books.
+      {{ t('discover.noMatchingBooksHint') }}
     </p>
 
     <v-btn
@@ -30,7 +31,7 @@ const emit = defineEmits<{ 'reset-filters': [] }>()
       prepend-icon="mdi-filter-remove"
       @click="emit('reset-filters')"
     >
-      Reset Filters
+      {{ t('discover.resetFilters') }}
     </v-btn>
   </v-card>
 </template>

@@ -23,6 +23,7 @@ interface Props {
   books: BookSummary[]
 }
 
+const { t } = useI18n()
 const theme = useTheme()
 
 const sortedBooks = computed(() => [...props.books].sort((a, b) => {
@@ -48,12 +49,14 @@ const minRating = computed(() => {
   const minVal = Math.min(...ratings.value)
   if (minVal === 0)
     return -0.2
+
   return Math.max(0, Math.floor((minVal - 0.4) * 10) / 10)
 })
 const maxRating = computed(() => {
   const maxVal = Math.max(...ratings.value)
   if (maxVal === 5)
     return 5.2
+
   return Math.min(5, Math.ceil((maxVal + 0.4) * 10) / 10)
 })
 
@@ -160,13 +163,13 @@ const seriesStats = computed<StatEntry[]>(() => {
   const last = books.at(-1)
 
   entries.push({
-    keyword: 'beginning',
+    keyword: t('series.evolution.beginning'),
     position: fmtPos(first),
     title: first.title,
     rating: ratingOf(first),
     comment: ratingOf(first) >= 3
-      ? 'strong start'
-      : 'tough start',
+      ? t('series.evolution.strongStart')
+      : t('series.evolution.toughStart'),
   })
 
   if (books.length > 2) {
@@ -178,11 +181,11 @@ const seriesStats = computed<StatEntry[]>(() => {
     if (peakIdx !== 0 && peakIdx !== books.length - 1) {
       const peak = books[peakIdx]
       entries.push({
-        keyword: 'peak',
+        keyword: t('series.evolution.peak'),
         position: fmtPos(peak),
         title: peak.title,
         rating: ratingOf(peak),
-        comment: 'best book in series',
+        comment: t('series.evolution.bestInSeries'),
       })
     }
   }
@@ -198,8 +201,8 @@ const seriesStats = computed<StatEntry[]>(() => {
       const rating = ratingOf(dip)
       entries.push({
         keyword: rating >= 3
-          ? 'dip'
-          : 'the pit',
+          ? t('series.evolution.dip')
+          : t('series.evolution.thePit'),
         position: fmtPos(dip),
         title: dip.title,
         rating,
@@ -209,13 +212,13 @@ const seriesStats = computed<StatEntry[]>(() => {
   }
 
   entries.push({
-    keyword: 'finale',
+    keyword: t('series.evolution.finale'),
     position: fmtPos(last),
     title: last.title,
     rating: ratingOf(last),
     comment: ratingOf(last) >= 3
-      ? 'sticks the landing'
-      : 'messes up the ending',
+      ? t('series.evolution.sticksLanding')
+      : t('series.evolution.messesEnding'),
   })
 
   const mean = ratings.value.reduce((s, r) => s + r, 0) / ratings.value.length
@@ -230,31 +233,31 @@ const seriesStats = computed<StatEntry[]>(() => {
 
   if (allUp) {
     trendIcon = 'mdi-trending-up'
-    trendComment = 'getting stronger with each book'
+    trendComment = t('series.evolution.gettingStronger')
   }
   else if (allDown) {
     trendIcon = 'mdi-trending-down'
-    trendComment = 'better in the beginning'
+    trendComment = t('series.evolution.betterAtStart')
   }
   else if (mean >= 4.3) {
     trendIcon = 'mdi-star'
-    trendComment = 'it\'s peak'
+    trendComment = t('series.evolution.itsPeak')
   }
   else if (mean <= 2) {
     trendIcon = 'mdi-emoticon-sad-outline'
-    trendComment = 'maybe series needed more care'
+    trendComment = t('series.evolution.neededMoreCare')
   }
   else if (signChanges >= 2) {
     trendIcon = 'mdi-chart-bell-curve-cumulative'
-    trendComment = 'it\'s a rollercoaster'
+    trendComment = t('series.evolution.rollercoaster')
   }
   else {
     trendIcon = 'mdi-chart-line'
-    trendComment = 'steady throughout'
+    trendComment = t('series.evolution.steadyThroughout')
   }
 
   entries.push({
-    keyword: 'overall',
+    keyword: t('series.evolution.overall'),
     position: '',
     title: '',
     rating: mean,
@@ -270,7 +273,7 @@ const seriesStats = computed<StatEntry[]>(() => {
   <v-card v-if="books.length >= 2">
     <v-card-text>
       <h2 class="text-h5 font-weight-bold mb-4">
-        How the series evolves
+        {{ t('series.evolutionTitle') }}
       </h2>
 
       <ClientOnly>

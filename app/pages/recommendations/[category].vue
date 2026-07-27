@@ -2,7 +2,9 @@
 import type { RecommendationAuthorItem, RecommendationBookItem } from '~/types/recommendations'
 
 const route = useRoute()
+const { t } = useI18n()
 const recommendationsStore = useRecommendationsStore()
+const recommendationTitle = useRecommendationTitle()
 
 const category = route.params.category as string
 
@@ -12,21 +14,25 @@ const { data: categoryData, error } = await useAsyncData(
   () => recommendationsStore.fetchCategoryRecommendations(category, 20, 0),
 )
 
+const pageTitle = computed(() => (categoryData.value
+  ? recommendationTitle(categoryData.value)
+  : t('recommendationsPage.title')))
+
 // SEO
 useSeo({
-  title: categoryData.value?.display_name ?? 'Recommendations',
-  description: `Browse the full ${categoryData.value?.display_name ?? 'recommendations'} list on Minsik.`,
+  title: pageTitle,
+  description: computed(() => t('recommendationsPage.description', { name: pageTitle.value })),
   image: '/og-image.jpg',
 })
 
 if (error.value || !categoryData.value) {
-  throw createError({ statusCode: 404, message: 'Category not found', fatal: true })
+  throw createError({ statusCode: 404, message: t('recommendationsPage.categoryNotFound'), fatal: true })
 }
 
 const isAuthorCategory = computed(() => categoryData.value?.item_type === 'author')
 const itemLabel = computed(() => (isAuthorCategory.value
-  ? 'authors'
-  : 'books'))
+  ? t('recommendationsPage.authorsLabel')
+  : t('recommendationsPage.booksLabel')))
 
 // Pagination
 const items = ref<(RecommendationBookItem | RecommendationAuthorItem)[]>(
@@ -69,7 +75,7 @@ async function loadMore() {
   <v-container class="py-6">
     <!-- Back navigation -->
     <div class="mb-6">
-      <NuxtLink
+      <NuxtLinkLocale
         to="/"
         class="text-decoration-none"
       >
@@ -79,19 +85,20 @@ async function loadMore() {
           prepend-icon="mdi-arrow-left"
           class="text-none"
         >
-          Back to Home
+          {{ t('recommendationsPage.backToHome') }}
         </v-btn>
-      </NuxtLink>
+      </NuxtLinkLocale>
     </div>
 
     <!-- Page header -->
     <div class="mb-6">
       <h1 class="text-h4 text-sm-h3 font-weight-bold mb-1">
-        {{ categoryData?.display_name }}
+        {{ pageTitle }}
       </h1>
 
       <p class="text-body-1 text-medium-emphasis">
-        {{ total }} {{ itemLabel }}
+        {{ t('recommendationsPage.itemCount', {"count": total,
+                                               "label": itemLabel}) }}
       </p>
     </div>
 
@@ -152,7 +159,7 @@ async function loadMore() {
         prepend-icon="mdi-refresh"
         @click="loadMore"
       >
-        Load more
+        {{ t('recommendationsPage.loadMore') }}
       </v-btn>
     </div>
 
@@ -166,7 +173,8 @@ async function loadMore() {
         class="mr-2"
       />
 
-      You've seen all {{ total }} {{ itemLabel }}
+      {{ t('recommendationsPage.seenAll', {"count": total,
+                                           "label": itemLabel}) }}
     </div>
   </v-container>
 </template>

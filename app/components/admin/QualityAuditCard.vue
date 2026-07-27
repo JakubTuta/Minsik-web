@@ -10,13 +10,15 @@ const props = withDefaults(defineProps<Props>(), {
   imageUrl: null,
 })
 
+const localePath = useLocalePath()
+
 const coverUrl = computed(() => props.imageUrl || undefined)
 const fallbackColor = computed(() => hashColor(props.title))
 </script>
 
 <template>
   <v-card
-    :to="to"
+    :to="localePath(to)"
     hover
     class="quality-audit-card d-flex flex-column h-100"
   >

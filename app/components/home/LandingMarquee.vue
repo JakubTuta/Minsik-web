@@ -1,20 +1,23 @@
 <script setup lang="ts">
 import gsap from 'gsap'
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
 const themeStore = useThemeStore()
 
 const trackRef = ref<HTMLElement | null>(null)
 
-const items = [
-  { text: '700,000+ Books', icon: 'mdi-book-multiple', to: '/search' },
-  { text: '70,00+ Authors', icon: 'mdi-account-group', to: '/search' },
-  { text: 'Personalized Discovery', icon: 'mdi-brain', to: '/discover' },
-  { text: 'Track Your Bookshelf', icon: 'mdi-bookshelf', to: '/bookshelf' },
-  { text: 'Unbox Mystery Cases', icon: 'mdi-treasure-chest', to: '/open-case' },
-  { text: 'Play Book Slots', icon: 'mdi-slot-machine', to: '/play-slots' },
-  { text: 'Open a Pack', icon: 'mdi-cards-outline', to: '/open-pack' },
-  { text: 'Join the Community', icon: 'mdi-account-group-outline', to: '/dashboard' },
-]
+const items = computed(() => [
+  { text: t('home.marqueeBooks'), icon: 'mdi-book-multiple', to: '/search' },
+  { text: t('home.marqueeAuthors'), icon: 'mdi-account-group', to: '/search' },
+  { text: t('home.marqueePersonalized'), icon: 'mdi-brain', to: '/discover' },
+  { text: t('home.marqueeTrack'), icon: 'mdi-bookshelf', to: '/bookshelf' },
+  { text: t('home.marqueeUnbox'), icon: 'mdi-treasure-chest', to: '/open-case' },
+  { text: t('home.marqueeSlots'), icon: 'mdi-slot-machine', to: '/play-slots' },
+  { text: t('home.marqueePack'), icon: 'mdi-cards-outline', to: '/open-pack' },
+  { text: t('home.marqueeCommunity'), icon: 'mdi-account-group-outline', to: '/dashboard' },
+])
 
 onMounted(() => {
   if (trackRef.value) {
@@ -45,7 +48,7 @@ onMounted(() => {
         class="marquee-item d-flex align-center px-4"
       >
         <v-btn
-          :to="item.to"
+          :to="localePath(item.to)"
           :variant="themeStore.isDark
             ? `tonal`
             : `elevated`"

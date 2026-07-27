@@ -1,6 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'admin' })
-useSeo({ title: 'Admin Panel', description: 'Admin panel for managing book ingestion.' })
+const { t, n } = useI18n()
+useSeo({ title: t('adminPage.title'), description: t('adminPage.seoDescription') })
 
 const adminStore = useAdminStore()
 
@@ -83,11 +84,11 @@ onMounted(() => {
 
       <div>
         <h1 class="text-h4">
-          Admin Panel
+          {{ t('adminPage.title') }}
         </h1>
 
         <p class="text-secondary mb-0">
-          Manage book ingestion and database operations
+          {{ t('adminPage.subtitle') }}
         </p>
       </div>
     </div>
@@ -96,11 +97,11 @@ onMounted(() => {
       v-model="currentTab"
       class="mb-6"
     >
-      <v-tab>Coverage</v-tab>
+      <v-tab>{{ t('adminPage.tabCoverage') }}</v-tab>
 
-      <v-tab>Import Dump</v-tab>
+      <v-tab>{{ t('adminPage.tabImportDump') }}</v-tab>
 
-      <v-tab>Scheduled Jobs</v-tab>
+      <v-tab>{{ t('adminPage.tabScheduledJobs') }}</v-tab>
     </v-tabs>
 
     <v-window v-model="currentTab">
@@ -109,7 +110,7 @@ onMounted(() => {
         <v-card class="pa-6">
           <div class="d-flex justify-space-between align-center mb-4">
             <h2 class="text-h6">
-              Database Coverage
+              {{ t('adminPage.databaseCoverage') }}
             </h2>
 
             <v-btn
@@ -143,11 +144,11 @@ onMounted(() => {
                   class="h-100 pa-4 text-center"
                 >
                   <div class="text-h4 font-weight-bold">
-                    {{ adminStore.coverage.db_books_count.toLocaleString() }}
+                    {{ n(adminStore.coverage.db_books_count) }}
                   </div>
 
                   <div class="text-secondary">
-                    Books in Database
+                    {{ t('adminPage.booksInDatabase') }}
                   </div>
                 </v-card>
               </v-col>
@@ -163,11 +164,11 @@ onMounted(() => {
                   class="h-100 pa-4 text-center"
                 >
                   <div class="text-h4 font-weight-bold">
-                    {{ adminStore.coverage.db_authors_count.toLocaleString() }}
+                    {{ n(adminStore.coverage.db_authors_count) }}
                   </div>
 
                   <div class="text-secondary">
-                    Authors
+                    {{ t('adminPage.authorsLabel') }}
                   </div>
                 </v-card>
               </v-col>
@@ -183,11 +184,11 @@ onMounted(() => {
                   class="h-100 pa-4 text-center"
                 >
                   <div class="text-h4 font-weight-bold">
-                    {{ adminStore.coverage.db_series_count.toLocaleString() }}
+                    {{ n(adminStore.coverage.db_series_count) }}
                   </div>
 
                   <div class="text-secondary">
-                    Series
+                    {{ t('adminPage.seriesLabel') }}
                   </div>
                 </v-card>
               </v-col>
@@ -207,7 +208,7 @@ onMounted(() => {
                     label
                     size="small"
                   >
-                    Cached
+                    {{ t('adminPage.cached') }}
                   </v-chip>
                 </v-card>
               </v-col>
@@ -235,7 +236,7 @@ onMounted(() => {
               v-else
               class="text-secondary"
             >
-              No coverage data available
+              {{ t('adminPage.noCoverageData') }}
             </p>
           </div>
         </v-card>
@@ -245,7 +246,7 @@ onMounted(() => {
       <v-window-item :key="1">
         <v-card class="pa-6">
           <h2 class="text-h6 mb-4">
-            Import Open Library Data Dump
+            {{ t('adminPage.importTitle') }}
           </h2>
 
           <v-alert
@@ -253,7 +254,7 @@ onMounted(() => {
             variant="tonal"
             class="mb-4"
           >
-            Trigger an import of Open Library's monthly data dump. This is a heavy operation that runs asynchronously in the background. Check service logs for detailed progress.
+            {{ t('adminPage.importInfo') }}
           </v-alert>
 
           <v-alert
@@ -261,14 +262,14 @@ onMounted(() => {
             variant="tonal"
             class="mb-6"
           >
-            ⚠️ This operation can take a long time to complete. It runs in the background and does not block the API.
+            {{ t('adminPage.importWarning') }}
           </v-alert>
 
           <v-btn
             color="primary"
             @click="importConfirmDialog = true"
           >
-            Start Dump Import
+            {{ t('adminPage.startDumpImport') }}
           </v-btn>
 
           <div
@@ -278,7 +279,7 @@ onMounted(() => {
             <v-divider class="mb-4" />
 
             <h3 class="text-subtitle-1 font-weight-bold mb-3">
-              Result
+              {{ t('adminPage.result') }}
             </h3>
 
             <v-chip
@@ -317,7 +318,7 @@ onMounted(() => {
           <v-col cols="12">
             <v-card class="pa-6">
               <h2 class="text-h6 mb-4">
-                Data Cleansing
+                {{ t('adminPage.cleansingTitle') }}
               </h2>
 
               <v-alert
@@ -325,7 +326,7 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Runs a full cleanup cycle: removes low-quality books, orphan authors, underrepresented series, orphan genres, and genres with invalid names.
+                {{ t('adminPage.cleansingInfo') }}
               </v-alert>
 
               <v-alert
@@ -333,7 +334,7 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-6"
               >
-                ⚠️ This operation permanently deletes data and may take several minutes. It runs in the background.
+                {{ t('adminPage.cleansingWarning') }}
               </v-alert>
 
               <v-btn
@@ -341,7 +342,7 @@ onMounted(() => {
                 :loading="adminStore.isCleanupLoading"
                 @click="cleanupConfirmDialog = true"
               >
-                Run Data Cleansing
+                {{ t('adminPage.runDataCleansing') }}
               </v-btn>
 
               <div
@@ -351,7 +352,7 @@ onMounted(() => {
                 <v-divider class="mb-4" />
 
                 <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                  Result
+                  {{ t('adminPage.result') }}
                 </h3>
 
                 <v-chip
@@ -389,7 +390,7 @@ onMounted(() => {
           <v-col cols="12">
             <v-card class="pa-6">
               <h2 class="text-h6 mb-4">
-                Full Elasticsearch Reindex
+                {{ t('adminPage.reindexTitle') }}
               </h2>
 
               <v-alert
@@ -397,7 +398,7 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Rebuilds all three Elasticsearch indexes (books, authors, series) from scratch. Useful after large data imports or index corruption.
+                {{ t('adminPage.reindexInfo') }}
               </v-alert>
 
               <v-alert
@@ -405,7 +406,7 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-6"
               >
-                ⚠️ This is a heavy operation that may take a long time. Search quality may be slightly degraded while indexing runs in the background.
+                {{ t('adminPage.reindexWarning') }}
               </v-alert>
 
               <v-btn
@@ -413,7 +414,7 @@ onMounted(() => {
                 :loading="adminStore.isReindexLoading"
                 @click="reindexConfirmDialog = true"
               >
-                Run Full Reindex
+                {{ t('adminPage.runFullReindex') }}
               </v-btn>
 
               <div
@@ -423,7 +424,7 @@ onMounted(() => {
                 <v-divider class="mb-4" />
 
                 <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                  Result
+                  {{ t('adminPage.result') }}
                 </h3>
 
                 <v-chip
@@ -461,7 +462,7 @@ onMounted(() => {
           <v-col cols="12">
             <v-card class="pa-6">
               <h2 class="text-h6 mb-4">
-                Rebuild Home Recommendations
+                {{ t('adminPage.rebuildHomeRecs') }}
               </h2>
 
               <v-alert
@@ -469,7 +470,14 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Flushes <code>rec:{category}</code> Redis keys for each home category, then re-runs the home recommendation list builder (24h TTL).
+                <i18n-t
+                  keypath="adminPage.homeRecsInfo"
+                  tag="span"
+                >
+                  <template #code>
+                    <code>rec:{category}</code>
+                  </template>
+                </i18n-t>
               </v-alert>
 
               <v-alert
@@ -477,7 +485,7 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-6"
               >
-                ⚠️ Synchronous operation. May take several seconds. Home recommendations will be briefly unavailable until rebuild completes.
+                {{ t('adminPage.homeRecsWarning') }}
               </v-alert>
 
               <v-btn
@@ -485,7 +493,7 @@ onMounted(() => {
                 :loading="adminStore.isRecommendationsRefreshLoading"
                 @click="recommendationsRefreshConfirmDialog = true"
               >
-                Flush Cache & Rebuild
+                {{ t('adminPage.flushCacheRebuild') }}
               </v-btn>
 
               <div
@@ -495,7 +503,7 @@ onMounted(() => {
                 <v-divider class="mb-4" />
 
                 <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                  Result
+                  {{ t('adminPage.result') }}
                 </h3>
 
                 <v-chip
@@ -506,8 +514,8 @@ onMounted(() => {
                   class="mb-3"
                 >
                   {{ adminStore.recommendationsRefreshResult.success
-                    ? 'success'
-                    : 'failed' }}
+                    ? t('adminPage.statusSuccess')
+                    : t('adminPage.statusFailed') }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -533,7 +541,7 @@ onMounted(() => {
           <v-col cols="12">
             <v-card class="pa-6">
               <h2 class="text-h6 mb-4">
-                Rebuild Personal Recommendations
+                {{ t('adminPage.rebuildPersonalRecs') }}
               </h2>
 
               <v-alert
@@ -541,9 +549,18 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Flushes <code>rec:profile:*</code>
+                <i18n-t
+                  keypath="adminPage.personalRecsInfo"
+                  tag="span"
+                >
+                  <template #code1>
+                    <code>rec:profile:*</code>
+                  </template>
 
-                and <code>rec:personal:*</code> Redis keys, then re-runs personal refresher for active users.
+                  <template #code2>
+                    <code>rec:personal:*</code>
+                  </template>
+                </i18n-t>
               </v-alert>
 
               <v-alert
@@ -551,7 +568,7 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-6"
               >
-                ⚠️ Synchronous operation. Personal recommendations briefly unavailable until rebuild completes.
+                {{ t('adminPage.personalRecsWarning') }}
               </v-alert>
 
               <v-btn
@@ -559,7 +576,7 @@ onMounted(() => {
                 :loading="adminStore.isPersonalRecommendationsRefreshLoading"
                 @click="personalRecommendationsRefreshConfirmDialog = true"
               >
-                Flush & Rebuild
+                {{ t('adminPage.flushRebuild') }}
               </v-btn>
 
               <div
@@ -569,7 +586,7 @@ onMounted(() => {
                 <v-divider class="mb-4" />
 
                 <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                  Result
+                  {{ t('adminPage.result') }}
                 </h3>
 
                 <v-chip
@@ -580,8 +597,8 @@ onMounted(() => {
                   class="mb-3"
                 >
                   {{ adminStore.personalRecommendationsRefreshResult.success
-                    ? 'success'
-                    : 'failed' }}
+                    ? t('adminPage.statusSuccess')
+                    : t('adminPage.statusFailed') }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -604,7 +621,7 @@ onMounted(() => {
               <v-divider class="my-6" />
 
               <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                Refresh For Specific User
+                {{ t('adminPage.refreshForUser') }}
               </h3>
 
               <v-alert
@@ -612,13 +629,13 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Flushes and rebuilds only the listed user's personal recommendation cache (profile, personal home, personal book/author sections).
+                {{ t('adminPage.refreshForUserInfo') }}
               </v-alert>
 
               <div class="d-flex gap-3 align-start">
                 <v-text-field
                   v-model="userPersonalRefreshUsername"
-                  label="User nickname"
+                  :label="t('adminPage.userNickname')"
                   density="comfortable"
                   variant="outlined"
                   hide-details
@@ -633,7 +650,7 @@ onMounted(() => {
                   :loading="adminStore.isUserPersonalRecommendationsRefreshLoading"
                   @click="userPersonalRecommendationsRefreshConfirmDialog = true"
                 >
-                  Flush & Rebuild
+                  {{ t('adminPage.flushRebuild') }}
                 </v-btn>
               </div>
 
@@ -649,8 +666,8 @@ onMounted(() => {
                   class="mb-3"
                 >
                   {{ adminStore.userPersonalRecommendationsRefreshResult.success
-                    ? 'success'
-                    : 'failed' }}
+                    ? t('adminPage.statusSuccess')
+                    : t('adminPage.statusFailed') }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -676,7 +693,7 @@ onMounted(() => {
           <v-col cols="12">
             <v-card class="pa-6">
               <h2 class="text-h6 mb-4">
-                Rebuild Contextual Recommendations
+                {{ t('adminPage.rebuildContextualRecs') }}
               </h2>
 
               <v-alert
@@ -684,11 +701,22 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Flushes <code>rec:book:*</code>
+                <i18n-t
+                  keypath="adminPage.contextualRecsInfo"
+                  tag="span"
+                >
+                  <template #code1>
+                    <code>rec:book:*</code>
+                  </template>
 
-                , <code>rec:author:*</code>
+                  <template #code2>
+                    <code>rec:author:*</code>
+                  </template>
 
-                , and <code>rec:series:*</code> Redis keys, then re-runs the contextual precompute job.
+                  <template #code3>
+                    <code>rec:series:*</code>
+                  </template>
+                </i18n-t>
               </v-alert>
 
               <v-alert
@@ -696,7 +724,7 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-6"
               >
-                ⚠️ Synchronous operation. Contextual recommendations briefly unavailable until rebuild completes.
+                {{ t('adminPage.contextualRecsWarning') }}
               </v-alert>
 
               <v-btn
@@ -704,7 +732,7 @@ onMounted(() => {
                 :loading="adminStore.isContextualRecommendationsRefreshLoading"
                 @click="contextualRecommendationsRefreshConfirmDialog = true"
               >
-                Flush & Rebuild
+                {{ t('adminPage.flushRebuild') }}
               </v-btn>
 
               <div
@@ -714,7 +742,7 @@ onMounted(() => {
                 <v-divider class="mb-4" />
 
                 <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                  Result
+                  {{ t('adminPage.result') }}
                 </h3>
 
                 <v-chip
@@ -725,8 +753,8 @@ onMounted(() => {
                   class="mb-3"
                 >
                   {{ adminStore.contextualRecommendationsRefreshResult.success
-                    ? 'success'
-                    : 'failed' }}
+                    ? t('adminPage.statusSuccess')
+                    : t('adminPage.statusFailed') }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -749,7 +777,7 @@ onMounted(() => {
               <v-divider class="my-6" />
 
               <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                Invalidate Single Entity By Slug
+                {{ t('adminPage.invalidateEntityTitle') }}
               </h3>
 
               <v-alert
@@ -757,7 +785,14 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Deletes the cached <code>rec:{type}:{id}</code> key for one book, author, or series. Cache will be lazily rebuilt on the next request.
+                <i18n-t
+                  keypath="adminPage.invalidateEntityInfo"
+                  tag="span"
+                >
+                  <template #code>
+                    <code>rec:{type}:{id}</code>
+                  </template>
+                </i18n-t>
               </v-alert>
 
               <div class="d-flex flex-wrap gap-3 align-start">
@@ -768,7 +803,7 @@ onMounted(() => {
                     'author',
                     'series',
                   ]"
-                  label="Entity type"
+                  :label="t('adminPage.entityType')"
                   density="comfortable"
                   variant="outlined"
                   hide-details
@@ -777,7 +812,7 @@ onMounted(() => {
 
                 <v-text-field
                   v-model="contextualInvalidateSlug"
-                  label="Slug"
+                  :label="t('adminPage.slug')"
                   density="comfortable"
                   variant="outlined"
                   hide-details
@@ -792,7 +827,7 @@ onMounted(() => {
                   :loading="adminStore.isContextualInvalidateLoading"
                   @click="contextualInvalidateConfirmDialog = true"
                 >
-                  Invalidate
+                  {{ t('adminPage.invalidate') }}
                 </v-btn>
               </div>
 
@@ -808,8 +843,8 @@ onMounted(() => {
                   class="mb-3"
                 >
                   {{ adminStore.contextualInvalidateResult.success
-                    ? 'success'
-                    : 'failed' }}
+                    ? t('adminPage.statusSuccess')
+                    : t('adminPage.statusFailed') }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -835,7 +870,7 @@ onMounted(() => {
           <v-col cols="12">
             <v-card class="pa-6">
               <h2 class="text-h6 mb-4">
-                Refresh Book of the Week
+                {{ t('adminPage.rebuildBookOfTheWeek') }}
               </h2>
 
               <v-alert
@@ -843,7 +878,14 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-4"
               >
-                Deletes the <code>bow:current</code> Redis key, then re-runs the selection logic and caches the new pick (7d TTL).
+                <i18n-t
+                  keypath="adminPage.bowInfo"
+                  tag="span"
+                >
+                  <template #code>
+                    <code>bow:current</code>
+                  </template>
+                </i18n-t>
               </v-alert>
 
               <v-alert
@@ -851,7 +893,7 @@ onMounted(() => {
                 variant="tonal"
                 class="mb-6"
               >
-                ⚠️ Synchronous operation. Book of the week will be briefly unavailable until re-selection completes.
+                {{ t('adminPage.bowWarning') }}
               </v-alert>
 
               <v-btn
@@ -859,7 +901,7 @@ onMounted(() => {
                 :loading="adminStore.isBookOfTheWeekRefreshLoading"
                 @click="bookOfTheWeekRefreshConfirmDialog = true"
               >
-                Flush & Re-select
+                {{ t('adminPage.flushReselect') }}
               </v-btn>
 
               <div
@@ -869,7 +911,7 @@ onMounted(() => {
                 <v-divider class="mb-4" />
 
                 <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                  Result
+                  {{ t('adminPage.result') }}
                 </h3>
 
                 <v-chip
@@ -880,8 +922,8 @@ onMounted(() => {
                   class="mb-3"
                 >
                   {{ adminStore.bookOfTheWeekRefreshResult.success
-                    ? 'success'
-                    : 'failed' }}
+                    ? t('adminPage.statusSuccess')
+                    : t('adminPage.statusFailed') }}
                 </v-chip>
 
                 <p class="text-body-2 mt-3">
@@ -913,16 +955,16 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Dump Import?
+          {{ t('adminPage.confirmDumpImportTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will start importing Open Library's monthly data dump asynchronously in the background.
+            {{ t('adminPage.confirmDumpImportBody1') }}
           </div>
 
           <div>
-            The import process is heavy and may take several hours to complete. Check service logs for progress.
+            {{ t('adminPage.confirmDumpImportBody2') }}
           </div>
         </v-card-text>
 
@@ -934,7 +976,7 @@ onMounted(() => {
             :disabled="adminStore.isImportLoading"
             @click="importConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -943,7 +985,7 @@ onMounted(() => {
             :loading="adminStore.isImportLoading"
             @click="confirmImportDump"
           >
-            Confirm Import
+            {{ t('adminPage.confirmImport') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -956,16 +998,16 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Data Cleansing?
+          {{ t('adminPage.confirmCleanupTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will permanently delete low-quality books, orphan authors, underrepresented series, and invalid genres from the database.
+            {{ t('adminPage.confirmCleanupBody1') }}
           </div>
 
           <div>
-            This action cannot be undone. Check service logs for progress.
+            {{ t('adminPage.confirmCleanupBody2') }}
           </div>
         </v-card-text>
 
@@ -977,7 +1019,7 @@ onMounted(() => {
             :disabled="adminStore.isCleanupLoading"
             @click="cleanupConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -986,7 +1028,7 @@ onMounted(() => {
             :loading="adminStore.isCleanupLoading"
             @click="confirmCleanup"
           >
-            Confirm Cleanup
+            {{ t('adminPage.confirmCleanupBtn') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -999,16 +1041,16 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Full Reindex?
+          {{ t('adminPage.confirmReindexTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will rebuild all Elasticsearch indexes from scratch. The process is heavy and runs in the background.
+            {{ t('adminPage.confirmReindexBody1') }}
           </div>
 
           <div>
-            Search quality may be slightly degraded while indexing is in progress. Check service logs for progress.
+            {{ t('adminPage.confirmReindexBody2') }}
           </div>
         </v-card-text>
 
@@ -1020,7 +1062,7 @@ onMounted(() => {
             :disabled="adminStore.isReindexLoading"
             @click="reindexConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -1029,7 +1071,7 @@ onMounted(() => {
             :loading="adminStore.isReindexLoading"
             @click="confirmReindex"
           >
-            Confirm Reindex
+            {{ t('adminPage.confirmReindexBtn') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1042,16 +1084,16 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Cache Rebuild?
+          {{ t('adminPage.confirmCacheRebuildTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will flush all recommendation Redis keys, then rebuild home recommendation lists and the book of the week synchronously.
+            {{ t('adminPage.confirmCacheRebuildBody1') }}
           </div>
 
           <div>
-            Recommendations will be briefly unavailable until the rebuild completes.
+            {{ t('adminPage.confirmCacheRebuildBody2') }}
           </div>
         </v-card-text>
 
@@ -1063,7 +1105,7 @@ onMounted(() => {
             :disabled="adminStore.isRecommendationsRefreshLoading"
             @click="recommendationsRefreshConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -1072,7 +1114,7 @@ onMounted(() => {
             :loading="adminStore.isRecommendationsRefreshLoading"
             @click="confirmRecommendationsRefresh"
           >
-            Confirm Rebuild
+            {{ t('adminPage.confirmRebuild') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1085,16 +1127,16 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Personal Rebuild?
+          {{ t('adminPage.confirmPersonalRebuildTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will delete all cached personal taste profiles and personal recommendation lists, then rebuild them for active users.
+            {{ t('adminPage.confirmPersonalRebuildBody1') }}
           </div>
 
           <div>
-            Personal recommendations will be briefly unavailable until the rebuild completes.
+            {{ t('adminPage.confirmPersonalRebuildBody2') }}
           </div>
         </v-card-text>
 
@@ -1106,7 +1148,7 @@ onMounted(() => {
             :disabled="adminStore.isPersonalRecommendationsRefreshLoading"
             @click="personalRecommendationsRefreshConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -1115,7 +1157,7 @@ onMounted(() => {
             :loading="adminStore.isPersonalRecommendationsRefreshLoading"
             @click="confirmPersonalRecommendationsRefresh"
           >
-            Confirm Rebuild
+            {{ t('adminPage.confirmRebuild') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1128,18 +1170,18 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Per-User Rebuild?
+          {{ t('adminPage.confirmPerUserRebuildTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will flush cached personal recommendations for user
+            {{ t('adminPage.confirmPerUserRebuildBody1Prefix') }}
             <strong>{{ userPersonalRefreshUsername.trim() }}</strong>
-            and rebuild them synchronously.
+            {{ t('adminPage.confirmPerUserRebuildBody1Suffix') }}
           </div>
 
           <div>
-            That user's personal recommendations will be briefly unavailable until the rebuild completes.
+            {{ t('adminPage.confirmPerUserRebuildBody2') }}
           </div>
         </v-card-text>
 
@@ -1151,7 +1193,7 @@ onMounted(() => {
             :disabled="adminStore.isUserPersonalRecommendationsRefreshLoading"
             @click="userPersonalRecommendationsRefreshConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -1160,7 +1202,7 @@ onMounted(() => {
             :loading="adminStore.isUserPersonalRecommendationsRefreshLoading"
             @click="confirmUserPersonalRecommendationsRefresh"
           >
-            Confirm Rebuild
+            {{ t('adminPage.confirmRebuild') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1173,16 +1215,16 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Contextual Rebuild?
+          {{ t('adminPage.confirmContextualRebuildTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will delete all cached book, author, and series contextual recommendations, then re-run the contextual precompute job.
+            {{ t('adminPage.confirmContextualRebuildBody1') }}
           </div>
 
           <div>
-            Contextual recommendations will be briefly unavailable until the rebuild completes.
+            {{ t('adminPage.confirmContextualRebuildBody2') }}
           </div>
         </v-card-text>
 
@@ -1194,7 +1236,7 @@ onMounted(() => {
             :disabled="adminStore.isContextualRecommendationsRefreshLoading"
             @click="contextualRecommendationsRefreshConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -1203,7 +1245,7 @@ onMounted(() => {
             :loading="adminStore.isContextualRecommendationsRefreshLoading"
             @click="confirmContextualRecommendationsRefresh"
           >
-            Confirm Rebuild
+            {{ t('adminPage.confirmRebuild') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1216,19 +1258,19 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Invalidate?
+          {{ t('adminPage.confirmInvalidateTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will delete the cached contextual recommendations for
+            {{ t('adminPage.confirmInvalidateBody1Prefix') }}
             <strong>{{ contextualInvalidateEntityType }}</strong>
-            with slug
+            {{ t('adminPage.confirmInvalidateBody1Middle') }}
             <strong>{{ contextualInvalidateSlug.trim() }}</strong>.
           </div>
 
           <div>
-            The cache will be lazily rebuilt on the next request for this entity.
+            {{ t('adminPage.confirmInvalidateBody2') }}
           </div>
         </v-card-text>
 
@@ -1240,7 +1282,7 @@ onMounted(() => {
             :disabled="adminStore.isContextualInvalidateLoading"
             @click="contextualInvalidateConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -1249,7 +1291,7 @@ onMounted(() => {
             :loading="adminStore.isContextualInvalidateLoading"
             @click="confirmContextualInvalidate"
           >
-            Confirm Invalidate
+            {{ t('adminPage.confirmInvalidateBtn') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1262,16 +1304,16 @@ onMounted(() => {
     >
       <v-card>
         <v-card-title class="text-warning">
-          Confirm Book of the Week Refresh?
+          {{ t('adminPage.confirmBowRefreshTitle') }}
         </v-card-title>
 
         <v-card-text class="text-body-2">
           <div class="mb-2">
-            This will delete the cached book of the week and re-run selection synchronously.
+            {{ t('adminPage.confirmBowRefreshBody1') }}
           </div>
 
           <div>
-            Book of the week will be briefly unavailable until re-selection completes.
+            {{ t('adminPage.confirmBowRefreshBody2') }}
           </div>
         </v-card-text>
 
@@ -1283,7 +1325,7 @@ onMounted(() => {
             :disabled="adminStore.isBookOfTheWeekRefreshLoading"
             @click="bookOfTheWeekRefreshConfirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -1292,7 +1334,7 @@ onMounted(() => {
             :loading="adminStore.isBookOfTheWeekRefreshLoading"
             @click="confirmBookOfTheWeekRefresh"
           >
-            Confirm Refresh
+            {{ t('adminPage.confirmRefresh') }}
           </v-btn>
         </v-card-actions>
       </v-card>

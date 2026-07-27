@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 const CACHE_TTL_MS = 5 * 60 * 1000
 
 export const useYearInReviewStore = defineStore('yearInReview', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 
@@ -32,7 +33,7 @@ export const useYearInReviewStore = defineStore('yearInReview', () => {
     }
     catch (err) {
       console.error('Failed to fetch year in review:', err)
-      error.value = 'Could not load your year in review.'
+      error.value = t('storeErrors.yearInReviewLoadFailed')
     }
     finally {
       isLoading.value = false

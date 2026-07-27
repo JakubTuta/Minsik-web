@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import type { RatingEntry } from '~/types/user'
-import { RATING_DIMENSIONS } from '~/utils/ratingDimensions'
 
 const props = defineProps<{
   entry: RatingEntry
 }>()
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
 const ratingsStore = useRatingsStore()
+const { dimensions: ratingDimensions } = useRatingDimensions()
 
 const editDialogOpen = ref(false)
 const deleteConfirmOpen = ref(false)
 const deleting = ref(false)
 
 const subRatings = computed(() =>
-  RATING_DIMENSIONS
+  ratingDimensions.value
     .map(dim => ({
       ...dim,
       value: props.entry[dim.key as keyof RatingEntry] as number | null | undefined,
@@ -51,7 +54,7 @@ async function handleDelete() {
       <span
         v-if="entry.review_text"
         class="text-caption text-medium-emphasis"
-      >With review</span>
+      >{{ t('rating.withReview') }}</span>
     </template>
 
     <template #meta>
@@ -61,7 +64,7 @@ async function handleDelete() {
         style="width: 140px;"
       >
         <div class="text-caption text-medium-emphasis font-weight-bold text-uppercase">
-          Your Rating
+          {{ t('rating.yourRating') }}
         </div>
 
         <div class="d-flex align-center gap-1">
@@ -83,7 +86,7 @@ async function handleDelete() {
         style="width: 140px;"
       >
         <div class="text-caption text-medium-emphasis font-weight-bold text-uppercase">
-          Community avg
+          {{ t('rating.communityAvg') }}
         </div>
 
         <div
@@ -120,7 +123,7 @@ async function handleDelete() {
         icon="mdi-open-in-new"
         size="small"
         variant="text"
-        :to="`/books/${entry.book_slug}`"
+        :to="localePath(`/books/${entry.book_slug}`)"
         :as="NuxtLink"
       />
 
@@ -180,11 +183,11 @@ async function handleDelete() {
   >
     <v-card>
       <v-card-title class="text-h6">
-        Delete rating?
+        {{ t('rating.deleteConfirmTitle') }}
       </v-card-title>
 
       <v-card-text>
-        Your rating for "{{ entry.book_title }}" will be permanently deleted.
+        {{ t('rating.deleteConfirmBody', {'title': entry.book_title}) }}
       </v-card-text>
 
       <v-card-actions>
@@ -194,7 +197,7 @@ async function handleDelete() {
           variant="text"
           @click="deleteConfirmOpen = false"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -203,7 +206,7 @@ async function handleDelete() {
           :loading="deleting"
           @click="handleDelete"
         >
-          Delete
+          {{ t('common.delete') }}
         </v-btn>
       </v-card-actions>
     </v-card>

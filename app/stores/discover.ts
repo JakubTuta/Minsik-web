@@ -3,6 +3,7 @@ import type { BookLength, DiscoverBookData, DiscoverBookFilters, DiscoverPhase, 
 import { defineStore } from 'pinia'
 
 export const useDiscoverStore = defineStore('discover', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language } = useUserLanguage()
@@ -78,7 +79,7 @@ export const useDiscoverStore = defineStore('discover', () => {
       phase.value = 'revealing'
     }
     catch (err: any) {
-      error.value = err.response?.data?.message || err.response?.data?.detail || 'Failed to discover a book'
+      error.value = err.response?.data?.message || err.response?.data?.detail || t('storeErrors.discoverFailed')
       phase.value = 'filtering'
     }
     finally {

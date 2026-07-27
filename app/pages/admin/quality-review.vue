@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { AuditAuthorItem, AuditBookItem, AuditSeriesItem } from '~/types/admin'
 
+const localePath = useLocalePath()
+
 definePageMeta({ middleware: 'admin' })
-useSeo({ title: 'Data Quality Review', description: 'Review low-quality books, authors, and series flagged for manual cleanup.' })
+const { t } = useI18n()
+useSeo({ title: t('qualityReviewPage.title'), description: t('qualityReviewPage.seoDescription') })
 
 const BOOK_AUTHORS_CEILING = 20
 const BOOK_GENRES_CEILING = 30
@@ -58,23 +61,23 @@ function formatIssue(issue: string) {
 
 function bookChips(book: AuditBookItem) {
   return [
-    `authors: ${book.author_count}`,
-    `genres: ${book.genre_count}`,
+    `${t('qualityReviewPage.authors')}: ${book.author_count}`,
+    `${t('qualityReviewPage.genres')}: ${book.genre_count}`,
     ...book.issues.map(formatIssue),
   ]
 }
 
 function authorChips(author: AuditAuthorItem) {
   return [
-    `books: ${author.book_count}`,
+    `${t('stats.books')}: ${author.book_count}`,
     ...author.issues.map(formatIssue),
   ]
 }
 
 function seriesChips(series: AuditSeriesItem) {
   return [
-    `books: ${series.book_count}`,
-    `total: ${series.total_books}`,
+    `${t('stats.books')}: ${series.book_count}`,
+    `${t('qualityReviewPage.total')}: ${series.total_books}`,
     ...series.issues.map(formatIssue),
   ]
 }
@@ -126,11 +129,11 @@ function fetchSeries() {
 
       <div>
         <h1 class="text-h4">
-          Data Quality Review
+          {{ t('qualityReviewPage.title') }}
         </h1>
 
         <p class="text-secondary mb-0">
-          Sliders restrict every result to the selected range. Each check narrows the sample further, so only the boxes you tick are applied
+          {{ t('qualityReviewPage.hint') }}
         </p>
       </div>
     </div>
@@ -138,7 +141,7 @@ function fetchSeries() {
     <!-- Books -->
     <v-card class="mb-6 pa-6">
       <h2 class="text-h6 mb-4">
-        Books
+        {{ t('stats.books') }}
       </h2>
 
       <v-row dense>
@@ -149,7 +152,7 @@ function fetchSeries() {
           <v-text-field
             v-model.number="bookFilters.limit"
             type="number"
-            label="Limit"
+            :label="t('qualityReviewPage.limit')"
             density="compact"
             min="1"
             max="100"
@@ -162,7 +165,7 @@ function fetchSeries() {
         >
           <v-text-field
             v-model="bookFilters.language"
-            label="Language (optional)"
+            :label="t('qualityReviewPage.languageOptional')"
             density="compact"
             placeholder="en"
           />
@@ -176,7 +179,7 @@ function fetchSeries() {
         >
           <v-range-slider
             v-model="bookFilters.authorRange"
-            :label="rangeLabel('Authors', bookFilters.authorRange, BOOK_AUTHORS_CEILING)"
+            :label="rangeLabel(t('qualityReviewPage.authors'), bookFilters.authorRange, BOOK_AUTHORS_CEILING)"
             :min="0"
             :max="BOOK_AUTHORS_CEILING"
             :step="1"
@@ -191,7 +194,7 @@ function fetchSeries() {
         >
           <v-range-slider
             v-model="bookFilters.genreRange"
-            :label="rangeLabel('Genres', bookFilters.genreRange, BOOK_GENRES_CEILING)"
+            :label="rangeLabel(t('qualityReviewPage.genres'), bookFilters.genreRange, BOOK_GENRES_CEILING)"
             :min="0"
             :max="BOOK_GENRES_CEILING"
             :step="1"
@@ -209,7 +212,7 @@ function fetchSeries() {
         >
           <v-checkbox
             v-model="bookFilters.checkMissingDescription"
-            label="Missing description"
+            :label="t('qualityReviewPage.missingDescription')"
             density="compact"
             hide-details
           />
@@ -222,7 +225,7 @@ function fetchSeries() {
         >
           <v-checkbox
             v-model="bookFilters.checkMissingCover"
-            label="Missing cover"
+            :label="t('qualityReviewPage.missingCover')"
             density="compact"
             hide-details
           />
@@ -235,7 +238,7 @@ function fetchSeries() {
         >
           <v-checkbox
             v-model="bookFilters.checkImplausibleYear"
-            label="Implausible year"
+            :label="t('qualityReviewPage.implausibleYear')"
             density="compact"
             hide-details
           />
@@ -248,7 +251,7 @@ function fetchSeries() {
         >
           <v-checkbox
             v-model="bookFilters.checkSuspiciousTitle"
-            label="Suspicious title"
+            :label="t('qualityReviewPage.suspiciousTitle')"
             density="compact"
             hide-details
           />
@@ -261,7 +264,7 @@ function fetchSeries() {
         class="mb-4 mt-4"
         @click="fetchBooks"
       >
-        Fetch low-quality books
+        {{ t('qualityReviewPage.fetchBooks') }}
       </v-btn>
 
       <v-progress-linear
@@ -289,7 +292,7 @@ function fetchSeries() {
           lg="3"
         >
           <QualityAuditCard
-            :to="`/books/${book.slug}`"
+            :to="localePath(`/books/${book.slug}`)"
             :title="book.title"
             :image-url="book.primary_cover_url"
             :chips="bookChips(book)"
@@ -301,14 +304,14 @@ function fetchSeries() {
         v-else-if="!qualityStore.isBooksLoading && !qualityStore.errors.books"
         class="text-secondary"
       >
-        No results yet. Adjust filters and fetch.
+        {{ t('qualityReviewPage.noResultsYet') }}
       </p>
     </v-card>
 
     <!-- Authors -->
     <v-card class="mb-6 pa-6">
       <h2 class="text-h6 mb-4">
-        Authors
+        {{ t('qualityReviewPage.authorsHeading') }}
       </h2>
 
       <v-row dense>
@@ -319,7 +322,7 @@ function fetchSeries() {
           <v-text-field
             v-model.number="authorFilters.limit"
             type="number"
-            label="Limit"
+            :label="t('qualityReviewPage.limit')"
             density="compact"
             min="1"
             max="100"
@@ -332,7 +335,7 @@ function fetchSeries() {
         >
           <v-range-slider
             v-model="authorFilters.bookRange"
-            :label="rangeLabel('Books', authorFilters.bookRange, AUTHOR_BOOKS_CEILING)"
+            :label="rangeLabel(t('stats.books'), authorFilters.bookRange, AUTHOR_BOOKS_CEILING)"
             :min="0"
             :max="AUTHOR_BOOKS_CEILING"
             :step="1"
@@ -350,7 +353,7 @@ function fetchSeries() {
         >
           <v-checkbox
             v-model="authorFilters.checkMissingBio"
-            label="Missing bio"
+            :label="t('qualityReviewPage.missingBio')"
             density="compact"
             hide-details
           />
@@ -363,7 +366,7 @@ function fetchSeries() {
         >
           <v-checkbox
             v-model="authorFilters.checkJunkName"
-            label="Junk name"
+            :label="t('qualityReviewPage.junkName')"
             density="compact"
             hide-details
           />
@@ -376,7 +379,7 @@ function fetchSeries() {
         class="mb-4 mt-4"
         @click="fetchAuthors"
       >
-        Fetch low-quality authors
+        {{ t('qualityReviewPage.fetchAuthors') }}
       </v-btn>
 
       <v-progress-linear
@@ -404,7 +407,7 @@ function fetchSeries() {
           lg="3"
         >
           <QualityAuditCard
-            :to="`/authors/${author.slug}`"
+            :to="localePath(`/authors/${author.slug}`)"
             :title="author.name"
             :chips="authorChips(author)"
           />
@@ -415,14 +418,14 @@ function fetchSeries() {
         v-else-if="!qualityStore.isAuthorsLoading && !qualityStore.errors.authors"
         class="text-secondary"
       >
-        No results yet. Adjust filters and fetch.
+        {{ t('qualityReviewPage.noResultsYet') }}
       </p>
     </v-card>
 
     <!-- Series -->
     <v-card class="pa-6">
       <h2 class="text-h6 mb-4">
-        Series
+        {{ t('qualityReviewPage.seriesHeading') }}
       </h2>
 
       <v-row dense>
@@ -433,7 +436,7 @@ function fetchSeries() {
           <v-text-field
             v-model.number="seriesFilters.limit"
             type="number"
-            label="Limit"
+            :label="t('qualityReviewPage.limit')"
             density="compact"
             min="1"
             max="100"
@@ -446,7 +449,7 @@ function fetchSeries() {
         >
           <v-text-field
             v-model="seriesFilters.language"
-            label="Language (optional)"
+            :label="t('qualityReviewPage.languageOptional')"
             density="compact"
             placeholder="en"
           />
@@ -458,7 +461,7 @@ function fetchSeries() {
         >
           <v-range-slider
             v-model="seriesFilters.bookRange"
-            :label="rangeLabel('Books', seriesFilters.bookRange, SERIES_BOOKS_CEILING)"
+            :label="rangeLabel(t('stats.books'), seriesFilters.bookRange, SERIES_BOOKS_CEILING)"
             :min="0"
             :max="SERIES_BOOKS_CEILING"
             :step="1"
@@ -476,7 +479,7 @@ function fetchSeries() {
         >
           <v-checkbox
             v-model="seriesFilters.checkMissingDescription"
-            label="Missing description"
+            :label="t('qualityReviewPage.missingDescription')"
             density="compact"
             hide-details
           />
@@ -489,7 +492,7 @@ function fetchSeries() {
         >
           <v-checkbox
             v-model="seriesFilters.checkCountDrift"
-            label="Book count drift"
+            :label="t('qualityReviewPage.bookCountDrift')"
             density="compact"
             hide-details
           />
@@ -502,7 +505,7 @@ function fetchSeries() {
         class="mb-4 mt-4"
         @click="fetchSeries"
       >
-        Fetch low-quality series
+        {{ t('qualityReviewPage.fetchSeries') }}
       </v-btn>
 
       <v-progress-linear
@@ -530,7 +533,7 @@ function fetchSeries() {
           lg="3"
         >
           <QualityAuditCard
-            :to="`/series/${s.slug}`"
+            :to="localePath(`/series/${s.slug}`)"
             :title="s.name"
             :chips="seriesChips(s)"
           />
@@ -541,7 +544,7 @@ function fetchSeries() {
         v-else-if="!qualityStore.isSeriesLoading && !qualityStore.errors.series"
         class="text-secondary"
       >
-        No results yet. Adjust filters and fetch.
+        {{ t('qualityReviewPage.noResultsYet') }}
       </p>
     </v-card>
   </v-container>

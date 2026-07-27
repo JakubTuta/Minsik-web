@@ -5,6 +5,8 @@ const props = defineProps<{
   entry: FavouriteEntry
 }>()
 
+const localePath = useLocalePath()
+
 const favouritesStore = useFavouritesStore()
 
 async function remove() {
@@ -47,7 +49,7 @@ async function remove() {
         icon="mdi-open-in-new"
         size="small"
         variant="text"
-        :to="`/books/${entry.book_slug}`"
+        :to="localePath(`/books/${entry.book_slug}`)"
         :as="NuxtLink"
       />
     </template>

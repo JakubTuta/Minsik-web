@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const toastStore = useToastStore()
 </script>
 
@@ -20,6 +21,7 @@ const toastStore = useToastStore()
         variant="text"
         icon="mdi-close"
         size="small"
+        :aria-label="t('common.dismiss')"
         @click="toastStore.dismiss(message.id)"
       />
     </template>

@@ -3,10 +3,11 @@ import type { RecommendationSection } from '~/types/recommendations'
 
 const recommendationsStore = useRecommendationsStore()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 // SEO
 useSeo({
-  description: 'Discover your next favorite book through curated recommendations, emotional reading profiles, and a passionate reading community.',
+  description: t('home.seoDescription'),
 })
 
 const { data: categories, error } = await useAsyncData(
@@ -54,14 +55,14 @@ if (import.meta.client) {
 
       <div class="mb-10 mt-16 text-center">
         <h2 class="text-h3 font-weight-bold mb-4">
-          Trending Now
+          {{ t('home.trendingNow') }}
         </h2>
 
         <p
           class="text-h6 text-medium-emphasis mx-auto"
           style="max-width: 600px;"
         >
-          See what the community is discovering this week.
+          {{ t('home.trendingNowSubtitle') }}
         </p>
       </div>
 
@@ -87,7 +88,7 @@ if (import.meta.client) {
         icon="mdi-alert-circle-outline"
         class="mb-6"
       >
-        Recommendations are not available right now. Please try again later.
+        {{ t('home.recommendationsUnavailable') }}
       </v-alert>
 
       <RecommendationRowSkeleton

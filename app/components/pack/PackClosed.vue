@@ -12,6 +12,8 @@ const emit = defineEmits<{
   open: []
 }>()
 
+const { t } = useI18n()
+
 const packRef = ref<HTMLElement | null>(null)
 
 watch(() => props.opening, (val) => {
@@ -190,14 +192,14 @@ watch(() => props.opening, (val) => {
       <div class="pack-logo-wrap">
         <img
           src="/favicon.svg"
-          alt="Minsik"
+          :alt="t('app.name')"
           class="pack-logo"
           width="56"
           height="56"
           draggable="false"
         >
 
-        <span class="pack-logo-text">Minsik</span>
+        <span class="pack-logo-text">{{ t('app.name') }}</span>
       </div>
     </div>
 
@@ -206,11 +208,11 @@ watch(() => props.opening, (val) => {
       :class="{'opacity-0': opening}"
     >
       <div class="text-h6 font-weight-bold text-medium-emphasis">
-        Open a Book Pack
+        {{ t('pack.openABookPack') }}
       </div>
 
       <div class="text-body-2 text-medium-emphasis mt-1">
-        Click to reveal 8 random books
+        {{ t('pack.clickToReveal') }}
       </div>
     </div>
   </div>

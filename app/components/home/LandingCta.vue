@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
 const ctaRef = ref<HTMLElement | null>(null)
 useScrollReveal(ctaRef, { stagger: 0.1, y: 40 })
 </script>
@@ -26,35 +29,35 @@ useScrollReveal(ctaRef, { stagger: 0.1, y: 40 })
           />
 
           <h2 class="text-h3 font-weight-black mb-6">
-            Ready to build your ultimate bookshelf?
+            {{ t('home.ctaTitle') }}
           </h2>
 
           <p
             class="text-h6 text-medium-emphasis mx-auto mb-10"
             style="max-width: 600px;"
           >
-            Join thousands of readers who have gamified their reading journey. Discover, track, and collect books like never before.
+            {{ t('home.ctaSubtitle') }}
           </p>
 
           <div class="d-flex ga-4 flex-wrap justify-center">
             <v-btn
-              to="/dashboard"
+              :to="localePath('/dashboard')"
               color="primary"
               size="x-large"
               variant="elevated"
               class="font-weight-bold px-10"
               elevation="8"
             >
-              Sign Up Free
+              {{ t('home.signUpFree') }}
             </v-btn>
 
             <v-btn
-              to="/discover"
+              :to="localePath('/discover')"
               size="x-large"
               variant="tonal"
               class="font-weight-bold px-8"
             >
-              Explore First
+              {{ t('home.exploreFirst') }}
             </v-btn>
           </div>
         </v-col>

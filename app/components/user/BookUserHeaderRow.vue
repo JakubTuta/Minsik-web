@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { useDisplay } from 'vuetify'
 
-withDefaults(defineProps<{
+const props = defineProps<{
   isPublicProfile?: boolean
   secondaryLabel?: string
-}>(), {
-  secondaryLabel: 'Status',
-})
+}>()
 
+const { t } = useI18n()
 const { mobile } = useDisplay()
+
+const resolvedSecondaryLabel = computed(() => props.secondaryLabel ?? t('bookUser.status'))
 </script>
 
 <template>
@@ -21,11 +22,11 @@ const { mobile } = useDisplay()
     <div style="width: 72px; flex-shrink: 0;" />
 
     <div class="flex-grow-1 pl-3">
-      Book
+      {{ t('bookUser.book') }}
     </div>
 
     <div style="width: 160px; flex-shrink: 0;">
-      {{ secondaryLabel }}
+      {{ resolvedSecondaryLabel }}
     </div>
 
     <slot name="metaHeaders" />
@@ -33,7 +34,7 @@ const { mobile } = useDisplay()
     <div
       style="width: 120px; flex-shrink: 0; text-align: right;"
     >
-      Actions
+      {{ t('bookUser.actions') }}
     </div>
   </div>
 </template>

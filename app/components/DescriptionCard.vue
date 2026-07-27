@@ -9,11 +9,12 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   description: null,
-  emptyMessage: 'There is no description yet, we will add it soon.',
   collapsible: false,
   maxLines: 5,
   hideCard: false,
 })
+
+const { t } = useI18n()
 
 const expanded = ref(false)
 const contentRef = ref<HTMLElement | null>(null)
@@ -29,7 +30,7 @@ onMounted(() => {
   <v-card v-if="!hideCard">
     <v-card-text>
       <h2 class="text-h5 font-weight-bold mb-4">
-        Description
+        {{ t('common.description') }}
       </h2>
 
       <p
@@ -47,7 +48,7 @@ onMounted(() => {
         v-else
         class="text-body-1 font-italic"
       >
-        {{ emptyMessage }}
+        {{ emptyMessage ?? t('common.noDescription') }}
       </p>
 
       <v-btn
@@ -59,8 +60,8 @@ onMounted(() => {
         @click="expanded = !expanded"
       >
         {{ expanded
-          ? 'Show less'
-          : 'Show more' }}
+          ? t('common.showLess')
+          : t('common.showMore') }}
       </v-btn>
     </v-card-text>
   </v-card>
@@ -78,10 +79,10 @@ onMounted(() => {
     </p>
 
     <p
-      v-else-if="emptyMessage"
+      v-else
       class="text-body-1 text-medium-emphasis font-italic"
     >
-      {{ emptyMessage }}
+      {{ emptyMessage ?? t('common.noDescription') }}
     </p>
 
     <v-btn
@@ -93,8 +94,8 @@ onMounted(() => {
       @click="expanded = !expanded"
     >
       {{ expanded
-        ? 'Show less'
-        : 'Show more' }}
+        ? t('common.showLess')
+        : t('common.showMore') }}
     </v-btn>
   </div>
 </template>

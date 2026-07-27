@@ -3,6 +3,7 @@ import type { APIResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useAdminQualityStore = defineStore('adminQuality', () => {
+  const { t, te } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 
@@ -41,7 +42,7 @@ export const useAdminQualityStore = defineStore('adminQuality', () => {
     }
     catch (error: any) {
       console.error('Failed to fetch low-quality books:', error)
-      errors.value.books = error.response?.data?.error?.message || 'Failed to load low-quality books'
+      errors.value.books = apiErrorMessage(error, t, te, 'storeErrors.adminQualityBooksLoadFailed')
     }
     finally {
       isBooksLoading.value = false
@@ -68,7 +69,7 @@ export const useAdminQualityStore = defineStore('adminQuality', () => {
     }
     catch (error: any) {
       console.error('Failed to fetch low-quality authors:', error)
-      errors.value.authors = error.response?.data?.error?.message || 'Failed to load low-quality authors'
+      errors.value.authors = apiErrorMessage(error, t, te, 'storeErrors.adminQualityAuthorsLoadFailed')
     }
     finally {
       isAuthorsLoading.value = false
@@ -96,7 +97,7 @@ export const useAdminQualityStore = defineStore('adminQuality', () => {
     }
     catch (error: any) {
       console.error('Failed to fetch low-quality series:', error)
-      errors.value.series = error.response?.data?.error?.message || 'Failed to load low-quality series'
+      errors.value.series = apiErrorMessage(error, t, te, 'storeErrors.adminQualitySeriesLoadFailed')
     }
     finally {
       isSeriesLoading.value = false

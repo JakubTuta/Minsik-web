@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import type { Rarity } from '~/types/case'
-import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
+import { RARITY_COLORS } from '~/types/case'
+
+const { t } = useI18n()
 
 useSeoMeta({
-  title: 'Open a Pack - Minsik',
-  description: 'Open a book pack and discover 8 random books across all rarity tiers.',
+  title: t('pack.seoTitle'),
+  description: t('pack.seoDescription'),
 })
 
 const packStore = usePackStore()
 const { preloadImages } = useImagePreloader()
+const { rarityLabels } = useRarityLabels()
 
 const rarityTiers: { rarity: Rarity, range: string, probability: string }[] = [
   { rarity: 'legendary', range: '> 4.75', probability: '~1.5%' },
@@ -86,7 +89,7 @@ onUnmounted(() => {
         >
           <div class="rarity-tooltip pa-1">
             <div class="text-subtitle-2 font-weight-bold mb-2">
-              Rarity Tiers
+              {{ t('caseGame.rarityTiers') }}
             </div>
 
             <div
@@ -102,7 +105,7 @@ onUnmounted(() => {
               <span
                 class="font-weight-medium"
                 :style="{'color': RARITY_COLORS[tier.rarity]}"
-              >{{ RARITY_LABELS[tier.rarity] }}</span>
+              >{{ rarityLabels[tier.rarity] }}</span>
 
               <span class="text-medium-emphasis text-caption">({{ tier.range }})</span>
 
@@ -150,11 +153,11 @@ onUnmounted(() => {
       >
         <div class="mb-6 text-center">
           <h2 class="text-h4 font-weight-bold">
-            Your books
+            {{ t('pack.yourBooks') }}
           </h2>
 
           <p class="text-body-2 text-medium-emphasis mt-1">
-            Click each card to reveal
+            {{ t('pack.clickEachCard') }}
           </p>
         </div>
 
@@ -180,7 +183,7 @@ onUnmounted(() => {
           variant="text"
           @click="packStore.reset()"
         >
-          Close
+          {{ t('common.close') }}
         </v-btn>
       </template>
     </v-snackbar>

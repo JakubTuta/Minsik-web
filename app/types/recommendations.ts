@@ -52,7 +52,10 @@ export interface RecommendationAuthorItem {
 
 export interface RecommendationSection {
   key: string
+  /** English fallback title — prefer useRecommendationTitle() for a translated one. */
   display_name: string
+  /** Interpolation values for `recSections.{key}` (e.g. {author: "..."}). Empty for static titles. */
+  title_params: Record<string, string>
   item_type: 'book' | 'author'
   book_items: RecommendationBookItem[] | null
   author_items: RecommendationAuthorItem[] | null

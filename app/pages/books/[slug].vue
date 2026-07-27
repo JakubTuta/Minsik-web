@@ -2,6 +2,15 @@
 import type { EditFieldConfig } from '~/types/admin'
 import type { Author, BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
+import { APP_LOCALES, DEFAULT_LOCALE } from '~~/locales.config'
+
+// Each language edition has its own slug (see get_language_variants), so
+// switching editions navigates to a different slug under this same route —
+// force a remount when the slug param changes so the page's fetches don't
+// keep serving the previous edition's data.
+definePageMeta({
+  key: route => route.params.slug as string,
+})
 
 const route = useRoute()
 const booksStore = useBooksStore()
@@ -11,15 +20,21 @@ const bookPageStore = useBookPageStore()
 const authStore = useAuthStore()
 const adminStore = useAdminStore()
 const recommendationsStore = useRecommendationsStore()
+const { t } = useI18n()
+const { language: uiLanguage } = useUserLanguage()
 
 const slug = route.params.slug as string
 
+// `?lang=` overrides which edition to show (e.g. from a hreflang variant
+// link that already names its own language); absent that, the edition
+// follows the UI locale so a reader on /pl/... gets the Polish edition by
+// default without needing the query param.
 function resolvedLang(): string {
   const q = route.query.lang
 
   return typeof q === 'string' && /^[a-z]{2,10}$/i.test(q)
     ? q.toLowerCase()
-    : 'en'
+    : uiLanguage.value
 }
 
 const lang = ref(resolvedLang())
@@ -50,25 +65,42 @@ const { data: langVariantsData } = useLazyAsyncData(
 if (error.value || !book.value) {
   throw createError({
     statusCode: 404,
-    message: 'Book not found',
+    message: t('bookPage.notFound'),
     fatal: true,
   })
 }
 
-// SEO — non-English editions live at ?lang=xx, so their canonical must include the query.
-// Built from the SERVED language (book.value.language), not the requested one: when the
-// backend falls back to a different edition than requested, the canonical/hreflang must
-// describe what's actually on the page, not what was asked for.
+// SEO — each language edition of a book has its own slug, so a translation lives at
+// its own locale-prefixed path, not a `?lang=` query on the default-locale one. Built
+// from the SERVED language (book.value.language), not the requested one: when the
+// backend falls back to a different edition than requested, the canonical/hreflang
+// must describe what's actually on the page, not what was asked for.
+const localePath = useLocalePath()
+const supportedLocales = new Set(APP_LOCALES.map(entry => entry.code))
+
+/**
+ * The catalogue holds editions in far more languages than the app ships
+ * locales for, and the backend serves one of those rather than 404ing when no
+ * edition matches. Such an edition has no locale-prefixed route of its own, so
+ * it is rendered at the default locale's URL. Asking `localePath` for an
+ * unconfigured locale returns an empty string, which would otherwise
+ * canonicalise every one of those books to the site root.
+ */
+function localizedBookPath(bookSlug: string, language: string): string {
+  const locale = supportedLocales.has(language)
+    ? language
+    : DEFAULT_LOCALE
+
+  return localePath({ name: 'books-slug', params: { slug: bookSlug } }, locale)
+}
+
 const config = useRuntimeConfig()
-const baseUrl = `${config.public.siteUrl}/books/${slug}`
 const servedLang = book.value.language || lang.value
-const canonicalUrl = servedLang === 'en'
-  ? baseUrl
-  : `${baseUrl}?lang=${servedLang}`
+const canonicalUrl = `${config.public.siteUrl}${localizedBookPath(slug, servedLang)}`
 
 useSeo({
   title: book.value.title,
-  description: book.value.description || `${book.value.title} by ${book.value.authors.map(a => a.name).join(', ')}`,
+  description: book.value.description || t('bookPage.seoDescriptionFallback', { title: book.value.title, authors: book.value.authors.map(a => a.name).join(', ') }),
   image: book.value.primary_cover_url || undefined,
   type: 'book',
   url: canonicalUrl,
@@ -93,36 +125,68 @@ useBookStructuredData({
 })
 
 useBreadcrumbStructuredData([
-  { name: 'Home', url: config.public.siteUrl as string },
+  { name: t('nav.home'), url: `${config.public.siteUrl}${localePath('index')}` },
   ...(book.value.authors[0]
-    ? [{ name: book.value.authors[0].name, url: `${config.public.siteUrl}/authors/${book.value.authors[0].slug}` }]
+    ? [{ name: book.value.authors[0].name, url: `${config.public.siteUrl}${localePath({ name: 'authors-slug', params: { slug: book.value.authors[0].slug } })}` }]
     : []),
   { name: book.value.title },
 ])
 
-// hreflang — point search engines at other language editions (?lang=xx variants)
+// hreflang — point search engines at other language editions, each at its own slug/path
 function variantHref(variantSlug: string, language: string): string {
-  return language === 'en'
-    ? `${config.public.siteUrl}/books/${variantSlug}`
-    : `${config.public.siteUrl}/books/${variantSlug}?lang=${language}`
+  return `${config.public.siteUrl}${localizedBookPath(variantSlug, language)}`
 }
 
 useHead(() => {
   const variants = langVariantsData.value ?? []
   const selfLang = book.value?.language || lang.value
-  const links = [
-    { rel: 'alternate', hreflang: selfLang, href: canonicalUrl },
+
+  // Only editions the app has a locale for get advertised: an edition in an
+  // unconfigured language has no URL that renders it in that language, so a
+  // hreflang pointing at it would be a promise the site cannot keep. Such a
+  // book simply has no alternates — it stays indexable through its canonical.
+  const editions = [
+    ...(supportedLocales.has(selfLang)
+      ? [{ language: selfLang, href: canonicalUrl }]
+      : []),
     ...variants
-      .filter(v => v.language !== selfLang)
-      .map(v => ({
-        rel: 'alternate',
-        hreflang: v.language,
-        href: variantHref(v.slug, v.language),
-      })),
-    { rel: 'alternate', hreflang: 'x-default', href: baseUrl },
+      .filter(v => v.language !== selfLang && supportedLocales.has(v.language))
+      .map(v => ({ language: v.language, href: variantHref(v.slug, v.language) })),
   ]
 
-  return { link: links }
+  if (editions.length === 0)
+    return {}
+
+  // Every edition of a work sees the same cluster (its own language plus the
+  // variants endpoint's "all the others"), so x-default has to resolve to the
+  // same URL from all of them — a cluster whose members disagree on x-default
+  // is a hreflang error, not a preference. The default locale's edition is
+  // that shared answer; sorting by code keeps the pick identical for a work
+  // that has no default-locale edition at all.
+  const orderedByCode = [...editions].sort((a, b) => a.language.localeCompare(b.language))
+  const xDefault = editions.find(e => e.language === DEFAULT_LOCALE) ?? orderedByCode[0]!
+
+  // `useLocaleHead()` in app.vue also emits alternates, and for books they are
+  // wrong: it swaps the locale prefix while keeping the current slug, but every
+  // edition has its own slug, so it points `pl-PL` at /pl/<english-slug>. Those
+  // tags carry the id `i18n-alt-<language tag>`, so re-emitting the same ids
+  // here makes unhead replace them with the edition's real URL rather than
+  // leaving both versions in the head.
+  const regionTagged = editions.flatMap((edition) => {
+    const locale = APP_LOCALES.find(entry => entry.code === edition.language)
+
+    return locale
+      ? [{ id: `i18n-alt-${locale.language}`, rel: 'alternate', hreflang: locale.language, href: edition.href }]
+      : []
+  })
+
+  return {
+    link: [
+      ...editions.map(e => ({ rel: 'alternate', hreflang: e.language, href: e.href })),
+      ...regionTagged,
+      { id: 'i18n-xd', rel: 'alternate', hreflang: 'x-default', href: xDefault.href },
+    ],
+  }
 })
 
 const { data: primaryAuthor } = useLazyAsyncData<Author | null>(
@@ -192,24 +256,24 @@ const deleteDialogOpen = ref(false)
 const deleteError = ref('')
 const removeAuthorError = ref('')
 
-const bookEditFields: EditFieldConfig[] = [
-  { key: 'title', label: 'Title', type: 'text' },
-  { key: 'slug', label: 'Slug', type: 'text' },
-  { key: 'description', label: 'Description', type: 'textarea' },
-  { key: 'first_sentence', label: 'First Sentence', type: 'textarea' },
-  { key: 'language', label: 'Language', type: 'text' },
-  { key: 'original_publication_year', label: 'Publication Year', type: 'number' },
-  { key: 'publisher', label: 'Publisher', type: 'text' },
-  { key: 'number_of_pages', label: 'Number of Pages', type: 'number' },
-  { key: 'primary_cover_url', label: 'Cover URL', type: 'text' },
-  { key: 'isbn', label: 'ISBN', type: 'array' },
-  { key: 'formats', label: 'Formats', type: 'array' },
-  { key: 'open_library_id', label: 'Open Library ID', type: 'text' },
-  { key: 'google_books_id', label: 'Google Books ID', type: 'text' },
-  { key: 'series_id', label: 'Series ID', type: 'number' },
-  { key: 'series_position', label: 'Series Position', type: 'number' },
-  { key: 'external_ids', label: 'External IDs', type: 'json' },
-]
+const bookEditFields = computed<EditFieldConfig[]>(() => [
+  { key: 'title', label: t('bookPage.fieldTitle'), type: 'text' },
+  { key: 'slug', label: t('common.fieldSlug'), type: 'text' },
+  { key: 'description', label: t('common.description'), type: 'textarea' },
+  { key: 'first_sentence', label: t('bookPage.fieldFirstSentence'), type: 'textarea' },
+  { key: 'language', label: t('stats.language'), type: 'text' },
+  { key: 'original_publication_year', label: t('bookPage.fieldPublicationYear'), type: 'number' },
+  { key: 'publisher', label: t('bookPage.fieldPublisher'), type: 'text' },
+  { key: 'number_of_pages', label: t('bookPage.fieldNumberOfPages'), type: 'number' },
+  { key: 'primary_cover_url', label: t('bookPage.fieldCoverUrl'), type: 'text' },
+  { key: 'isbn', label: t('book.isbn'), type: 'array' },
+  { key: 'formats', label: t('book.editions'), type: 'array' },
+  { key: 'open_library_id', label: t('common.fieldOpenLibraryId'), type: 'text' },
+  { key: 'google_books_id', label: t('bookPage.fieldGoogleBooksId'), type: 'text' },
+  { key: 'series_id', label: t('bookPage.fieldSeriesId'), type: 'number' },
+  { key: 'series_position', label: t('bookPage.fieldSeriesPosition'), type: 'number' },
+  { key: 'external_ids', label: t('bookPage.fieldExternalIds'), type: 'json' },
+])
 
 const bookEditOriginalData = computed(() => ({
   title: book.value?.title ?? null,
@@ -239,7 +303,7 @@ async function handleRemoveAuthors(authorIds: number[]) {
   )
   const failed = results.find(r => !r.success)
   if (failed) {
-    removeAuthorError.value = (failed as any).error || 'Remove failed'
+    removeAuthorError.value = (failed as any).error || t('seriesPage.removeFailed')
 
     return
   }
@@ -251,10 +315,10 @@ async function handleBookDelete() {
   const result = await adminStore.deleteBook(book.value!.book_id)
   if (result.success) {
     deleteDialogOpen.value = false
-    await navigateTo('/')
+    await navigateTo(localePath('index'))
   }
   else {
-    deleteError.value = (result as any).error || 'Delete failed'
+    deleteError.value = (result as any).error || t('admin.deleteFailed')
   }
 }
 
@@ -268,11 +332,11 @@ async function handleBookEditSave(editedData: Record<string, any>) {
       : slug
     await booksStore.fetchBook(newSlug, lang.value, true)
     if (newSlug !== slug) {
-      await navigateTo(`/books/${newSlug}`)
+      await navigateTo(localePath({ name: 'books-slug', params: { slug: newSlug } }))
     }
   }
   else {
-    editError.value = (result as any).error || 'Update failed'
+    editError.value = (result as any).error || t('admin.updateFailed')
   }
 }
 
@@ -351,7 +415,7 @@ onUnmounted(() => {
               color="secondary"
               @click="editDialogOpen = true"
             >
-              Edit Book
+              {{ t('bookPage.editBook') }}
             </v-btn>
 
             <v-btn
@@ -361,13 +425,13 @@ onUnmounted(() => {
               color="error"
               @click="deleteDialogOpen = true"
             >
-              Delete Book
+              {{ t('bookPage.deleteBook') }}
             </v-btn>
           </div>
 
           <AdminEditDialog
             v-model="editDialogOpen"
-            title="Edit Book"
+            :title="t('bookPage.editBook')"
             :fields="bookEditFields"
             :original-data="bookEditOriginalData"
             :authors="book.authors"
@@ -382,10 +446,10 @@ onUnmounted(() => {
             max-width="400"
           >
             <v-card>
-              <v-card-title>Delete Book?</v-card-title>
+              <v-card-title>{{ t('bookPage.deleteBookConfirmTitle') }}</v-card-title>
 
               <v-card-text>
-                This action cannot be undone. Are you sure you want to delete "{{ book?.title }}"?
+                {{ t('bookPage.deleteBookConfirmBody', {"title": book?.title}) }}
                 <v-alert
                   v-if="deleteError"
                   type="error"
@@ -402,7 +466,7 @@ onUnmounted(() => {
                   variant="text"
                   @click="deleteDialogOpen = false"
                 >
-                  Cancel
+                  {{ t('common.cancel') }}
                 </v-btn>
 
                 <v-btn
@@ -411,7 +475,7 @@ onUnmounted(() => {
                   :loading="adminStore.isDeleteLoading"
                   @click="handleBookDelete"
                 >
-                  Delete
+                  {{ t('common.delete') }}
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -425,7 +489,7 @@ onUnmounted(() => {
         >
           <v-card-text class="pa-6">
             <h2 class="text-h6 font-weight-bold mb-3">
-              First sentence
+              {{ t('bookPage.firstSentence') }}
             </h2>
 
             <div class="max-w-full md:max-w-3/5">
@@ -493,7 +557,7 @@ onUnmounted(() => {
           <v-card class="mt-4">
             <v-card-text>
               <h2 class="text-h6 font-weight-bold mb-4">
-                Rating Distribution
+                {{ t('ratingsPage.ratingDistribution') }}
               </h2>
 
               <RatingDistributionCard

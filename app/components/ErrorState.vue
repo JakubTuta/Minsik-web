@@ -1,13 +1,15 @@
 <script setup lang="ts">
-withDefaults(defineProps<{
+const props = defineProps<{
   message?: string
-}>(), {
-  message: 'Something went wrong loading this.',
-})
+}>()
 
 const emit = defineEmits<{
   retry: []
 }>()
+
+const { t } = useI18n()
+
+const displayMessage = computed(() => props.message ?? t('common.loadFailed'))
 </script>
 
 <template>
@@ -20,11 +22,11 @@ const emit = defineEmits<{
     />
 
     <div class="text-h6 text-error">
-      {{ message }}
+      {{ displayMessage }}
     </div>
 
     <div class="text-secondary mb-4 mt-2">
-      Your data is safe — this is just a loading problem.
+      {{ t('common.loadFailedHint') }}
     </div>
 
     <v-btn
@@ -33,7 +35,7 @@ const emit = defineEmits<{
       prepend-icon="mdi-refresh"
       @click="emit('retry')"
     >
-      Try again
+      {{ t('common.tryAgain') }}
     </v-btn>
   </div>
 </template>

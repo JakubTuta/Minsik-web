@@ -9,21 +9,22 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t } = useI18n()
 const bookStatusesStore = useBookStatusesStore()
 
-const statusMeta: Record<BookshelfStatus, { label: string, color: string, icon: string }> = {
-  want_to_read: { label: 'Want to Read', color: 'orange', icon: 'mdi-bookmark' },
-  reading: { label: 'Reading', color: 'blue', icon: 'mdi-book-open-page-variant' },
-  read: { label: 'Read', color: 'green', icon: 'mdi-check-circle' },
-  abandoned: { label: 'Abandoned', color: 'blue-grey', icon: 'mdi-close-circle' },
-}
+const statusMeta = computed<Record<BookshelfStatus, { label: string, color: string, icon: string }>>(() => ({
+  want_to_read: { label: t('bookshelf.wantToRead'), color: 'orange', icon: 'mdi-bookmark' },
+  reading: { label: t('bookshelf.reading'), color: 'blue', icon: 'mdi-book-open-page-variant' },
+  read: { label: t('bookshelf.read'), color: 'green', icon: 'mdi-check-circle' },
+  abandoned: { label: t('bookshelf.abandoned'), color: 'blue-grey', icon: 'mdi-close-circle' },
+}))
 
 const meta = computed(() => {
   const info = bookStatusesStore.getStatus(props.bookId)
   if (!info)
     return null
 
-  return { ...statusMeta[info.status], isFavorite: info.is_favorite }
+  return { ...statusMeta.value[info.status], isFavorite: info.is_favorite }
 })
 </script>
 

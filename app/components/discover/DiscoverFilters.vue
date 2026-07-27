@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { BookLength, Era, Mood, Popularity, Quality, SeriesFilter } from '~/types/discover'
-import {
-  BOOK_LENGTH_OPTIONS,
-  ERA_OPTIONS,
-  MOOD_OPTIONS,
-  POPULARITY_OPTIONS,
-  QUALITY_OPTIONS,
-  SERIES_OPTIONS,
-} from '~/types/discover'
 
 const emit = defineEmits<{ 'clear-all': [] }>()
+const { t } = useI18n()
+const {
+  bookLengthOptions,
+  qualityOptions,
+  moodOptions,
+  eraOptions,
+  seriesOptions,
+  popularityOptions,
+} = useDiscoverFilterOptions()
+
 const bookLength = defineModel<BookLength | null>('bookLength', { default: null })
 const quality = defineModel<Quality | null>('quality', { default: null })
 const moods = defineModel<Mood[]>('moods', { default: () => [] })
@@ -51,7 +53,7 @@ function clearAll() {
         >
           mdi-ruler
         </v-icon>
-        Book Length
+        {{ t('discover.bookLength') }}
       </div>
 
       <v-chip-group
@@ -60,7 +62,7 @@ function clearAll() {
         column
       >
         <v-chip
-          v-for="opt in BOOK_LENGTH_OPTIONS"
+          v-for="opt in bookLengthOptions"
           :key="opt.value"
           :value="opt.value"
           filter
@@ -90,7 +92,7 @@ function clearAll() {
         >
           mdi-trophy
         </v-icon>
-        Quality
+        {{ t('discover.quality') }}
       </div>
 
       <v-chip-group
@@ -99,7 +101,7 @@ function clearAll() {
         column
       >
         <v-chip
-          v-for="opt in QUALITY_OPTIONS"
+          v-for="opt in qualityOptions"
           :key="opt.value"
           :value="opt.value"
           filter
@@ -129,8 +131,8 @@ function clearAll() {
         >
           mdi-emoticon
         </v-icon>
-        Mood
-        <span class="text-caption text-medium-emphasis font-weight-regular ml-2">select multiple</span>
+        {{ t('discover.mood') }}
+        <span class="text-caption text-medium-emphasis font-weight-regular ml-2">{{ t('discover.selectMultiple') }}</span>
       </div>
 
       <v-chip-group
@@ -140,7 +142,7 @@ function clearAll() {
         column
       >
         <v-chip
-          v-for="opt in MOOD_OPTIONS"
+          v-for="opt in moodOptions"
           :key="opt.value"
           :value="opt.value"
           filter
@@ -166,7 +168,7 @@ function clearAll() {
         >
           mdi-calendar-range
         </v-icon>
-        Era
+        {{ t('discover.era') }}
       </div>
 
       <v-chip-group
@@ -175,7 +177,7 @@ function clearAll() {
         column
       >
         <v-chip
-          v-for="opt in ERA_OPTIONS"
+          v-for="opt in eraOptions"
           :key="opt.value"
           :value="opt.value"
           filter
@@ -205,7 +207,7 @@ function clearAll() {
         >
           mdi-book-multiple
         </v-icon>
-        Series
+        {{ t('discover.series') }}
       </div>
 
       <v-chip-group
@@ -214,7 +216,7 @@ function clearAll() {
         column
       >
         <v-chip
-          v-for="opt in SERIES_OPTIONS"
+          v-for="opt in seriesOptions"
           :key="opt.value"
           :value="opt.value"
           filter
@@ -240,7 +242,7 @@ function clearAll() {
         >
           mdi-chart-bar
         </v-icon>
-        Popularity
+        {{ t('discover.popularity') }}
       </div>
 
       <v-chip-group
@@ -249,7 +251,7 @@ function clearAll() {
         column
       >
         <v-chip
-          v-for="opt in POPULARITY_OPTIONS"
+          v-for="opt in popularityOptions"
           :key="opt.value"
           :value="opt.value"
           filter
@@ -278,7 +280,7 @@ function clearAll() {
         prepend-icon="mdi-filter-remove"
         @click="clearAll"
       >
-        Clear All Filters
+        {{ t('discover.clearAllFilters') }}
       </v-btn>
     </div>
   </v-card>

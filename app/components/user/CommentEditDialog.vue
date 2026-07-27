@@ -8,6 +8,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t } = useI18n()
+
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
@@ -48,13 +50,13 @@ async function save() {
   >
     <v-card>
       <v-card-title class="text-h6">
-        Edit Comment
+        {{ t('comment.editComment') }}
       </v-card-title>
 
       <v-card-text class="d-flex flex-column gap-3">
         <v-textarea
           v-model="editBody"
-          label="Comment"
+          :label="t('comment.commentLabel')"
           rows="5"
           auto-grow
           variant="outlined"
@@ -62,7 +64,7 @@ async function save() {
 
         <v-switch
           v-model="editIsSpoiler"
-          label="Contains spoilers"
+          :label="t('comment.containsSpoilers')"
           color="warning"
           hide-details
         />
@@ -75,7 +77,7 @@ async function save() {
           variant="text"
           @click="emit('update:modelValue', false)"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -85,7 +87,7 @@ async function save() {
           :disabled="!editBody.trim()"
           @click="save"
         >
-          Save
+          {{ t('common.save') }}
         </v-btn>
       </v-card-actions>
     </v-card>

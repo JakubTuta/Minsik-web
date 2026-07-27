@@ -10,6 +10,8 @@ const props = withDefaults(defineProps<Props>(), {
   height: undefined,
 })
 
+const { t } = useI18n()
+
 const containerStyle = computed(() => {
   if (props.height) {
     return { position: 'relative' as const, width: props.width, height: props.height }
@@ -34,7 +36,7 @@ const containerStyle = computed(() => {
         :src="cover.startsWith('#')
           ? undefined
           : cover"
-        :alt="`Book cover ${index + 1}`"
+        :alt="t('book.coverAltIndexed', {'index': index + 1})"
         aspect-ratio="0.67"
         cover
         class="cover-image rounded"

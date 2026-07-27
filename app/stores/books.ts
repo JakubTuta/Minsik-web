@@ -1,5 +1,6 @@
 import type { APIResponse, Book, BookLanguageVariant } from '~/types/api'
 import { defineStore } from 'pinia'
+import { APP_LOCALES } from '~~/locales.config'
 
 export const useBooksStore = defineStore('books', () => {
   const apiStore = useApiStore()
@@ -14,6 +15,8 @@ export const useBooksStore = defineStore('books', () => {
 
   // Cache TTL
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+  const supportedLocales = new Set(APP_LOCALES.map(entry => entry.code))
 
   // Computed
   const hasData = computed(() => books.value.size > 0)
@@ -33,7 +36,9 @@ export const useBooksStore = defineStore('books', () => {
     return Date.now() - timestamp < CACHE_TTL
   }
 
-  // Fetch book details — falls back to 'en' if lang edition not found
+  // The backend resolves the edition itself (requested language -> English ->
+  // most-rated) and reports what it served in `book.language`, so a missing
+  // translation arrives as a different edition rather than a 404.
   const fetchBook = async (slug: string, lang: string = 'en', force = false) => {
     const key = cacheKey(slug, lang)
 
@@ -59,11 +64,6 @@ export const useBooksStore = defineStore('books', () => {
       return book
     }
     catch (error: any) {
-      if (lang !== 'en' && error?.response?.status === 404) {
-        isLoading.value = false
-
-        return fetchBook(slug, 'en', force)
-      }
       if (error?.response?.status !== 404) {
         console.error('Error fetching book:', error)
       }
@@ -88,7 +88,12 @@ export const useBooksStore = defineStore('books', () => {
         `/api/v1/books/${slug}/language-variants`,
         { params: { exclude_language: excludeLang } },
       )
-      const items = response.data.data!.items
+      // The dump carries editions in far more languages than the app ships, and
+      // the endpoint returns every one of them. An edition the app has no locale
+      // for has no URL that can render it — advertising it would mean a hreflang
+      // pointing at a page served in a different language, and a switcher entry
+      // that silently drops the reader back to the default locale.
+      const items = response.data.data!.items.filter(variant => supportedLocales.has(variant.language))
 
       langVariantsCache.value.set(key, items)
       langVariantsFetchTime.value.set(key, Date.now())

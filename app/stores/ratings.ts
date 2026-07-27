@@ -23,6 +23,7 @@ export interface RatingsParams {
 }
 
 export const useRatingsStore = defineStore('ratings', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 
@@ -72,7 +73,7 @@ export const useRatingsStore = defineStore('ratings', () => {
     }
     catch (err) {
       console.error('Failed to fetch ratings:', err)
-      error.value = 'Could not load your ratings.'
+      error.value = t('storeErrors.ratingsLoadFailed')
     }
     finally {
       isLoading.value = false

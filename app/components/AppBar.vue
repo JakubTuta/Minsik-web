@@ -1,8 +1,10 @@
 <script setup lang="ts">
+const localePath = useLocalePath()
+const { t } = useI18n()
+const { categories } = useCategories()
+
 const drawer = ref(false)
 const appBarSearchQuery = ref('')
-
-const { categories } = useCategories()
 </script>
 
 <template>
@@ -16,7 +18,7 @@ const { categories } = useCategories()
       class="d-none d-md-block logo-container"
       style="flex: 0 0 auto;"
     >
-      <NuxtLink
+      <NuxtLinkLocale
         to="/"
         class="logo-wrapper"
       >
@@ -26,8 +28,8 @@ const { categories } = useCategories()
           class="logo-icon"
         />
 
-        <span class="logo-text">Minsik</span>
-      </NuxtLink>
+        <span class="logo-text">{{ t('app.name') }}</span>
+      </NuxtLinkLocale>
     </v-app-bar-title>
 
     <!-- Desktop: Categories menu — left side after logo -->
@@ -45,7 +47,7 @@ const { categories } = useCategories()
           append-icon="mdi-menu-down"
           v-bind="menuProps"
         >
-          Categories
+          {{ t('nav.categories') }}
         </v-btn>
       </template>
 
@@ -57,7 +59,7 @@ const { categories } = useCategories()
           v-for="cat in categories"
           :key="cat.slug"
           :title="cat.name"
-          :to="`/categories?category=${cat.slug}`"
+          :to="localePath(`/categories?category=${cat.slug}`)"
           :active="false"
         />
       </v-list>
@@ -69,9 +71,9 @@ const { categories } = useCategories()
       variant="text"
       density="comfortable"
       prepend-icon="mdi-compass"
-      to="/discover"
+      :to="localePath('/discover')"
     >
-      Discover
+      {{ t('nav.discover') }}
     </v-btn>
 
     <v-spacer class="d-none d-md-flex" />
@@ -100,7 +102,7 @@ const { categories } = useCategories()
           append-icon="mdi-menu-down"
           v-bind="menuProps"
         >
-          Casino
+          {{ t('nav.casino') }}
         </v-btn>
       </template>
 
@@ -110,26 +112,28 @@ const { categories } = useCategories()
       >
         <v-list-item
           prepend-icon="mdi-fruit-cherries"
-          title="Play Slots"
-          to="/play-slots"
+          :title="t('nav.playSlots')"
+          :to="localePath('/play-slots')"
         />
 
         <v-list-item
           prepend-icon="mdi-treasure-chest"
-          title="Open a Case"
-          to="/open-case"
+          :title="t('nav.openCase')"
+          :to="localePath('/open-case')"
         />
 
         <v-list-item
           prepend-icon="mdi-cards"
-          title="Open a Pack"
-          to="/open-pack"
+          :title="t('nav.openPack')"
+          :to="localePath('/open-pack')"
         />
       </v-list>
     </v-menu>
 
     <div class="d-none d-md-flex align-center mr-1">
       <ThemeToggle />
+
+      <LanguageSwitcher />
     </div>
 
     <div class="d-none d-md-flex align-center">
@@ -152,6 +156,7 @@ const { categories } = useCategories()
       class="d-md-none"
       icon
       variant="text"
+      :aria-label="t('nav.openMenu')"
       @click="drawer = !drawer"
     >
       <v-icon>mdi-menu</v-icon>
@@ -169,7 +174,7 @@ const { categories } = useCategories()
       <!-- App Logo/Name -->
       <v-list-item
         class="drawer-logo"
-        to="/"
+        :to="localePath('/')"
       >
         <template #prepend>
           <v-icon
@@ -180,7 +185,7 @@ const { categories } = useCategories()
         </template>
 
         <v-list-item-title class="text-h6 font-weight-bold logo-text">
-          Minsik
+          {{ t('app.name') }}
         </v-list-item-title>
       </v-list-item>
 

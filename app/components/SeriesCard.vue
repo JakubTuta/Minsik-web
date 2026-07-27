@@ -10,6 +10,10 @@ const props = withDefaults(defineProps<Props>(), {
   series: undefined,
 })
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
+
 const seriesLink = computed(() => (props.series
   ? `/series/${props.series.slug}`
   : ''))
@@ -26,7 +30,7 @@ const description = computed(() => {
 
 <template>
   <v-card
-    :to="seriesLink"
+    :to="localePath(seriesLink)"
     :loading="loading"
     hover
     class="series-card d-flex flex-column h-100"
@@ -47,14 +51,14 @@ const description = computed(() => {
               v-if="series.author"
               class="text-body-2"
             >
-              <span class="text-secondary">by </span>
+              <span class="text-secondary">{{ t('book.byAuthor') }}&nbsp;</span>
 
-              <NuxtLink
+              <NuxtLinkLocale
                 class="author-link text-secondary"
                 :to="`/authors/${series.author.slug}`"
               >
                 {{ series.author.name }}
-              </NuxtLink>
+              </NuxtLinkLocale>
             </div>
           </div>
 
@@ -63,9 +67,7 @@ const description = computed(() => {
             color="primary"
             variant="tonal"
           >
-            {{ series.total_books }} {{ series.total_books === 1
-              ? 'book'
-              : 'books' }}
+            {{ t('common.bookCount', {'count': series.total_books}, series.total_books) }}
           </v-chip>
         </div>
 

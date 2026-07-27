@@ -8,6 +8,7 @@ const props = withDefaults(defineProps<Props>(), {
   selectedRatingFilters: null,
 })
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const authDialogStore = useAuthDialogStore()
 const bookPageStore = useBookPageStore()
@@ -26,12 +27,12 @@ function showSnackbar(text: string, color = 'success') {
 }
 
 // Sorting
-const sortOptions = [
-  { title: 'Newest', value: 'newest' },
-  { title: 'Oldest', value: 'oldest' },
-  { title: 'Highest rated', value: 'highest' },
-  { title: 'Lowest rated', value: 'lowest' },
-]
+const sortOptions = computed(() => [
+  { title: t('comment.sortNewest'), value: 'newest' },
+  { title: t('comment.sortOldest'), value: 'oldest' },
+  { title: t('comment.sortHighestRated'), value: 'highest' },
+  { title: t('comment.sortLowestRated'), value: 'lowest' },
+])
 
 const selectedSort = ref('newest')
 
@@ -75,7 +76,7 @@ watch(() => authStore.isAuthenticated, () => fetchComments())
 
 function handleCommentSaved() {
   editingOwnComment.value = false
-  showSnackbar('Comment saved')
+  showSnackbar(t('comment.saved'))
   // Refresh the list of other comments in background
   fetchComments()
 }
@@ -87,11 +88,11 @@ async function handleDeleteComment() {
   try {
     await bookPageStore.deleteComment(props.slug, bookPageStore.myComment.comment_id)
     confirmDelete.value = false
-    showSnackbar('Comment deleted')
+    showSnackbar(t('comment.deleted'))
     fetchComments()
   }
   catch {
-    showSnackbar('Failed to delete comment', 'error')
+    showSnackbar(t('comment.deleteFailed'), 'error')
   }
 }
 </script>
@@ -99,7 +100,7 @@ async function handleDeleteComment() {
 <template>
   <div class="d-flex align-center justify-space-between mb-4">
     <h2 class="text-h6 font-weight-bold">
-      Comments
+      {{ t('nav.comments') }}
       <span class="text-medium-emphasis">
         ({{ bookPageStore.commentsTotal }})
       </span>
@@ -163,7 +164,7 @@ async function handleDeleteComment() {
     />
 
     <div class="text-body-1 mb-3">
-      Log in to leave a comment
+      {{ t('comment.loginPrompt') }}
     </div>
 
     <v-btn
@@ -171,7 +172,7 @@ async function handleDeleteComment() {
       color="primary"
       @click="authDialogStore.openLogin()"
     >
-      Log In
+      {{ t('nav.signIn') }}
     </v-btn>
   </v-card>
 
@@ -227,7 +228,7 @@ async function handleDeleteComment() {
           color="primary"
           @click="bookPageStore.loadMoreComments()"
         >
-          Load More Comments
+          {{ t('comment.loadMore') }}
         </v-btn>
       </div>
 
@@ -244,7 +245,7 @@ async function handleDeleteComment() {
         />
 
         <div class="text-body-1 text-secondary">
-          No comments yet. Be the first to share your thoughts!
+          {{ t('comment.empty') }}
         </div>
       </div>
     </div>
@@ -257,11 +258,11 @@ async function handleDeleteComment() {
   >
     <v-card>
       <v-card-title class="text-h6">
-        Delete Comment
+        {{ t('comment.deleteTitle') }}
       </v-card-title>
 
       <v-card-text>
-        Are you sure you want to delete your comment? This action cannot be undone.
+        {{ t('comment.deleteBody') }}
       </v-card-text>
 
       <v-card-actions>
@@ -271,7 +272,7 @@ async function handleDeleteComment() {
           variant="text"
           @click="confirmDelete = false"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -279,7 +280,7 @@ async function handleDeleteComment() {
           variant="elevated"
           @click="handleDeleteComment"
         >
-          Delete
+          {{ t('common.delete') }}
         </v-btn>
       </v-card-actions>
     </v-card>

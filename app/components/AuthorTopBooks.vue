@@ -9,6 +9,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t } = useI18n()
 const { optimized } = useOptimizedImage()
 
 useShelfStatuses(() => props.books)
@@ -47,7 +48,7 @@ const podiumOrder = computed(() => {
     class=""
   >
     <h2 class="text-h5 font-weight-bold">
-      Most acclaimed
+      {{ t('author.mostAcclaimed') }}
     </h2>
 
     <!-- Skeleton -->
@@ -106,14 +107,14 @@ const podiumOrder = computed(() => {
             </div>
 
             <!-- Title (only this is a link) -->
-            <NuxtLink
+            <NuxtLinkLocale
               :to="`/books/${entry.book.slug}`"
               class="text-decoration-none book-title-link"
             >
               <p class="text-subtitle-1 font-weight-bold book-title mb-1">
                 {{ entry.book.title }}
               </p>
-            </NuxtLink>
+            </NuxtLinkLocale>
 
             <!-- Year -->
             <p

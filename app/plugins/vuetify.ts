@@ -1,6 +1,11 @@
+import type { Composer } from 'vue-i18n'
 import type { IconProps, IconSet } from 'vuetify'
+import { useI18n } from 'vue-i18n'
 import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
+import * as vuetifyLocales from 'vuetify/locale'
+import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n'
+import { APP_LOCALES } from '~~/locales.config'
 import { mdiIconMap } from '~/utils/mdiIcons'
 
 // Resolves "mdi-*" name strings to @mdi/js SVG paths so the 400KB+ icon font is not needed
@@ -20,8 +25,23 @@ export default defineNuxtPlugin((app) => {
     ? 'dark'
     : 'light'
 
+  // Vuetify ships its own translations for internal component strings ("No
+  // data available", pagination, etc.) — separate from our en.json. Merge
+  // whichever of its locale packs match our configured locales into the
+  // shared i18n instance so adding a language here needs no Vuetify-specific
+  // code, only a locales.config.ts entry whose code Vuetify also ships.
+  const i18n = app.$i18n as unknown as Composer
+  for (const entry of APP_LOCALES) {
+    const vuetifyMessages = (vuetifyLocales as Record<string, Record<string, unknown>>)[entry.code]
+    if (vuetifyMessages)
+      i18n.mergeLocaleMessage(entry.code, { $vuetify: vuetifyMessages })
+  }
+
   const vuetify = createVuetify({
     ssr: true,
+    locale: {
+      adapter: createVueI18nAdapter({ i18n: { global: i18n }, useI18n }),
+    },
     icons: {
       defaultSet: 'mdi',
       aliases,

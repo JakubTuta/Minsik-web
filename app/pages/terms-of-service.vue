@@ -1,16 +1,17 @@
 <script setup lang="ts">
+const localePath = useLocalePath()
+const { t, tm, rt } = useI18n()
+
 useSeoMeta({
-  title: 'Terms of Service - Minsik',
-  description: 'Terms of Service for Minsik - the book discovery platform.',
+  title: t('legal.termsSeoTitle'),
+  description: t('legal.termsSeoDescription'),
 })
 
-const useProhibitions = [
-  'Post false, misleading, or harmful content',
-  'Attempt to gain unauthorized access to any part of the Service',
-  'Use automated bots or scripts to scrape or interact with the Service',
-  'Harass, abuse, or harm other users',
-  'Violate any applicable local, national, or international law',
-]
+const useProhibitions = computed<string[]>(() => {
+  const raw = tm('legal.terms.prohibitions') as unknown as string[]
+
+  return raw.map(item => rt(item))
+})
 </script>
 
 <template>
@@ -21,11 +22,11 @@ const useProhibitions = [
     <v-row justify="center">
       <v-col cols="12">
         <h1 class="text-h4 font-weight-bold mb-2">
-          Terms of Service
+          {{ t('legal.termsTitle') }}
         </h1>
 
         <p class="text-body-2 text-secondary mb-8">
-          Last updated: February 28, 2026
+          {{ t('legal.lastUpdated', {"date": t('legal.termsLastUpdatedDate')}) }}
         </p>
 
         <v-card
@@ -33,11 +34,11 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            1. Acceptance of Terms
+            {{ t('legal.terms.acceptance.title') }}
           </h2>
 
           <p class="text-body-2">
-            By accessing or using Minsik ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+            {{ t('legal.terms.acceptance.body') }}
           </p>
         </v-card>
 
@@ -46,11 +47,11 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            2. Use of the Service
+            {{ t('legal.terms.useOfService.title') }}
           </h2>
 
           <p class="text-body-2 mb-3">
-            You agree to use the Service only for lawful purposes and in a manner that does not infringe on the rights of others. You must not:
+            {{ t('legal.terms.useOfService.body') }}
           </p>
 
           <v-list
@@ -75,11 +76,11 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            3. User Accounts
+            {{ t('legal.terms.userAccounts.title') }}
           </h2>
 
           <p class="text-body-2">
-            To access certain features of the Service, you must create an account. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account.
+            {{ t('legal.terms.userAccounts.body') }}
           </p>
         </v-card>
 
@@ -88,11 +89,11 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            4. User-Generated Content
+            {{ t('legal.terms.userContent.title') }}
           </h2>
 
           <p class="text-body-2">
-            By submitting reviews, ratings, comments, or other content to the Service, you grant Minsik a non-exclusive, royalty-free, worldwide license to use, display, and distribute that content in connection with the Service. You represent that you own or have the necessary rights to the content you submit.
+            {{ t('legal.terms.userContent.body') }}
           </p>
         </v-card>
 
@@ -101,11 +102,11 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            5. Intellectual Property
+            {{ t('legal.terms.intellectualProperty.title') }}
           </h2>
 
           <p class="text-body-2">
-            The Service and its original content, features, and functionality are owned by Minsik and are protected by international copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, or create derivative works without our express written permission.
+            {{ t('legal.terms.intellectualProperty.body') }}
           </p>
         </v-card>
 
@@ -114,11 +115,11 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            6. Disclaimer of Warranties
+            {{ t('legal.terms.disclaimer.title') }}
           </h2>
 
           <p class="text-body-2">
-            The Service is provided on an "as is" and "as available" basis without any warranties of any kind, either express or implied. Minsik does not warrant that the Service will be uninterrupted, error-free, or free of viruses or other harmful components.
+            {{ t('legal.terms.disclaimer.body') }}
           </p>
         </v-card>
 
@@ -127,11 +128,11 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            7. Limitation of Liability
+            {{ t('legal.terms.limitationOfLiability.title') }}
           </h2>
 
           <p class="text-body-2">
-            To the fullest extent permitted by law, Minsik shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use the Service.
+            {{ t('legal.terms.limitationOfLiability.body') }}
           </p>
         </v-card>
 
@@ -140,11 +141,11 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            8. Changes to Terms
+            {{ t('legal.terms.changesToTerms.title') }}
           </h2>
 
           <p class="text-body-2">
-            We reserve the right to modify these Terms at any time. Changes will be effective immediately upon posting. Your continued use of the Service after any changes constitutes your acceptance of the new Terms.
+            {{ t('legal.terms.changesToTerms.body') }}
           </p>
         </v-card>
 
@@ -153,27 +154,27 @@ const useProhibitions = [
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            9. Contact Us
+            {{ t('legal.terms.contact.title') }}
           </h2>
 
           <p class="text-body-2">
-            If you have any questions about these Terms, please contact us through our
+            {{ t('legal.terms.contact.body') }}
             <a
               href="https://jakubtutka.com"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary"
-            >website</a>.
+            >{{ t('legal.website') }}</a>.
           </p>
         </v-card>
 
         <div class="d-flex mt-8 justify-center">
           <v-btn
             variant="outlined"
-            to="/"
+            :to="localePath('/')"
             prepend-icon="mdi-arrow-left"
           >
-            Back to Home
+            {{ t('common.backToHome') }}
           </v-btn>
         </div>
       </v-col>

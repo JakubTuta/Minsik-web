@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { usernameRequirements, usernameRules } from '~/utils/validation'
+const { t } = useI18n()
+const { usernameRules, usernameRequirements } = useValidationRules()
 
 const authDialogStore = useAuthDialogStore()
 const authStore = useAuthStore()
@@ -17,11 +18,11 @@ const usernameFocused = ref(false)
 
 const isLoginMode = computed(() => authDialogStore.mode === 'login')
 const title = computed(() => (isLoginMode.value
-  ? 'Login'
-  : 'Create Account'))
+  ? t('auth.login')
+  : t('auth.createAccount')))
 
-const isUsernameValid = computed(() => username.value && usernameRules.every((rule: (v: string) => boolean | string) => rule(username.value) === true))
-const isUsernameInvalid = computed(() => username.value && usernameRules.some((rule: (v: string) => boolean | string) => rule(username.value) !== true))
+const isUsernameValid = computed(() => username.value && usernameRules.value.every(rule => rule(username.value) === true))
+const isUsernameInvalid = computed(() => username.value && usernameRules.value.some(rule => rule(username.value) !== true))
 
 function resetForm() {
   email.value = ''
@@ -68,9 +69,9 @@ async function handleSubmit() {
     }
     else {
       const action = isLoginMode.value
-        ? 'Login'
-        : 'Registration'
-      error.value = result.error || `${action} failed. Please try again.`
+        ? t('auth.login')
+        : t('auth.registration')
+      error.value = result.error || t('auth.actionFailed', { action })
     }
   }
   finally {
@@ -80,7 +81,7 @@ async function handleSubmit() {
 
 function signInWithGoogle() {
   if (!config.public.googleClientId) {
-    error.value = 'Google sign-in is not configured.'
+    error.value = t('auth.googleNotConfigured')
 
     return
   }
@@ -145,7 +146,7 @@ function signInWithGoogle() {
           <v-text-field
             v-if="!isLoginMode"
             v-model="username"
-            label="Username"
+            :label="t('auth.username')"
             type="text"
             variant="outlined"
             class="mb-2"
@@ -187,7 +188,7 @@ function signInWithGoogle() {
                 class="pa-3"
               >
                 <div class="font-weight-medium mb-2">
-                  Username requirements:
+                  {{ t('auth.usernameRequirements') }}
                 </div>
 
                 <div
@@ -239,8 +240,8 @@ function signInWithGoogle() {
             :disabled="!isFormValid"
           >
             {{ isLoginMode
-              ? 'Login'
-              : 'Create Account' }}
+              ? t('auth.login')
+              : t('auth.createAccount') }}
           </v-btn>
 
           <v-alert
@@ -254,21 +255,21 @@ function signInWithGoogle() {
 
           <div class="d-flex mt-4 justify-center">
             <template v-if="isLoginMode">
-              <span class="text-body-2 text-medium-emphasis me-1">Don't have an account?</span>
+              <span class="text-body-2 text-medium-emphasis me-1">{{ t('auth.noAccount') }}</span>
 
               <span
                 class="text-body-2 text-primary font-weight-medium cursor-pointer"
                 @click="switchMode"
-              >Sign up</span>
+              >{{ t('auth.signUp') }}</span>
             </template>
 
             <template v-else>
-              <span class="text-body-2 text-medium-emphasis me-1">Already have an account?</span>
+              <span class="text-body-2 text-medium-emphasis me-1">{{ t('auth.hasAccount') }}</span>
 
               <span
                 class="text-body-2 text-primary font-weight-medium cursor-pointer"
                 @click="switchMode"
-              >Sign in</span>
+              >{{ t('auth.signIn') }}</span>
             </template>
           </div>
 
@@ -276,7 +277,7 @@ function signInWithGoogle() {
           <div class="d-flex align-center my-4 gap-3">
             <v-divider />
 
-            <span class="text-medium-emphasis text-no-wrap">or continue with</span>
+            <span class="text-medium-emphasis text-no-wrap">{{ t('auth.orContinueWith') }}</span>
 
             <v-divider />
           </div>
@@ -317,7 +318,7 @@ function signInWithGoogle() {
               </svg>
             </template>
 
-            Sign in with Google
+            {{ t('auth.signInWithGoogle') }}
           </v-btn>
         </v-form>
       </v-card-text>

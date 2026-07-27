@@ -5,6 +5,8 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
+const localePath = useLocalePath()
+const { t } = useI18n()
 
 const state = ref<'loading' | 'success' | 'error'>('loading')
 const errorMessage = ref('')
@@ -16,15 +18,15 @@ async function handleCallback() {
   if (oauthError) {
     state.value = 'error'
     errorMessage.value = oauthError === 'access_denied'
-      ? 'You cancelled the Google sign-in. You can try again any time.'
-      : `Google sign-in error: ${oauthError}`
+      ? t('auth.googleCancelled')
+      : t('auth.googleError', { error: oauthError })
 
     return
   }
 
   if (!code) {
     state.value = 'error'
-    errorMessage.value = 'No authorisation code received. Please try again.'
+    errorMessage.value = t('auth.noAuthCode')
 
     return
   }
@@ -34,13 +36,17 @@ async function handleCallback() {
 
   if (result.success) {
     state.value = 'success'
+    // Google always returns to the unprefixed callback route, so the locale
+    // has to come back from the saved path (already prefixed, captured before
+    // leaving) or from localePath — never a bare '/', which would strand a
+    // non-default-locale reader in the default language.
     const savedRedirect = localStorage.getItem('minsik_google_redirect')
     localStorage.removeItem('minsik_google_redirect')
-    await router.replace(savedRedirect || '/')
+    await router.replace(savedRedirect || localePath('index'))
   }
   else {
     state.value = 'error'
-    errorMessage.value = result.error || 'Google sign-in failed. Please try again.'
+    errorMessage.value = result.error || t('auth.googleFailed')
   }
 }
 
@@ -64,7 +70,7 @@ onMounted(handleCallback)
       />
 
       <p class="text-h6 text-medium-emphasis">
-        Signing you in…
+        {{ t('auth.signingIn') }}
       </p>
     </div>
 
@@ -83,22 +89,22 @@ onMounted(handleCallback)
       />
 
       <h2 class="text-h5 font-weight-bold mb-2">
-        Sign-in failed
+        {{ t('auth.signInFailed') }}
       </h2>
 
       <p class="text-body-2 text-medium-emphasis mb-6">
         {{ errorMessage }}
       </p>
 
-      <NuxtLink to="/">
+      <NuxtLinkLocale to="/">
         <v-btn
           color="primary"
           variant="elevated"
           block
         >
-          Back to home
+          {{ t('common.backToHome') }}
         </v-btn>
-      </NuxtLink>
+      </NuxtLinkLocale>
     </v-card>
   </v-container>
 </template>

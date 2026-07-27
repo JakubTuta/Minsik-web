@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { Rarity } from '~/types/case'
-import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
+import { RARITY_COLORS } from '~/types/case'
 
+const { t } = useI18n()
 const caseStore = useCaseStore()
 const { preloadImages } = useImagePreloader()
+const { rarityLabels } = useRarityLabels()
 
 const rarityTiers: { rarity: Rarity, range: string, probability: string }[] = [
   { rarity: 'legendary', range: '> 4.75', probability: '~1.5%' },
@@ -78,7 +80,7 @@ onUnmounted(() => {
         >
           <div class="rarity-tooltip pa-1">
             <div class="text-subtitle-2 font-weight-bold mb-2">
-              Rarity Tiers
+              {{ t('caseGame.rarityTiers') }}
             </div>
 
             <div
@@ -94,7 +96,7 @@ onUnmounted(() => {
               <span
                 class="font-weight-medium"
                 :style="{'color': RARITY_COLORS[tier.rarity]}"
-              >{{ RARITY_LABELS[tier.rarity] }}</span>
+              >{{ rarityLabels[tier.rarity] }}</span>
 
               <span class="text-medium-emphasis text-caption">({{ tier.range }})</span>
 
@@ -129,7 +131,7 @@ onUnmounted(() => {
       >
         <div class="mb-6 text-center">
           <h2 class="text-h5 font-weight-bold">
-            Opening...
+            {{ t('caseGame.opening') }}
           </h2>
         </div>
 
@@ -147,7 +149,7 @@ onUnmounted(() => {
       >
         <div class="mb-6 text-center">
           <h2 class="text-h4 font-weight-bold">
-            You got...
+            {{ t('caseGame.youGot') }}
           </h2>
         </div>
 
@@ -171,7 +173,7 @@ onUnmounted(() => {
           variant="text"
           @click="caseStore.reset()"
         >
-          Close
+          {{ t('common.close') }}
         </v-btn>
       </template>
     </v-snackbar>

@@ -10,17 +10,18 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t, n } = useI18n()
 const gridRef = ref<HTMLElement | null>(null)
 
 useScrollReveal(gridRef, { stagger: 0.08 })
 
 const tiles = computed(() => [
-  { key: 'books', value: props.totalBooksFinished, icon: 'mdi-check-circle', color: 'success', label: 'Books finished' },
-  { key: 'pages', value: props.totalPagesRead, icon: 'mdi-file-document', color: 'info', label: 'Pages read', format: true },
-  { key: 'hours', value: props.totalHoursRead, icon: 'mdi-clock-outline', color: 'warning', label: 'Hours read' },
-  { key: 'ratings', value: props.ratingsGiven, icon: 'mdi-star', color: 'amber', label: 'Ratings given' },
-  { key: 'reading', value: props.currentlyReadingCount, icon: 'mdi-book-open-page-variant', color: 'primary', label: 'Reading now' },
-  { key: 'added', value: props.addedToShelfCount, icon: 'mdi-bookshelf', color: 'secondary', label: 'Added to shelves' },
+  { key: 'books', value: props.totalBooksFinished, icon: 'mdi-check-circle', color: 'success', label: t('yearReview.booksFinished') },
+  { key: 'pages', value: props.totalPagesRead, icon: 'mdi-file-document', color: 'info', label: t('yearReview.pagesRead'), format: true },
+  { key: 'hours', value: props.totalHoursRead, icon: 'mdi-clock-outline', color: 'warning', label: t('yearReview.hoursRead') },
+  { key: 'ratings', value: props.ratingsGiven, icon: 'mdi-star', color: 'amber', label: t('yearReview.ratingsGiven') },
+  { key: 'reading', value: props.currentlyReadingCount, icon: 'mdi-book-open-page-variant', color: 'primary', label: t('yearReview.readingNow') },
+  { key: 'added', value: props.addedToShelfCount, icon: 'mdi-bookshelf', color: 'secondary', label: t('yearReview.addedToShelves') },
 ])
 </script>
 
@@ -44,7 +45,7 @@ const tiles = computed(() => [
 
       <div class="text-h4 font-weight-bold">
         {{ tile.format
-          ? tile.value.toLocaleString()
+          ? n(tile.value)
           : tile.value }}
       </div>
 

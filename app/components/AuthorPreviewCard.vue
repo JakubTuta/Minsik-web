@@ -26,16 +26,17 @@ const props = withDefaults(defineProps<Props>(), {
 const { optimized } = useOptimizedImage()
 const optimizedPhotoUrl = computed(() => optimized(props.photoUrl, 280))
 
-const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
+const { locale } = useI18n()
+const compactFmt = computed(() => new Intl.NumberFormat(locale.value, { notation: 'compact', maximumFractionDigits: 1 }))
 
 const formattedRating = computed(() => (props.rating
   ? props.rating.toFixed(1)
   : '0.0'))
 const formattedRatingCount = computed(() => (props.ratingCount
-  ? `(${compactFmt.format(props.ratingCount)})`
+  ? `(${compactFmt.value.format(props.ratingCount)})`
   : '(0)'))
 const formattedReaders = computed(() => (props.readers
-  ? compactFmt.format(props.readers)
+  ? compactFmt.value.format(props.readers)
   : '0'))
 
 const photoBg = computed(() => hashColor(props.name))
@@ -82,12 +83,12 @@ const photoBg = computed(() => hashColor(props.name))
       <!-- Info zone -->
       <div class="info-zone d-flex flex-column align-center px-3 pb-2 pt-2 text-center">
         <!-- Name -->
-        <NuxtLink
+        <NuxtLinkLocale
           :to="`/authors/${slug}`"
           class="card-name font-weight-bold text-body-2 name-link line-clamp-2"
         >
           {{ name }}
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <!-- Spacer -->
         <div class="flex-grow-1" />

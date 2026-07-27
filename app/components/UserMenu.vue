@@ -5,13 +5,16 @@ interface Props {
 
 defineProps<Props>()
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
 const authStore = useAuthStore()
 const authDialogStore = useAuthDialogStore()
 const themeStore = useThemeStore()
 const { categories } = useCategories()
 const { isAuthenticated, user } = storeToRefs(authStore)
 
-const userDisplayName = computed(() => user.value?.display_name || user.value?.username || 'User')
+const userDisplayName = computed(() => user.value?.display_name || user.value?.username || t('user.fallbackName'))
 const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase())
 </script>
 
@@ -50,7 +53,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
     <!-- Theme toggle - always visible -->
     <v-list-item @click="themeStore.toggleTheme">
       <div class="d-flex align-center justify-space-between w-100">
-        <v-list-item-title>Theme</v-list-item-title>
+        <v-list-item-title>{{ t('nav.theme') }}</v-list-item-title>
 
         <div @click.stop>
           <ThemeToggle />
@@ -58,11 +61,21 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       </div>
     </v-list-item>
 
+    <v-list-item>
+      <div class="d-flex align-center justify-space-between w-100">
+        <v-list-item-title>{{ t('language.label') }}</v-list-item-title>
+
+        <div @click.stop>
+          <LanguageSwitcher />
+        </div>
+      </div>
+    </v-list-item>
+
     <!-- Public pages - always visible -->
     <v-list-item
       prepend-icon="mdi-compass"
-      title="Discover"
-      to="/discover"
+      :title="t('nav.discover')"
+      :to="localePath('/discover')"
     />
 
     <v-list-group value="categories">
@@ -70,7 +83,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         <v-list-item
           v-bind="groupProps"
           prepend-icon="mdi-shape"
-          title="Categories"
+          :title="t('nav.categories')"
         />
       </template>
 
@@ -78,7 +91,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         v-for="cat in categories"
         :key="cat.slug"
         :title="cat.name"
-        :to="`/categories?category=${cat.slug}`"
+        :to="localePath(`/categories?category=${cat.slug}`)"
       />
     </v-list-group>
 
@@ -87,33 +100,33 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         <v-list-item
           v-bind="groupProps"
           prepend-icon="mdi-slot-machine"
-          title="Casino"
+          :title="t('nav.casino')"
         />
       </template>
 
       <v-list-item
         prepend-icon="mdi-fruit-cherries"
-        title="Play Slots"
-        to="/play-slots"
+        :title="t('nav.playSlots')"
+        :to="localePath('/play-slots')"
       />
 
       <v-list-item
         prepend-icon="mdi-treasure-chest"
-        title="Open a Case"
-        to="/open-case"
+        :title="t('nav.openCase')"
+        :to="localePath('/open-case')"
       />
 
       <v-list-item
         prepend-icon="mdi-cards"
-        title="Open a Pack"
-        to="/open-pack"
+        :title="t('nav.openPack')"
+        :to="localePath('/open-pack')"
       />
     </v-list-group>
 
     <v-list-item
       prepend-icon="mdi-information"
-      title="About"
-      to="/about"
+      :title="t('nav.about')"
+      :to="localePath('/about')"
     />
 
     <!-- Authenticated pages -->
@@ -123,64 +136,64 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       <v-list-item
         v-if="user?.role === 'admin'"
         prepend-icon="mdi-shield-crown"
-        title="Admin Panel"
-        to="/admin"
+        :title="t('nav.adminPanel')"
+        :to="localePath('/admin')"
       />
 
       <v-list-item
         v-if="user?.role === 'admin'"
         prepend-icon="mdi-magnify-scan"
-        title="Data Quality Review"
-        to="/admin/quality-review"
+        :title="t('nav.qualityReview')"
+        :to="localePath('/admin/quality-review')"
       />
 
       <v-list-item
         prepend-icon="mdi-account"
-        title="Public Profile"
-        :to="`/bookshelf/${user?.username}`"
+        :title="t('nav.publicProfile')"
+        :to="localePath(`/bookshelf/${user?.username}`)"
       />
 
       <v-list-item
         prepend-icon="mdi-view-dashboard"
-        title="Dashboard"
-        to="/dashboard"
+        :title="t('nav.dashboard')"
+        :to="localePath('/dashboard')"
       />
 
       <v-list-item
         prepend-icon="mdi-calendar-star"
-        title="Year in Review"
-        to="/year-in-review"
+        :title="t('nav.yearInReview')"
+        :to="localePath('/year-in-review')"
       />
 
       <v-list-item
         prepend-icon="mdi-bookshelf"
-        title="My Bookshelf"
-        to="/bookshelf"
+        :title="t('nav.myBookshelf')"
+        :to="localePath('/bookshelf')"
       />
 
       <v-list-item
         prepend-icon="mdi-heart"
-        title="Favourites"
-        to="/favourites"
+        :title="t('nav.favourites')"
+        :to="localePath('/favourites')"
       />
 
       <v-list-item
         prepend-icon="mdi-star"
-        title="Ratings"
-        to="/ratings"
+        :title="t('nav.ratings')"
+        :to="localePath('/ratings')"
       />
 
       <v-list-item
         prepend-icon="mdi-comment-text"
-        title="Comments"
-        to="/comments"
+        :title="t('nav.comments')"
+        :to="localePath('/comments')"
       />
 
       <v-divider class="my-1" />
 
       <v-list-item
         prepend-icon="mdi-logout"
-        title="Sign Out"
+        :title="t('nav.signOut')"
         @click="authStore.logout()"
       />
     </template>
@@ -190,13 +203,13 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
 
       <v-list-item
         prepend-icon="mdi-login"
-        title="Sign In"
+        :title="t('nav.signIn')"
         @click="authDialogStore.openLogin()"
       />
 
       <v-list-item
         prepend-icon="mdi-account-plus"
-        title="Sign Up"
+        :title="t('nav.signUp')"
         @click="authDialogStore.openRegister()"
       />
     </template>
@@ -264,8 +277,8 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
 
         <v-list-item
           prepend-icon="mdi-information"
-          title="About"
-          to="/about"
+          :title="t('nav.about')"
+          :to="localePath('/about')"
         />
 
         <v-divider class="my-1" />
@@ -273,64 +286,64 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         <v-list-item
           v-if="user?.role === 'admin'"
           prepend-icon="mdi-shield-crown"
-          title="Admin Panel"
-          to="/admin"
+          :title="t('nav.adminPanel')"
+          :to="localePath('/admin')"
         />
 
         <v-list-item
           v-if="user?.role === 'admin'"
           prepend-icon="mdi-magnify-scan"
-          title="Data Quality Review"
-          to="/admin/quality-review"
+          :title="t('nav.qualityReview')"
+          :to="localePath('/admin/quality-review')"
         />
 
         <v-list-item
           prepend-icon="mdi-view-dashboard"
-          title="Dashboard"
-          to="/dashboard"
+          :title="t('nav.dashboard')"
+          :to="localePath('/dashboard')"
         />
 
         <v-list-item
           prepend-icon="mdi-calendar-star"
-          title="Year in Review"
-          to="/year-in-review"
+          :title="t('nav.yearInReview')"
+          :to="localePath('/year-in-review')"
         />
 
         <v-list-item
           prepend-icon="mdi-account"
-          title="Public Profile"
-          :to="`/bookshelf/${user?.username}`"
+          :title="t('nav.publicProfile')"
+          :to="localePath(`/bookshelf/${user?.username}`)"
         />
 
         <v-list-item
           prepend-icon="mdi-bookshelf"
-          title="My Bookshelf"
-          to="/bookshelf"
+          :title="t('nav.myBookshelf')"
+          :to="localePath('/bookshelf')"
         />
 
         <v-list-item
           prepend-icon="mdi-heart"
-          title="Favourites"
-          to="/favourites"
+          :title="t('nav.favourites')"
+          :to="localePath('/favourites')"
         />
 
         <v-list-item
           prepend-icon="mdi-star"
-          title="Ratings"
-          to="/ratings"
+          :title="t('nav.ratings')"
+          :to="localePath('/ratings')"
         />
 
         <v-list-item
           prepend-icon="mdi-comment-text"
-          title="Comments"
-          to="/comments"
+          :title="t('nav.comments')"
+          :to="localePath('/comments')"
         />
 
         <v-divider class="my-1" />
 
         <v-list-item
           prepend-icon="mdi-logout"
-          title="Sign Out"
+          :title="t('nav.signOut')"
           @click="authStore.logout()"
         />
       </template>
@@ -338,21 +351,21 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       <template v-else>
         <v-list-item
           prepend-icon="mdi-information"
-          title="About"
-          to="/about"
+          :title="t('nav.about')"
+          :to="localePath('/about')"
         />
 
         <v-divider class="my-1" />
 
         <v-list-item
           prepend-icon="mdi-login"
-          title="Sign In"
+          :title="t('nav.signIn')"
           @click="authDialogStore.openLogin()"
         />
 
         <v-list-item
           prepend-icon="mdi-account-plus"
-          title="Sign Up"
+          :title="t('nav.signUp')"
           @click="authDialogStore.openRegister()"
         />
       </template>

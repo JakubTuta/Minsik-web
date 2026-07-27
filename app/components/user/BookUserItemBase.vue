@@ -13,6 +13,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t } = useI18n()
+
 const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','), props.seriesName))
 </script>
 
@@ -44,47 +46,47 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
       <!-- Content -->
       <div class="d-flex flex-column min-w-0 flex-grow-1">
         <!-- Book Title -->
-        <NuxtLink
+        <NuxtLinkLocale
           :to="`/books/${slug}`"
           class="text-decoration-none text-primary"
         >
           <div class="text-subtitle-1 font-weight-bold text-truncate">
             {{ title }}
           </div>
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <!-- Authors -->
         <div class="text-medium-emphasis text-truncate">
           <span
             v-if="authorNames.length > 0"
             class="text-body-2"
-          >by </span>
+          >{{ t('book.byAuthor') }} </span>
 
           <template
             v-for="(author, i) in authorNames"
             :key="author"
           >
-            <NuxtLink
+            <NuxtLinkLocale
               :to="`/authors/${authorSlugs[i]}`"
               class="text-decoration-none text-medium-emphasis text-body-2"
             >
               {{ author }}
-            </NuxtLink>
+            </NuxtLinkLocale>
 
             <span v-if="i < authorNames.length - 1">, </span>
           </template>
         </div>
 
         <!-- Series -->
-        <NuxtLink
+        <NuxtLinkLocale
           v-if="seriesName && seriesSlug"
           :to="`/series/${seriesSlug}`"
           class="text-decoration-none"
         >
           <div class="text-body-2 text-medium-emphasis mt-1">
-            Series: {{ seriesName }}
+            {{ t('series.seriesPrefix', {'name': seriesName}) }}
           </div>
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <!-- Middle slot -->
         <slot name="middle" />

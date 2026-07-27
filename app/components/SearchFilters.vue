@@ -11,13 +11,15 @@ const emit = defineEmits<{
   'update:modelValue': [value: SearchType]
 }>()
 
-const filters = [
-  { label: 'All', value: 'all' as SearchType },
-  { label: 'Books', value: 'books' as SearchType },
-  { label: 'Authors', value: 'authors' as SearchType },
-  { label: 'Series', value: 'series' as SearchType },
-  { label: 'Categories', value: 'categories' as SearchType },
-]
+const { t } = useI18n()
+
+const filters = computed(() => [
+  { label: t('search.filterAll'), value: 'all' as SearchType },
+  { label: t('search.filterBooks'), value: 'books' as SearchType },
+  { label: t('search.filterAuthors'), value: 'authors' as SearchType },
+  { label: t('search.filterSeries'), value: 'series' as SearchType },
+  { label: t('search.filterCategories'), value: 'categories' as SearchType },
+])
 
 const selectedFilter = computed({
   get: () => props.modelValue,

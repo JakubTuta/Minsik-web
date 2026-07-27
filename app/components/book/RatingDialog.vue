@@ -24,6 +24,7 @@ const emit = defineEmits<{
   'saved': []
 }>()
 
+const { t } = useI18n()
 const bookPageStore = useBookPageStore()
 
 const saving = ref(false)
@@ -41,16 +42,16 @@ const subRatings = ref<Record<string, number | null>>({
   humor: null,
 })
 
-const dimensions: DimensionConfig[] = [
-  { key: 'emotional_impact', label: 'Emotional Impact', color: 'red', type: 'quality', lowLabel: 'Low impact', highLabel: 'Deeply moving' },
-  { key: 'intellectual_depth', label: 'Intellectual Depth', color: 'purple', type: 'quality', lowLabel: 'Surface-level', highLabel: 'Thought-provoking' },
-  { key: 'writing_quality', label: 'Writing Quality', color: 'teal', type: 'quality', lowLabel: 'Below average', highLabel: 'Masterful' },
-  { key: 'rereadability', label: 'Rereadability', color: 'amber', type: 'quality', lowLabel: 'One-time read', highLabel: 'Worth rereading' },
-  { key: 'pacing', label: 'Pacing', color: 'blue', type: 'spectrum', lowLabel: 'Slow', highLabel: 'Fast-paced' },
-  { key: 'readability', label: 'Readability', color: 'green', type: 'spectrum', lowLabel: 'Dense', highLabel: 'Light & easy' },
-  { key: 'plot_complexity', label: 'Plot Complexity', color: 'orange', type: 'spectrum', lowLabel: 'Simple', highLabel: 'Complex' },
-  { key: 'humor', label: 'Humor', color: 'pink', type: 'spectrum', lowLabel: 'Serious', highLabel: 'Very funny' },
-]
+const dimensions = computed<DimensionConfig[]>(() => [
+  { key: 'emotional_impact', label: t('rating.dimensions.emotionalImpact'), color: 'red', type: 'quality', lowLabel: t('rating.hints.emotionalImpact.low'), highLabel: t('rating.hints.emotionalImpact.high') },
+  { key: 'intellectual_depth', label: t('rating.dimensions.intellectualDepth'), color: 'purple', type: 'quality', lowLabel: t('rating.hints.intellectualDepth.low'), highLabel: t('rating.hints.intellectualDepth.high') },
+  { key: 'writing_quality', label: t('rating.dimensions.writingQuality'), color: 'teal', type: 'quality', lowLabel: t('rating.hints.writingQuality.low'), highLabel: t('rating.hints.writingQuality.high') },
+  { key: 'rereadability', label: t('rating.dimensions.rereadability'), color: 'amber', type: 'quality', lowLabel: t('rating.hints.rereadability.low'), highLabel: t('rating.hints.rereadability.high') },
+  { key: 'pacing', label: t('rating.dimensions.pacing'), color: 'blue', type: 'spectrum', lowLabel: t('rating.hints.pacing.low'), highLabel: t('rating.hints.pacing.high') },
+  { key: 'readability', label: t('rating.dimensions.readability'), color: 'green', type: 'spectrum', lowLabel: t('rating.hints.readability.low'), highLabel: t('rating.hints.readability.high') },
+  { key: 'plot_complexity', label: t('rating.dimensions.plotComplexity'), color: 'orange', type: 'spectrum', lowLabel: t('rating.hints.plotComplexity.low'), highLabel: t('rating.hints.plotComplexity.high') },
+  { key: 'humor', label: t('rating.dimensions.humor'), color: 'pink', type: 'spectrum', lowLabel: t('rating.hints.humor.low'), highLabel: t('rating.hints.humor.high') },
+])
 
 const existingRating = computed(() => props.initialRating ?? bookPageStore.userRating)
 const isEditing = computed(() => !!existingRating.value)
@@ -60,7 +61,7 @@ function populateFromExisting() {
   const existing = existingRating.value
   if (existing) {
     overallRating.value = existing.overall_rating
-    for (const dim of dimensions) {
+    for (const dim of dimensions.value) {
       const val = existing[dim.key as keyof typeof existing]
       subRatings.value[dim.key] = typeof val === 'number'
         ? val
@@ -69,7 +70,7 @@ function populateFromExisting() {
   }
   else {
     overallRating.value = 0
-    for (const dim of dimensions) {
+    for (const dim of dimensions.value) {
       subRatings.value[dim.key] = null
     }
   }
@@ -91,7 +92,7 @@ async function handleSave() {
   saving.value = true
   try {
     const data: Record<string, any> = { overall_rating: overallRating.value }
-    for (const dim of dimensions) {
+    for (const dim of dimensions.value) {
       if (subRatings.value[dim.key] != null)
         data[dim.key] = subRatings.value[dim.key]
     }
@@ -106,7 +107,7 @@ async function handleSave() {
     emit('saved')
   }
   catch {
-    useToastStore().error('Could not save your rating. Please try again.')
+    useToastStore().error(t('rating.saveFailed'))
   }
   finally {
     saving.value = false
@@ -125,7 +126,7 @@ async function handleDelete() {
     emit('update:modelValue', false)
   }
   catch {
-    useToastStore().error('Could not delete your rating. Please try again.')
+    useToastStore().error(t('rating.deleteFailed'))
   }
   finally {
     deleting.value = false
@@ -142,15 +143,15 @@ async function handleDelete() {
     <v-card>
       <v-card-title>
         {{ isEditing
-          ? 'Edit Rating'
-          : 'Rate This Book' }}
+          ? t('rating.edit')
+          : t('rating.dialogTitle') }}
       </v-card-title>
 
       <v-card-text>
         <!-- Overall Rating (required) -->
         <div class="mb-6">
           <div class="text-subtitle-1 font-weight-bold mb-3">
-            Overall Rating
+            {{ t('rating.overallRating') }}
           </div>
 
           <div class="d-flex flex-column align-center gap-2">
@@ -185,9 +186,9 @@ async function handleDelete() {
           </div>
 
           <div class="d-flex justify-space-between mt-3">
-            <span class="text-medium-emphasis">Poor</span>
+            <span class="text-medium-emphasis">{{ t('rating.poor') }}</span>
 
-            <span class="text-medium-emphasis">Excellent</span>
+            <span class="text-medium-emphasis">{{ t('rating.excellent') }}</span>
           </div>
         </div>
 
@@ -195,7 +196,7 @@ async function handleDelete() {
 
         <!-- Sub-dimensions (optional) -->
         <div class="text-subtitle-2 text-medium-emphasis mb-3">
-          Optional dimensions
+          {{ t('rating.optionalDimensions') }}
         </div>
 
         <div class="d-flex flex-column gap-3">
@@ -258,7 +259,7 @@ async function handleDelete() {
           variant="text"
           @click="emit('update:modelValue', false)"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -269,8 +270,8 @@ async function handleDelete() {
           @click="handleSave"
         >
           {{ isEditing
-            ? 'Update'
-            : 'Submit' }}
+            ? t('common.update')
+            : t('common.submit') }}
         </v-btn>
       </v-card-actions>
     </v-card>

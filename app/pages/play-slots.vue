@@ -2,14 +2,17 @@
 import CaseWinnerReveal from '~/components/case/CaseWinnerReveal.vue'
 import SlotsMachine from '~/components/slots/SlotsMachine.vue'
 import { useSlotsStore } from '~/stores/slots'
-import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
+import { RARITY_COLORS } from '~/types/case'
+
+const { t } = useI18n()
 
 useSeoMeta({
-  title: 'Play Slots - Minsik',
-  description: 'Play slots to win books of different rarities.',
+  title: t('slotsPage.seoTitle'),
+  description: t('slotsPage.seoDescription'),
 })
 
 const slotsStore = useSlotsStore()
+const { rarityLabels } = useRarityLabels()
 
 const rarityTiers = [
   { rarity: 'legendary', probability: '~1.5%' },
@@ -77,7 +80,7 @@ onUnmounted(() => {
         >
           <div class="rarity-tooltip pa-1">
             <div class="text-subtitle-2 font-weight-bold mb-2">
-              Rarity Tiers
+              {{ t('caseGame.rarityTiers') }}
             </div>
 
             <div
@@ -93,7 +96,7 @@ onUnmounted(() => {
               <span
                 class="font-weight-medium"
                 :style="{'color': RARITY_COLORS[tier.rarity]}"
-              >{{ RARITY_LABELS[tier.rarity] }}</span>
+              >{{ rarityLabels[tier.rarity] }}</span>
 
               <span class="text-caption font-weight-bold ml-auto">{{ tier.probability }}</span>
             </div>
@@ -114,7 +117,7 @@ onUnmounted(() => {
         >
           <div class="mb-6 text-center">
             <h2 class="text-h4 font-weight-bold">
-              You won...
+              {{ t('slotsPage.youWon') }}
             </h2>
           </div>
 
@@ -148,7 +151,7 @@ onUnmounted(() => {
             :disabled="slotsStore.phase !== 'idle'"
             @click="handlePull"
           >
-            SPIN!
+            {{ t('slotsPage.spin') }}
           </v-btn>
 
           <!-- Description below initial state -->
@@ -158,11 +161,11 @@ onUnmounted(() => {
             style="transition: opacity 0.3s ease;"
           >
             <div class="text-h6 font-weight-bold text-medium-emphasis">
-              Play Book Slots
+              {{ t('slotsPage.playBookSlots') }}
             </div>
 
             <div class="text-body-2 text-medium-emphasis mt-1">
-              Press SPIN to reveal random book rarities
+              {{ t('slotsPage.pressSpinHint') }}
             </div>
           </div>
         </div>
@@ -182,7 +185,7 @@ onUnmounted(() => {
           variant="text"
           @click="slotsStore.reset()"
         >
-          Close
+          {{ t('common.close') }}
         </v-btn>
       </template>
     </v-snackbar>

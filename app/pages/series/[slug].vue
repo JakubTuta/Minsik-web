@@ -8,6 +8,7 @@ const authorsStore = useAuthorsStore()
 const authStore = useAuthStore()
 const adminStore = useAdminStore()
 const recommendationsStore = useRecommendationsStore()
+const { t } = useI18n()
 
 const slug = route.params.slug as string
 
@@ -44,18 +45,21 @@ const { data: primaryAuthor } = await useAsyncData(
 if (seriesError.value || !series.value) {
   throw createError({
     statusCode: 404,
-    message: 'Series not found',
+    message: t('seriesPage.notFound'),
     fatal: true,
   })
 }
 
-// SEO
+// SEO — series slugs are shared across languages (unlike books, whose slug is
+// per-edition), so the canonical just follows the current UI locale's URL;
+// hreflang alternates come from useLocaleHead() in app.vue.
 const config = useRuntimeConfig()
-const canonicalUrl = `${config.public.siteUrl}/series/${slug}`
+const localePath = useLocalePath()
+const canonicalUrl = `${config.public.siteUrl}${route.path}`
 
 useSeo({
   title: series.value.name,
-  description: series.value.description || `${series.value.name} - A series of ${series.value.total_books} books`,
+  description: series.value.description || t('seriesPage.seoDescriptionFallback', { name: series.value.name, count: series.value.total_books }),
   image: books.value?.[0]?.primary_cover_url || undefined,
   type: 'website',
   url: canonicalUrl,
@@ -69,9 +73,9 @@ useSeriesStructuredData({
 })
 
 useBreadcrumbStructuredData([
-  { name: 'Home', url: config.public.siteUrl as string },
+  { name: t('nav.home'), url: `${config.public.siteUrl}${localePath('index')}` },
   ...(series.value.author
-    ? [{ name: series.value.author.name, url: `${config.public.siteUrl}/authors/${series.value.author.slug}` }]
+    ? [{ name: series.value.author.name, url: `${config.public.siteUrl}${localePath({ name: 'authors-slug', params: { slug: series.value.author.slug } })}` }]
     : []),
   { name: series.value.name },
 ])
@@ -83,12 +87,12 @@ const removeAuthorError = ref('')
 const editDialogOpen = ref(false)
 const deleteDialogOpen = ref(false)
 
-const seriesEditFields: EditFieldConfig[] = [
-  { key: 'name', label: 'Name', type: 'text' },
-  { key: 'slug', label: 'Slug', type: 'text' },
-  { key: 'description', label: 'Description', type: 'textarea' },
-  { key: 'total_books', label: 'Total Books', type: 'number' },
-]
+const seriesEditFields = computed<EditFieldConfig[]>(() => [
+  { key: 'name', label: t('author.fieldName'), type: 'text' },
+  { key: 'slug', label: t('common.fieldSlug'), type: 'text' },
+  { key: 'description', label: t('common.description'), type: 'textarea' },
+  { key: 'total_books', label: t('seriesPage.totalBooks'), type: 'number' },
+])
 
 const seriesEditOriginalData = computed(() => ({
   name: series.value?.name ?? null,
@@ -104,7 +108,7 @@ async function handleRemoveSeriesAuthors(authorIds: number[]) {
   )
   const failed = results.find(r => !r.success)
   if (failed) {
-    removeAuthorError.value = (failed as any).error || 'Remove failed'
+    removeAuthorError.value = (failed as any).error || t('seriesPage.removeFailed')
 
     return
   }
@@ -116,10 +120,10 @@ async function handleSeriesDelete() {
   const result = await adminStore.deleteSeries(series.value!.series_id)
   if (result.success) {
     deleteDialogOpen.value = false
-    await navigateTo('/')
+    await navigateTo(localePath('index'))
   }
   else {
-    deleteError.value = (result as any).error || 'Delete failed'
+    deleteError.value = (result as any).error || t('admin.deleteFailed')
   }
 }
 
@@ -133,11 +137,11 @@ async function handleSeriesEditSave(editedData: Record<string, any>) {
       : slug
     await seriesStore.fetchSeries(newSlug, true)
     if (newSlug !== slug) {
-      await navigateTo(`/series/${newSlug}`)
+      await navigateTo(localePath({ name: 'series-slug', params: { slug: newSlug } }))
     }
   }
   else {
-    editError.value = (result as any).error || 'Update failed'
+    editError.value = (result as any).error || t('admin.updateFailed')
   }
 }
 
@@ -200,13 +204,13 @@ onMounted(async () => {
         <v-card>
           <v-card-text>
             <h2 class="text-h5 font-weight-bold mb-4">
-              Books in this Series
+              {{ t('seriesPage.booksInSeries') }}
             </h2>
 
             <BooksList
               :books="books || []"
               :loading="seriesStore.isLoadingBooks"
-              empty-message="No books found in this series."
+              :empty-message="t('seriesPage.noBooksInSeries')"
             />
           </v-card-text>
         </v-card>

@@ -3,6 +3,7 @@ import type { SlotsPhase, SpinSlotsData } from '~/types/case'
 import { defineStore } from 'pinia'
 
 export const useSlotsStore = defineStore('slots', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language: userLanguage } = useUserLanguage()
@@ -26,7 +27,7 @@ export const useSlotsStore = defineStore('slots', () => {
       slotsData.value = response.data.data!
     }
     catch (err: any) {
-      error.value = err.response?.data?.message || err.response?.data?.detail || 'Failed to spin slots'
+      error.value = err.response?.data?.message || err.response?.data?.detail || t('storeErrors.slotsSpinFailed')
       console.error('Slots spin error:', err)
     }
     finally {

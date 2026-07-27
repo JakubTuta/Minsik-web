@@ -20,6 +20,7 @@ function getChangedFields(
 }
 
 export const useAdminStore = defineStore('admin', () => {
+  const { t, te } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 
@@ -60,7 +61,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
     catch (error) {
       console.error('Failed to fetch coverage:', error)
-      errors.value.coverage = 'Failed to load coverage statistics'
+      errors.value.coverage = t('storeErrors.adminCoverageLoadFailed')
     }
     finally {
       isCoverageLoading.value = false
@@ -78,7 +79,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
     catch (error) {
       console.error('Failed to import dump:', error)
-      errors.value.import = 'Failed to start dump import'
+      errors.value.import = t('storeErrors.adminImportStartFailed')
     }
     finally {
       isImportLoading.value = false
@@ -96,7 +97,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
     catch (error) {
       console.error('Failed to trigger cleanup:', error)
-      errors.value.cleanup = 'Failed to start cleanup job'
+      errors.value.cleanup = t('storeErrors.adminCleanupStartFailed')
     }
     finally {
       isCleanupLoading.value = false
@@ -114,7 +115,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
     catch (error) {
       console.error('Failed to trigger reindex:', error)
-      errors.value.reindex = 'Failed to start reindex job'
+      errors.value.reindex = t('storeErrors.adminReindexStartFailed')
     }
     finally {
       isReindexLoading.value = false
@@ -132,7 +133,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
     catch (error) {
       console.error('Failed to refresh recommendations:', error)
-      errors.value.recommendationsRefresh = 'Failed to refresh recommendations'
+      errors.value.recommendationsRefresh = t('storeErrors.adminRecommendationsRefreshFailed')
     }
     finally {
       isRecommendationsRefreshLoading.value = false
@@ -150,7 +151,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
     catch (error) {
       console.error('Failed to refresh personal recommendations:', error)
-      errors.value.personalRecommendationsRefresh = 'Failed to refresh personal recommendations'
+      errors.value.personalRecommendationsRefresh = t('storeErrors.adminPersonalRecommendationsRefreshFailed')
     }
     finally {
       isPersonalRecommendationsRefreshLoading.value = false
@@ -169,8 +170,7 @@ export const useAdminStore = defineStore('admin', () => {
     catch (error: any) {
       console.error('Failed to refresh personal recommendations for user:', error)
       errors.value.userPersonalRecommendationsRefresh
-        = error?.response?.data?.error?.message
-          || 'Failed to refresh personal recommendations for user'
+        = apiErrorMessage(error, t, te, 'storeErrors.adminUserPersonalRecommendationsRefreshFailed')
     }
     finally {
       isUserPersonalRecommendationsRefreshLoading.value = false
@@ -188,7 +188,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
     catch (error) {
       console.error('Failed to refresh contextual recommendations:', error)
-      errors.value.contextualRecommendationsRefresh = 'Failed to refresh contextual recommendations'
+      errors.value.contextualRecommendationsRefresh = t('storeErrors.adminContextualRecommendationsRefreshFailed')
     }
     finally {
       isContextualRecommendationsRefreshLoading.value = false
@@ -207,8 +207,7 @@ export const useAdminStore = defineStore('admin', () => {
     catch (error: any) {
       console.error('Failed to invalidate contextual cache:', error)
       errors.value.contextualInvalidate
-        = error?.response?.data?.error?.message
-          || 'Failed to invalidate contextual cache'
+        = apiErrorMessage(error, t, te, 'storeErrors.adminContextualInvalidateFailed')
     }
     finally {
       isContextualInvalidateLoading.value = false
@@ -226,7 +225,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
     catch (error) {
       console.error('Failed to refresh book of the week:', error)
-      errors.value.bookOfTheWeekRefresh = 'Failed to refresh book of the week'
+      errors.value.bookOfTheWeekRefresh = t('storeErrors.adminBookOfTheWeekRefreshFailed')
     }
     finally {
       isBookOfTheWeekRefreshLoading.value = false
@@ -263,7 +262,7 @@ export const useAdminStore = defineStore('admin', () => {
       return { success: true }
     }
     catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Failed to update book'
+      const msg = apiErrorMessage(error, t, te, 'storeErrors.adminBookUpdateFailed')
 
       return { success: false, error: msg }
     }
@@ -299,7 +298,7 @@ export const useAdminStore = defineStore('admin', () => {
       return { success: true }
     }
     catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Failed to update author'
+      const msg = apiErrorMessage(error, t, te, 'storeErrors.adminAuthorUpdateFailed')
 
       return { success: false, error: msg }
     }
@@ -321,7 +320,7 @@ export const useAdminStore = defineStore('admin', () => {
       return { success: true }
     }
     catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Failed to update series'
+      const msg = apiErrorMessage(error, t, te, 'storeErrors.adminSeriesUpdateFailed')
 
       return { success: false, error: msg }
     }
@@ -338,7 +337,7 @@ export const useAdminStore = defineStore('admin', () => {
       return { success: true }
     }
     catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Failed to remove author from book'
+      const msg = apiErrorMessage(error, t, te, 'storeErrors.adminRemoveAuthorFromBookFailed')
 
       return { success: false, error: msg }
     }
@@ -355,7 +354,7 @@ export const useAdminStore = defineStore('admin', () => {
       return { success: true }
     }
     catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Failed to remove author from series'
+      const msg = apiErrorMessage(error, t, te, 'storeErrors.adminRemoveAuthorFromSeriesFailed')
 
       return { success: false, error: msg }
     }
@@ -372,7 +371,7 @@ export const useAdminStore = defineStore('admin', () => {
       return { success: true }
     }
     catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Failed to delete book'
+      const msg = apiErrorMessage(error, t, te, 'storeErrors.adminBookDeleteFailed')
 
       return { success: false, error: msg }
     }
@@ -389,7 +388,7 @@ export const useAdminStore = defineStore('admin', () => {
       return { success: true }
     }
     catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Failed to delete author'
+      const msg = apiErrorMessage(error, t, te, 'storeErrors.adminAuthorDeleteFailed')
 
       return { success: false, error: msg }
     }
@@ -406,7 +405,7 @@ export const useAdminStore = defineStore('admin', () => {
       return { success: true }
     }
     catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Failed to delete series'
+      const msg = apiErrorMessage(error, t, te, 'storeErrors.adminSeriesDeleteFailed')
 
       return { success: false, error: msg }
     }

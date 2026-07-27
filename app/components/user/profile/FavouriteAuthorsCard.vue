@@ -4,6 +4,8 @@ import type { FavouriteAuthor } from '~/types/user'
 defineProps<{
   authors: FavouriteAuthor[]
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -12,7 +14,7 @@ defineProps<{
     class="mb-6"
   >
     <v-card-title class="text-h6 font-weight-bold">
-      Favourite authors
+      {{ t('profile.favouriteAuthors') }}
     </v-card-title>
 
     <v-card-text class="pt-2">
@@ -44,16 +46,16 @@ defineProps<{
           </v-avatar>
 
           <div class="flex-grow-1 min-w-0">
-            <NuxtLink
+            <NuxtLinkLocale
               :to="`/authors/${author.slug}`"
               class="text-decoration-none text-body-1 font-weight-medium text-primary"
             >
               {{ author.name }}
-            </NuxtLink>
+            </NuxtLinkLocale>
           </div>
 
           <span class="text-body-2 text-medium-emphasis flex-shrink-0">
-            {{ author.count }} {{ author.count === 1 ? 'book' : 'books' }}
+            {{ t('common.bookCount', {'count': author.count}, author.count) }}
           </span>
         </div>
       </div>
@@ -62,7 +64,7 @@ defineProps<{
         v-else
         class="text-body-2 text-medium-emphasis"
       >
-        No author data yet.
+        {{ t('profile.noAuthorData') }}
       </div>
     </v-card-text>
   </v-card>

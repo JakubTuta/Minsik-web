@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
 
+const { t } = useI18n()
 const discoverStore = useDiscoverStore()
 
 const showError = computed({
@@ -52,15 +53,15 @@ onUnmounted(() => {
     <!-- Page header -->
     <div class="page-header mb-8 text-center">
       <h1 class="text-h3 font-weight-bold mb-2">
-        Discover
+        {{ t('nav.discover') }}
       </h1>
 
       <p class="text-body-1 text-medium-emphasis">
-        Set your preferences and find your next favorite book
+        {{ t('discoverPage.setPreferences') }}
       </p>
 
       <p class="text-body-1 text-medium-emphasis">
-        All filters are optional, but the more you set, the better the match!
+        {{ t('discoverPage.filtersOptionalHint') }}
       </p>
     </div>
 
@@ -93,7 +94,7 @@ onUnmounted(() => {
               variant="tonal"
               prepend-icon="mdi-book-search"
             >
-              {{ discoverStore.matchingCount }} books match your filters
+              {{ t('discover.matchingCount', {"count": discoverStore.matchingCount}, discoverStore.matchingCount ?? 0) }}
             </v-chip>
           </Transition>
         </div>
@@ -109,7 +110,7 @@ onUnmounted(() => {
             class="discover-btn"
             @click="handleDiscover"
           >
-            Discover a Book
+            {{ t('discoverPage.discoverABook') }}
           </v-btn>
         </div>
       </div>
@@ -129,7 +130,7 @@ onUnmounted(() => {
         />
 
         <p class="text-body-1 text-medium-emphasis">
-          Finding your perfect book...
+          {{ t('discoverPage.findingPerfectBook') }}
         </p>
       </div>
 
@@ -170,7 +171,7 @@ onUnmounted(() => {
           variant="text"
           @click="discoverStore.error = null"
         >
-          Close
+          {{ t('common.close') }}
         </v-btn>
       </template>
     </v-snackbar>

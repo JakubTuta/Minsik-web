@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Book, BookSummary } from '~/types/api'
 import type { Rarity } from '~/types/case'
-import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
+import { RARITY_COLORS } from '~/types/case'
 import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
@@ -12,8 +12,11 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'play-again': [] }>()
 
+const { t, n } = useI18n()
+const { rarityLabels } = useRarityLabels()
+
 const rarityColor = computed(() => RARITY_COLORS[props.winner.rarity as Rarity] ?? '#95A5A6')
-const rarityLabel = computed(() => RARITY_LABELS[props.winner.rarity as Rarity] ?? props.winner.rarity)
+const rarityLabel = computed(() => rarityLabels.value[props.winner.rarity as Rarity] ?? props.winner.rarity)
 
 const descriptionSnippet = computed(() => {
   const desc = props.winner.description
@@ -82,14 +85,14 @@ const authorsList = computed(() => props.winner.authors)
 
           <!-- Authors -->
           <div class="mb-4">
-            <NuxtLink
+            <NuxtLinkLocale
               v-for="author in authorsList"
               :key="author.author_id"
               :to="`/authors/${author.slug}`"
               class="text-body-1 text-primary text-decoration-none font-weight-medium mr-1"
             >
               {{ author.name }}
-            </NuxtLink>
+            </NuxtLinkLocale>
           </div>
 
           <!-- Stats row -->
@@ -108,7 +111,7 @@ const authorsList = computed(() => props.winner.authors)
                 size="small"
               />
 
-              <span>{{ totalReaders(winner.app_want_to_read_count, winner.app_reading_count, winner.app_read_count, winner.ol_want_to_read_count, winner.ol_currently_reading_count, winner.ol_already_read_count).toLocaleString() }} readers</span>
+              <span>{{ t('stats.readersCount', {"count": n(totalReaders(winner.app_want_to_read_count, winner.app_reading_count, winner.app_read_count, winner.ol_want_to_read_count, winner.ol_currently_reading_count, winner.ol_already_read_count))}) }}</span>
             </div>
           </div>
 
@@ -123,7 +126,7 @@ const authorsList = computed(() => props.winner.authors)
 
           <!-- Action buttons -->
           <div class="d-flex flex-wrap justify-center gap-3">
-            <NuxtLink
+            <NuxtLinkLocale
               :to="`/books/${winner.slug}`"
               class="text-decoration-none"
             >
@@ -132,16 +135,16 @@ const authorsList = computed(() => props.winner.authors)
                 variant="elevated"
                 prepend-icon="mdi-book-open"
               >
-                View Book
+                {{ t('caseGame.viewBook') }}
               </v-btn>
-            </NuxtLink>
+            </NuxtLinkLocale>
 
             <v-btn
               variant="outlined"
               prepend-icon="mdi-refresh"
               @click="emit('play-again')"
             >
-              Open Another
+              {{ t('caseGame.openAnother') }}
             </v-btn>
           </div>
         </div>

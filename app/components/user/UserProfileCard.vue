@@ -11,6 +11,8 @@ const props = withDefaults(defineProps<{
   bio: null,
 })
 
+const { t } = useI18n()
+
 const copyFeedback = ref(false)
 
 const { copy } = useClipboard({ source: computed(() => props.copyUrl ?? '') })
@@ -77,7 +79,7 @@ const initials = computed(() => (props.displayName || props.username).charAt(0).
           class="text-none"
           @click="copyProfileUrl"
         >
-          {{ copyFeedback ? 'Copied!' : copyDisplay }}
+          {{ copyFeedback ? t('common.copied') : copyDisplay }}
         </v-btn>
       </div>
     </div>

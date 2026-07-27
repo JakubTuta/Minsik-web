@@ -21,20 +21,25 @@ export function totalReaders(appWantToRead?: number, appReading?: number, appRea
     + (olWantToRead ?? 0) + (olCurrentlyReading ?? 0) + (olAlreadyRead ?? 0)
 }
 
-export function formatDisplayDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+export function formatDisplayDate(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
-export function formatRelativeTime(dateStr: string): string {
+export function formatRelativeTime(dateStr: string, t: (key: string, named?: Record<string, unknown>) => string, locale: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const minutes = Math.floor(diff / 60_000)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 1)
+    return t('time.justNow')
+  if (minutes < 60)
+    return t('time.minutesAgoCompact', { n: minutes })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24)
+    return t('time.hoursAgoCompact', { n: hours })
   const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
-  return formatDisplayDate(dateStr)
+  if (days < 30)
+    return t('time.daysAgoCompact', { n: days })
+
+  return formatDisplayDate(dateStr, locale)
 }
 
 /**

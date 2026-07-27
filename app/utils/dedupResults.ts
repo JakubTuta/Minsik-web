@@ -38,11 +38,13 @@ export function dedupByWork<T extends Dedupable>(items: T[], preferredLanguage: 
       continue
     }
 
-    const combinedReaders = group.reduce((sum, g) => sum + (g.readers || 0), 0)
+    // Readers are already pooled per work upstream (work_shelf_count_sql), so
+    // every edition in the group reports the same total — take the winner's
+    // count as-is rather than summing, which would multiply it by group size.
     const top = group.reduce((best, g) => (g.readers > best.readers
       ? g
       : best), group[0]!)
-    out.push({ ...top, readers: combinedReaders })
+    out.push(top)
   }
 
   return out

@@ -20,15 +20,6 @@ export const RARITY_COLORS: Record<Rarity, string> = {
   common: '#95A5A6',
 }
 
-export const RARITY_LABELS: Record<Rarity, string> = {
-  legendary: 'Legendary',
-  ultra_rare: 'Ultra Rare',
-  super_rare: 'Super Rare',
-  rare: 'Rare',
-  uncommon: 'Uncommon',
-  common: 'Common',
-}
-
 export interface OpenCaseData {
   winner: BookSummary
 }

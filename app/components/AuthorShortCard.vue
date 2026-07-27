@@ -8,6 +8,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t } = useI18n()
+
 const photoBg = computed(() => hashColor(props.author.name))
 const { optimized } = useOptimizedImage()
 </script>
@@ -21,7 +23,7 @@ const { optimized } = useOptimizedImage()
   >
     <v-card-text class="d-flex flex-column overflow-hidden pa-4">
       <h3 class="text-h6 font-weight-bold mb-4 flex-shrink-0">
-        About Author
+        {{ t('author.about') }}
       </h3>
 
       <v-divider class="mb-4 flex-shrink-0" />
@@ -41,12 +43,12 @@ const { optimized } = useOptimizedImage()
           </v-img>
         </v-avatar>
 
-        <NuxtLink
+        <NuxtLinkLocale
           class="text-h5 font-weight-bold text-primary text-decoration-none mb-2 flex-shrink-0"
           :to="`/authors/${author.slug}`"
         >
           {{ author.name }}
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <p
           v-if="author.bio"

@@ -2,7 +2,7 @@
 import type { BookSummary } from '~/types/api'
 import type { Rarity } from '~/types/case'
 import gsap from 'gsap'
-import { RARITY_COLORS, RARITY_LABELS } from '~/types/case'
+import { RARITY_COLORS } from '~/types/case'
 import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 const props = defineProps<Props>()
@@ -10,6 +10,8 @@ const emit = defineEmits<{
   reveal: [index: number]
   openAnother: []
 }>()
+const { t } = useI18n()
+const { rarityLabels } = useRarityLabels()
 const { preloadImages } = useImagePreloader()
 
 interface Props {
@@ -26,7 +28,7 @@ function getRarityColor(rarity: string | null | undefined) {
 }
 
 function getRarityLabel(rarity: string | null | undefined) {
-  return RARITY_LABELS[(rarity as Rarity) ?? 'common'] ?? rarity
+  return rarityLabels.value[(rarity as Rarity) ?? 'common'] ?? rarity
 }
 
 function isRevealed(index: number) {
@@ -155,7 +157,7 @@ onMounted(async () => {
       prepend-icon="mdi-refresh"
       @click="emit('openAnother')"
     >
-      Open Another Pack
+      {{ t('pack.openAnother') }}
     </v-btn>
   </div>
 </template>

@@ -4,6 +4,8 @@ import type { OverviewBook } from '~/types/user'
 defineProps<{
   book: OverviewBook | null
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -12,7 +14,7 @@ defineProps<{
     class="mb-6"
   >
     <v-card-title class="text-h6 font-weight-bold">
-      Reading right now
+      {{ t('profile.readingRightNow') }}
     </v-card-title>
 
     <v-card-text class="pt-2">
@@ -20,7 +22,7 @@ defineProps<{
         v-if="book"
         class="d-flex gap-4 align-start"
       >
-        <NuxtLink
+        <NuxtLinkLocale
           :to="`/books/${book.book_slug}`"
           class="flex-shrink-0"
           style="width: 80px; height: 120px; display: block;"
@@ -34,27 +36,27 @@ defineProps<{
             rounded="sm"
             lazy-src="/placeholder-book-lazy.jpg"
           />
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <div class="min-w-0">
-          <NuxtLink
+          <NuxtLinkLocale
             :to="`/books/${book.book_slug}`"
             class="text-decoration-none text-primary"
           >
             <div class="text-body-1 font-weight-bold">
               {{ book.book_title }}
             </div>
-          </NuxtLink>
+          </NuxtLinkLocale>
 
           <div class="text-body-2 text-medium-emphasis mt-2">
             <template
               v-for="(name, i) in book.book_author_names"
               :key="name"
             >
-              <NuxtLink
+              <NuxtLinkLocale
                 :to="`/authors/${book.book_author_slugs[i]}`"
                 class="text-decoration-none text-medium-emphasis"
-              >{{ name }}</NuxtLink><span v-if="i < book.book_author_names.length - 1">, </span>
+              >{{ name }}</NuxtLinkLocale><span v-if="i < book.book_author_names.length - 1">, </span>
             </template>
           </div>
         </div>
@@ -64,7 +66,7 @@ defineProps<{
         v-else
         class="text-body-2 text-medium-emphasis"
       >
-        Not reading anything right now.
+        {{ t('profile.notReadingAnything') }}
       </div>
     </v-card-text>
   </v-card>

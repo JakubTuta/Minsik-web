@@ -6,6 +6,8 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -36,13 +38,13 @@ defineProps<Props>()
       </p>
 
       <p class="text-body-2 text-medium-emphasis">
-        — from
-        <NuxtLink
+        {{ t('author.quoteFrom') }}
+        <NuxtLinkLocale
           :to="`/books/${quote.book_slug}`"
           class="text-primary text-decoration-none"
         >
           {{ quote.book_title }}
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <span v-if="quote.publication_year">, {{ quote.publication_year }}</span>
       </p>

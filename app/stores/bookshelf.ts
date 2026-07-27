@@ -9,6 +9,7 @@ export interface BookshelfParams {
 }
 
 export const useBookshelfStore = defineStore('bookshelf', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 
@@ -69,7 +70,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     }
     catch (error) {
       console.error('Failed to fetch bookshelf:', error)
-      myError.value = 'Could not load your bookshelf.'
+      myError.value = t('storeErrors.bookshelfLoadFailed')
     }
     finally {
       myIsLoading.value = false
@@ -115,7 +116,7 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     }
     catch (error) {
       console.error('Failed to fetch public bookshelf:', error)
-      publicError.value = 'Could not load this bookshelf.'
+      publicError.value = t('storeErrors.publicBookshelfLoadFailed')
     }
     finally {
       publicIsLoading.value = false

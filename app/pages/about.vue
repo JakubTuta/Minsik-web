@@ -1,8 +1,28 @@
 <script setup lang="ts">
+const localePath = useLocalePath()
+const { t } = useI18n()
+
 useSeoMeta({
-  title: 'About - Minsik',
-  description: 'Minsik is a community-driven book discovery and tracking platform that combines community ratings with Open Library data to help you find your next great read.',
+  title: t('aboutPage.seoTitle'),
+  description: t('aboutPage.seoDescription'),
 })
+
+interface Feature {
+  icon: string
+  color: string
+  title: string
+  body: string
+}
+
+const features = computed<Feature[]>(() => [
+  { icon: 'mdi-bookshelf', color: 'primary', title: t('aboutPage.featureTrackerTitle'), body: t('aboutPage.featureTrackerBody') },
+  { icon: 'mdi-star', color: 'warning', title: t('aboutPage.featureRatingsTitle'), body: t('aboutPage.featureRatingsBody') },
+  { icon: 'mdi-treasure-chest', color: 'deep-purple', title: t('aboutPage.featureCasesTitle'), body: t('aboutPage.featureCasesBody') },
+  { icon: 'mdi-compass', color: 'info', title: t('aboutPage.featureDiscoveryTitle'), body: t('aboutPage.featureDiscoveryBody') },
+  { icon: 'mdi-brain', color: 'success', title: t('aboutPage.featureRecommendationsTitle'), body: t('aboutPage.featureRecommendationsBody') },
+  { icon: 'mdi-account-group', color: 'pink', title: t('aboutPage.featureProfilesTitle'), body: t('aboutPage.featureProfilesBody') },
+  { icon: 'mdi-slot-machine', color: 'orange', title: t('aboutPage.featureCasinoTitle'), body: t('aboutPage.featureCasinoBody') },
+])
 </script>
 
 <template>
@@ -23,14 +43,14 @@ useSeoMeta({
           </v-icon>
 
           <h1 class="text-h3 font-weight-bold mb-4">
-            About Minsik
+            {{ t('aboutPage.title') }}
           </h1>
 
           <p
             class="text-h6 text-medium-emphasis mx-auto"
             style="max-width: 620px;"
           >
-            A community-driven book discovery and tracking platform for readers who love to explore, rate, and share great books.
+            {{ t('aboutPage.subtitle') }}
           </p>
         </div>
 
@@ -40,25 +60,27 @@ useSeoMeta({
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            What is Minsik?
+            {{ t('aboutPage.whatIsTitle') }}
           </h2>
 
           <p class="text-body-2 mb-3">
-            Minsik is a book platform built for curious readers. It combines powerful discovery tools with a personal reading tracker, community ratings, and a unique collectible book experience — all in one place.
+            {{ t('aboutPage.whatIsBody1') }}
           </p>
 
           <p class="text-body-2">
-            What sets Minsik apart is its rating system: every book's score is a weighted combination of Minsik community reviews and Open Library data, giving you the most comprehensive view of a book's quality before you commit to reading it.
+            {{ t('aboutPage.whatIsBody2') }}
           </p>
         </v-card>
 
         <!-- Features -->
         <h2 class="text-h5 font-weight-bold mb-4">
-          Key Features
+          {{ t('aboutPage.keyFeatures') }}
         </h2>
 
         <v-row class="mb-8">
           <v-col
+            v-for="feature in features"
+            :key="feature.title"
             cols="12"
             sm="6"
           >
@@ -67,147 +89,15 @@ useSeoMeta({
               class="h-100 pa-5"
             >
               <div class="d-flex align-center mb-2 gap-3">
-                <v-icon color="primary">
-                  mdi-bookshelf
+                <v-icon :color="feature.color">
+                  {{ feature.icon }}
                 </v-icon>
 
-                <span class="text-subtitle-1 font-weight-bold">Reading Tracker</span>
+                <span class="text-subtitle-1 font-weight-bold">{{ feature.title }}</span>
               </div>
 
               <p class="text-body-2 text-medium-emphasis">
-                Organize your reading life with four statuses: Want to Read, Reading, Read, and Abandoned. Your personal library is always a tap away.
-              </p>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-          >
-            <v-card
-              variant="tonal"
-              class="h-100 pa-5"
-            >
-              <div class="d-flex align-center mb-2 gap-3">
-                <v-icon color="warning">
-                  mdi-star
-                </v-icon>
-
-                <span class="text-subtitle-1 font-weight-bold">Ratings & Reviews</span>
-              </div>
-
-              <p class="text-body-2 text-medium-emphasis">
-                Rate books across 8 sub-dimensions — pacing, emotional impact, writing quality, and more — plus an overall score. Write reviews that help the community discover great reads.
-              </p>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-          >
-            <v-card
-              variant="tonal"
-              class="h-100 pa-5"
-            >
-              <div class="d-flex align-center mb-2 gap-3">
-                <v-icon color="deep-purple">
-                  mdi-treasure-chest
-                </v-icon>
-
-                <span class="text-subtitle-1 font-weight-bold">Book Cases</span>
-              </div>
-
-              <p class="text-body-2 text-medium-emphasis">
-                Open mystery cases to reveal random books with collectible rarity tiers — from Common all the way to the coveted Legendary. A fun, surprise-driven way to find your next read.
-              </p>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-          >
-            <v-card
-              variant="tonal"
-              class="h-100 pa-5"
-            >
-              <div class="d-flex align-center mb-2 gap-3">
-                <v-icon color="info">
-                  mdi-compass
-                </v-icon>
-
-                <span class="text-subtitle-1 font-weight-bold">Smart Discovery</span>
-              </div>
-
-              <p class="text-body-2 text-medium-emphasis">
-                Filter by book length, mood, era, quality threshold, and more. Minsik surfaces the perfect match from thousands of titles based on exactly what you're in the mood for.
-              </p>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-          >
-            <v-card
-              variant="tonal"
-              class="h-100 pa-5"
-            >
-              <div class="d-flex align-center mb-2 gap-3">
-                <v-icon color="success">
-                  mdi-brain
-                </v-icon>
-
-                <span class="text-subtitle-1 font-weight-bold">Personalized Recommendations</span>
-              </div>
-
-              <p class="text-body-2 text-medium-emphasis">
-                Receive book and author recommendations tailored to your reading history. The more you rate and read, the more precise your suggestions become.
-              </p>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-          >
-            <v-card
-              variant="tonal"
-              class="h-100 pa-5"
-            >
-              <div class="d-flex align-center mb-2 gap-3">
-                <v-icon color="pink">
-                  mdi-account-group
-                </v-icon>
-
-                <span class="text-subtitle-1 font-weight-bold">Community Profiles</span>
-              </div>
-
-              <p class="text-body-2 text-medium-emphasis">
-                Explore other readers' public bookshelves, browse their ratings and reviews, and discover what the community is reading right now.
-              </p>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-          >
-            <v-card
-              variant="tonal"
-              class="h-100 pa-5"
-            >
-              <div class="d-flex align-center mb-2 gap-3">
-                <v-icon color="orange">
-                  mdi-slot-machine
-                </v-icon>
-
-                <span class="text-subtitle-1 font-weight-bold">Casino</span>
-              </div>
-
-              <p class="text-body-2 text-medium-emphasis">
-                Try your luck with three game modes: spin the slots for a random recommendation, open a mystery case to reveal a book with collectible rarity tiers, or crack open a pack of books one card at a time.
+                {{ feature.body }}
               </p>
             </v-card>
           </v-col>
@@ -219,11 +109,11 @@ useSeoMeta({
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            How Ratings Work
+            {{ t('aboutPage.howRatingsWorkTitle') }}
           </h2>
 
           <p class="text-body-2 mb-5">
-            Every book on Minsik displays a combined rating — a weighted average from two independent sources:
+            {{ t('aboutPage.howRatingsWorkIntro') }}
           </p>
 
           <v-row class="mb-4">
@@ -241,11 +131,11 @@ useSeoMeta({
 
                 <div>
                   <p class="text-body-2 font-weight-bold mb-1">
-                    Minsik Community
+                    {{ t('aboutPage.minsikCommunity') }}
                   </p>
 
                   <p class="text-body-2 text-medium-emphasis">
-                    Ratings and detailed reviews submitted by Minsik users, weighted by the number of submissions.
+                    {{ t('aboutPage.minsikCommunityBody') }}
                   </p>
                 </div>
               </div>
@@ -265,11 +155,11 @@ useSeoMeta({
 
                 <div>
                   <p class="text-body-2 font-weight-bold mb-1">
-                    Open Library
+                    {{ t('aboutPage.openLibrary') }}
                   </p>
 
                   <p class="text-body-2 text-medium-emphasis">
-                    Ratings from the Open Library community — a vast open catalog maintained by the Internet Archive.
+                    {{ t('aboutPage.openLibraryBody') }}
                   </p>
                 </div>
               </div>
@@ -277,7 +167,7 @@ useSeoMeta({
           </v-row>
 
           <p class="text-body-2">
-            The two sources are combined proportionally by review count, so books with more ratings carry a more reliable score. On each book's detail page you can always see both scores independently alongside the combined result.
+            {{ t('aboutPage.howRatingsWorkOutro') }}
           </p>
         </v-card>
 
@@ -287,11 +177,11 @@ useSeoMeta({
           class="mb-6 pa-6"
         >
           <h2 class="text-h6 font-weight-bold mb-3">
-            Data Sources
+            {{ t('aboutPage.dataSourcesTitle') }}
           </h2>
 
           <p class="text-body-2">
-            Book metadata, author biographies, and series information on Minsik are sourced from <strong>Open Library</strong> — a free, community-maintained catalog run by the Internet Archive containing millions of titles across every genre and language. The Minsik community continuously enriches this foundation with ratings, comments, and reading records.
+            {{ t('aboutPage.dataSourcesBodyPrefix') }} <strong>{{ t('aboutPage.openLibrary') }}</strong> {{ t('aboutPage.dataSourcesBodySuffix') }}
           </p>
         </v-card>
 
@@ -302,37 +192,37 @@ useSeoMeta({
           class="mb-6 pa-6 text-center"
         >
           <h2 class="text-h6 font-weight-bold mb-2">
-            Start Your Reading Journey
+            {{ t('aboutPage.ctaTitle') }}
           </h2>
 
           <p class="text-body-2 text-medium-emphasis mb-5">
-            Create a free account to unlock personalized recommendations, track your reading, and become part of the Minsik community.
+            {{ t('aboutPage.ctaBody') }}
           </p>
 
           <div class="d-flex flex-wrap justify-center gap-3">
             <v-btn
               color="primary"
               variant="elevated"
-              to="/"
+              :to="localePath('/')"
               prepend-icon="mdi-home"
             >
-              Browse Books
+              {{ t('aboutPage.browseBooks') }}
             </v-btn>
 
             <v-btn
               variant="outlined"
-              to="/discover"
+              :to="localePath('/discover')"
               prepend-icon="mdi-compass"
             >
-              Discover a Book
+              {{ t('discoverPage.discoverABook') }}
             </v-btn>
 
             <v-btn
               variant="outlined"
-              to="/play-slots"
+              :to="localePath('/play-slots')"
               prepend-icon="mdi-slot-machine"
             >
-              Try the Casino
+              {{ t('aboutPage.tryTheCasino') }}
             </v-btn>
           </div>
         </v-card>
@@ -340,10 +230,10 @@ useSeoMeta({
         <div class="d-flex mt-2 justify-center">
           <v-btn
             variant="text"
-            to="/"
+            :to="localePath('/')"
             prepend-icon="mdi-arrow-left"
           >
-            Back to Home
+            {{ t('common.backToHome') }}
           </v-btn>
         </div>
       </v-col>

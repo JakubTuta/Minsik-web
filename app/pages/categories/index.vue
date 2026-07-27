@@ -2,20 +2,22 @@
 import type { BookSummary } from '~/types/api'
 
 const route = useRoute()
+const { t, n } = useI18n()
+const localePath = useLocalePath()
 const categoriesStore = useCategoriesStore()
 const { categories, getCategoryBySlug } = useCategories()
 
 const selectedSlug = computed(() => route.query.category as string | null ?? null)
 
 if (!selectedSlug.value) {
-  await navigateTo('/')
+  await navigateTo(localePath('index'))
 }
 
 const sortBy = ref<'popularity' | 'rating'>('popularity')
-const sortOptions = [
-  { value: 'popularity', title: 'Most Popular' },
-  { value: 'rating', title: 'Highest Rated' },
-]
+const sortOptions = computed(() => [
+  { value: 'popularity', title: t('categories.mostPopular') },
+  { value: 'rating', title: t('categories.highestRated') },
+])
 
 const allBooks = ref<BookSummary[]>([])
 const booksOffset = ref(0)
@@ -70,11 +72,11 @@ const currentCategory = computed(() => (selectedSlug.value
   ? getCategoryBySlug(selectedSlug.value)
   : null))
 
-const pageTitle = computed(() => currentCategory.value?.name ?? 'Browse Categories')
+const pageTitle = computed(() => currentCategory.value?.name ?? t('categories.browse'))
 
 useSeo({
   title: pageTitle.value,
-  description: `Browse ${pageTitle.value} — discover your next read by genre`,
+  description: t('categories.seoDescription', { category: pageTitle.value }),
 })
 </script>
 
@@ -107,7 +109,7 @@ useSeo({
                   v-if="booksTotalCount > 0"
                   class="text-body-2 text-medium-emphasis"
                 >
-                  {{ booksTotalCount.toLocaleString() }} books
+                  {{ t('common.bookCount', {"count": n(booksTotalCount)}, booksTotalCount) }}
                 </span>
               </div>
 
@@ -126,7 +128,7 @@ useSeo({
               :loading="categoriesStore.isLoadingBooks"
               :load-more="loadMoreBooks"
               :has-more="hasMoreBooks"
-              empty-message="No books found for this category."
+              :empty-message="t('categories.noBooksInCategory')"
             />
           </v-card-text>
         </v-card>

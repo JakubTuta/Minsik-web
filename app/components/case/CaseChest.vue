@@ -12,6 +12,8 @@ withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   open: []
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -40,11 +42,11 @@ const emit = defineEmits<{
                'opacity-0': opening}"
     >
       <div class="text-h6 font-weight-bold text-medium-emphasis">
-        Open a Book Case
+        {{ t('caseGame.openABookCase') }}
       </div>
 
       <div class="text-body-2 text-medium-emphasis mt-1">
-        Click to reveal a random book
+        {{ t('caseGame.clickToReveal') }}
       </div>
     </div>
   </div>

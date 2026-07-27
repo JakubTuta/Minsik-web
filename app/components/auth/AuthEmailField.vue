@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { emailRules } from '~/utils/validation'
-
 defineProps<{
   disabled?: boolean
 }>()
+const { t } = useI18n()
+const { emailRules } = useValidationRules()
 
 const model = defineModel<string>({ default: '' })
 
-const isValid = computed(() => model.value && emailRules.every(rule => rule(model.value) === true))
-const isInvalid = computed(() => model.value && emailRules.some(rule => rule(model.value) !== true))
+const isValid = computed(() => model.value && emailRules.value.every(rule => rule(model.value) === true))
+const isInvalid = computed(() => model.value && emailRules.value.some(rule => rule(model.value) !== true))
 </script>
 
 <template>
   <v-text-field
     v-model="model"
-    label="Email"
+    :label="t('auth.email')"
     type="email"
     variant="outlined"
     class="mb-2"

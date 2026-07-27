@@ -17,6 +17,7 @@ const emit = defineEmits<{
 
 const { existingComment } = toRefs(props)
 
+const { t } = useI18n()
 const bookPageStore = useBookPageStore()
 
 const body = ref(existingComment.value?.body ?? '')
@@ -56,7 +57,7 @@ async function submit() {
     emit('saved')
   }
   catch (err: any) {
-    error.value = err.response?.data?.error?.message || 'Failed to save comment'
+    error.value = err.response?.data?.error?.message || t('comment.saveFailed')
   }
   finally {
     saving.value = false
@@ -71,13 +72,13 @@ async function submit() {
   >
     <div class="text-subtitle-2 font-weight-bold mb-3">
       {{ isEdit
-        ? 'Edit Comment'
-        : 'Leave a Comment' }}
+        ? t('comment.editComment')
+        : t('comment.leaveComment') }}
     </div>
 
     <v-textarea
       v-model="body"
-      placeholder="Share your thoughts about this book..."
+      :placeholder="t('comment.placeholder')"
       variant="outlined"
       rows="3"
       counter="5000"
@@ -91,7 +92,7 @@ async function submit() {
     <div class="d-flex align-center justify-space-between mt-3">
       <v-checkbox
         v-model="isSpoiler"
-        label="Contains spoilers"
+        :label="t('comment.containsSpoilers')"
         density="compact"
         hide-details
         color="warning"
@@ -104,7 +105,7 @@ async function submit() {
           size="small"
           @click="emit('cancelled')"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -116,8 +117,8 @@ async function submit() {
           @click="submit"
         >
           {{ isEdit
-            ? 'Update'
-            : 'Post Comment' }}
+            ? t('common.update')
+            : t('comment.postComment') }}
         </v-btn>
       </div>
     </div>

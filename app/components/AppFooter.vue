@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const authStore = useAuthStore()
 const authDialogStore = useAuthDialogStore()
 </script>
@@ -13,14 +14,14 @@ const authDialogStore = useAuthDialogStore()
           sm="3"
         >
           <div class="text-h6 font-weight-bold mb-2">
-            Minsik
+            {{ t('app.name') }}
           </div>
 
           <div
             class="text-body-2 text-secondary mb-4"
             style="max-width: 260px"
           >
-            Discover your next favorite book through emotional reading profiles and book influence networks.
+            {{ t('footer.tagline') }}
           </div>
 
           <div class="d-flex ga-2">
@@ -55,7 +56,7 @@ const authDialogStore = useAuthDialogStore()
               href="https://jakubtutka.com"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Personal website"
+              :aria-label="t('footer.personalWebsite')"
             >
               <v-icon icon="mdi-web" />
             </v-btn>
@@ -68,23 +69,23 @@ const authDialogStore = useAuthDialogStore()
           sm="2"
         >
           <div class="text-subtitle-2 font-weight-bold text-uppercase mb-3">
-            Discover
+            {{ t('nav.discover') }}
           </div>
 
           <div class="d-flex flex-column ga-2">
-            <NuxtLink
+            <NuxtLinkLocale
               to="/"
               class="footer-link text-body-2"
             >
-              Home
-            </NuxtLink>
+              {{ t('nav.home') }}
+            </NuxtLinkLocale>
 
-            <NuxtLink
+            <NuxtLinkLocale
               to="/search"
               class="footer-link text-body-2"
             >
-              Search
-            </NuxtLink>
+              {{ t('nav.search') }}
+            </NuxtLinkLocale>
           </div>
         </v-col>
 
@@ -94,30 +95,30 @@ const authDialogStore = useAuthDialogStore()
           sm="2"
         >
           <div class="text-subtitle-2 font-weight-bold text-uppercase mb-3">
-            Casino
+            {{ t('nav.casino') }}
           </div>
 
           <div class="d-flex flex-column ga-2">
-            <NuxtLink
+            <NuxtLinkLocale
               to="/play-slots"
               class="footer-link text-body-2"
             >
-              Play Slots
-            </NuxtLink>
+              {{ t('nav.playSlots') }}
+            </NuxtLinkLocale>
 
-            <NuxtLink
+            <NuxtLinkLocale
               to="/open-case"
               class="footer-link text-body-2"
             >
-              Open a Case
-            </NuxtLink>
+              {{ t('nav.openCase') }}
+            </NuxtLinkLocale>
 
-            <NuxtLink
+            <NuxtLinkLocale
               to="/open-pack"
               class="footer-link text-body-2"
             >
-              Open a Pack
-            </NuxtLink>
+              {{ t('nav.openPack') }}
+            </NuxtLinkLocale>
           </div>
         </v-col>
 
@@ -127,23 +128,23 @@ const authDialogStore = useAuthDialogStore()
           sm="2"
         >
           <div class="text-subtitle-2 font-weight-bold text-uppercase mb-3">
-            Legal
+            {{ t('footer.legal') }}
           </div>
 
           <div class="d-flex flex-column ga-2">
-            <NuxtLink
+            <NuxtLinkLocale
               to="/terms-of-service"
               class="footer-link text-body-2"
             >
-              Terms of Service
-            </NuxtLink>
+              {{ t('nav.termsOfService') }}
+            </NuxtLinkLocale>
 
-            <NuxtLink
+            <NuxtLinkLocale
               to="/privacy-policy"
               class="footer-link text-body-2"
             >
-              Privacy Policy
-            </NuxtLink>
+              {{ t('nav.privacyPolicy') }}
+            </NuxtLinkLocale>
           </div>
         </v-col>
 
@@ -153,7 +154,7 @@ const authDialogStore = useAuthDialogStore()
           sm="3"
         >
           <div class="text-subtitle-2 font-weight-bold text-uppercase mb-3">
-            Account
+            {{ t('footer.account') }}
           </div>
 
           <ClientOnly>
@@ -161,33 +162,33 @@ const authDialogStore = useAuthDialogStore()
               v-if="authStore.isAuthenticated"
               class="d-flex flex-column ga-2"
             >
-              <NuxtLink
+              <NuxtLinkLocale
                 to="/dashboard"
                 class="footer-link text-body-2"
               >
-                Dashboard
-              </NuxtLink>
+                {{ t('nav.dashboard') }}
+              </NuxtLinkLocale>
 
-              <NuxtLink
+              <NuxtLinkLocale
                 to="/bookshelf"
                 class="footer-link text-body-2"
               >
-                My Bookshelf
-              </NuxtLink>
+                {{ t('nav.myBookshelf') }}
+              </NuxtLinkLocale>
 
-              <NuxtLink
+              <NuxtLinkLocale
                 to="/favourites"
                 class="footer-link text-body-2"
               >
-                Favourites
-              </NuxtLink>
+                {{ t('nav.favourites') }}
+              </NuxtLinkLocale>
 
-              <NuxtLink
+              <NuxtLinkLocale
                 to="/ratings"
                 class="footer-link text-body-2"
               >
-                Ratings
-              </NuxtLink>
+                {{ t('nav.ratings') }}
+              </NuxtLinkLocale>
             </div>
 
             <div
@@ -199,7 +200,7 @@ const authDialogStore = useAuthDialogStore()
                 class="footer-link text-body-2 text-left"
                 @click="authDialogStore.openLogin()"
               >
-                Sign In
+                {{ t('nav.signIn') }}
               </button>
 
               <button
@@ -207,7 +208,7 @@ const authDialogStore = useAuthDialogStore()
                 class="footer-link text-body-2 text-left"
                 @click="authDialogStore.openRegister()"
               >
-                Create Account
+                {{ t('auth.createAccount') }}
               </button>
             </div>
           </ClientOnly>
@@ -217,21 +218,21 @@ const authDialogStore = useAuthDialogStore()
       <v-divider class="my-6" />
 
       <div class="d-flex align-center ga-4 text-secondary flex-wrap justify-center">
-        <span>© {{ new Date().getFullYear() }} Minsik. All rights reserved.</span>
+        <span>{{ t('footer.copyright', {'year': new Date().getFullYear()}) }}</span>
 
-        <NuxtLink
+        <NuxtLinkLocale
           to="/privacy-policy"
           class="footer-link"
         >
-          Privacy Policy
-        </NuxtLink>
+          {{ t('nav.privacyPolicy') }}
+        </NuxtLinkLocale>
 
-        <NuxtLink
+        <NuxtLinkLocale
           to="/terms-of-service"
           class="footer-link"
         >
-          Terms of Service
-        </NuxtLink>
+          {{ t('nav.termsOfService') }}
+        </NuxtLinkLocale>
       </div>
     </v-container>
   </v-footer>

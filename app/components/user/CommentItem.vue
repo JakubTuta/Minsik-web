@@ -5,6 +5,9 @@ const props = defineProps<{
   entry: CommentEntry
 }>()
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
 const commentsStore = useUserCommentsStore()
 
 const editDialogOpen = ref(false)
@@ -47,7 +50,7 @@ async function handleDelete() {
         prepend-icon="mdi-alert"
         class="flex-shrink-0 mt-2 align-self-start"
       >
-        Spoiler
+        {{ t('comment.spoiler') }}
       </v-chip>
 
       <v-sheet
@@ -72,7 +75,7 @@ async function handleDelete() {
         icon="mdi-open-in-new"
         size="small"
         variant="text"
-        :to="`/books/${entry.book_slug}`"
+        :to="localePath(`/books/${entry.book_slug}`)"
         :as="NuxtLink"
       />
 
@@ -99,11 +102,11 @@ async function handleDelete() {
   >
     <v-card>
       <v-card-title class="text-h6">
-        Delete comment?
+        {{ t('comment.deleteCommentConfirmTitle') }}
       </v-card-title>
 
       <v-card-text>
-        Your comment on "{{ entry.book_title }}" will be permanently deleted.
+        {{ t('comment.deleteCommentConfirmBody', {'title': entry.book_title}) }}
       </v-card-text>
 
       <v-card-actions>
@@ -113,7 +116,7 @@ async function handleDelete() {
           variant="text"
           @click="deleteConfirmOpen = false"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -122,7 +125,7 @@ async function handleDelete() {
           :loading="deleting"
           @click="handleDelete"
         >
-          Delete
+          {{ t('common.delete') }}
         </v-btn>
       </v-card-actions>
     </v-card>

@@ -7,28 +7,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
-
+const { t } = useI18n()
+const { monthName } = useMonthName()
 const railRef = ref<HTMLElement | null>(null)
 
 useScrollReveal(railRef, { stagger: 0.14 })
 
 const months = computed(() => props.monthly.map(m => ({
   ...m,
-  name: monthNames[m.month - 1],
+  name: monthName(m.month),
   isQuiet: m.books.length === 0,
 })))
 </script>
@@ -36,7 +23,7 @@ const months = computed(() => props.monthly.map(m => ({
 <template>
   <div>
     <h2 class="text-h5 font-weight-bold mb-6">
-      Your reading timeline
+      {{ t('yearReview.readingTimeline') }}
     </h2>
 
     <div
@@ -63,9 +50,7 @@ const months = computed(() => props.monthly.map(m => ({
               color="primary"
               variant="tonal"
             >
-              {{ month.books_finished }} {{ month.books_finished === 1
-                ? 'book'
-                : 'books' }}
+              {{ t('common.bookCount', {"count": month.books_finished}, month.books_finished) }}
             </v-chip>
           </div>
 
@@ -73,7 +58,7 @@ const months = computed(() => props.monthly.map(m => ({
             v-if="month.isQuiet"
             class="text-body-2 text-medium-emphasis font-italic"
           >
-            A quiet month
+            {{ t('yearReview.quietMonth') }}
           </div>
 
           <div

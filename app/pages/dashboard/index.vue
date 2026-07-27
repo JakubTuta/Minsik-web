@@ -1,6 +1,9 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
-useSeo({ title: 'Dashboard', description: 'Your personal account dashboard.' })
+
+const { t, n } = useI18n()
+
+useSeo({ title: t('nav.dashboard'), description: t('dashboardPage.pageDescription') })
 
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
@@ -31,43 +34,43 @@ const totalBookshelf = computed(() => {
 
 const collectionStats = computed(() => [
   {
-    label: 'Bookshelf',
+    label: t('nav.myBookshelf'),
     icon: 'mdi-bookshelf',
     color: 'primary',
     value: totalBookshelf.value,
   },
   {
-    label: 'Liked',
+    label: t('dashboardPage.liked'),
     icon: 'mdi-heart',
     color: 'error',
     value: dashboardStore.stats?.favourites_count ?? 0,
   },
   {
-    label: 'Comments',
+    label: t('nav.comments'),
     icon: 'mdi-comment-text',
     color: 'blue-grey',
     value: dashboardStore.stats?.comments_count ?? 0,
   },
   {
-    label: 'Ratings',
+    label: t('nav.ratings'),
     icon: 'mdi-star',
     color: 'amber',
     value: dashboardStore.stats?.ratings_count ?? 0,
   },
   {
-    label: 'Books finished this year',
+    label: t('dashboardPage.booksFinishedThisYear'),
     icon: 'mdi-check-circle',
     color: 'success',
     value: dashboardStore.stats?.finished_this_year_count ?? 0,
   },
   {
-    label: 'Pages read this year',
+    label: t('dashboardPage.pagesReadThisYear'),
     icon: 'mdi-file-document',
     color: 'info',
     value: dashboardStore.stats?.pages_read_this_year ?? 0,
   },
   {
-    label: 'Hours read this year',
+    label: t('dashboardPage.hoursReadThisYear'),
     icon: 'mdi-clock-outline',
     color: 'deep-purple',
     value: dashboardStore.stats?.hours_read_this_year ?? 0,
@@ -76,7 +79,7 @@ const collectionStats = computed(() => [
 
 const listCards = computed(() => [
   {
-    label: 'Bookshelf',
+    label: t('nav.myBookshelf'),
     icon: 'mdi-bookshelf',
     color: 'primary',
     to: '/bookshelf',
@@ -84,7 +87,7 @@ const listCards = computed(() => [
     updatedAt: dashboardStore.stats?.bookshelf_updated_at || null,
   },
   {
-    label: 'Liked books',
+    label: t('dashboardPage.likedBooks'),
     icon: 'mdi-heart',
     color: 'error',
     to: '/favourites',
@@ -92,7 +95,7 @@ const listCards = computed(() => [
     updatedAt: dashboardStore.stats?.favourites_updated_at || null,
   },
   {
-    label: 'Comments',
+    label: t('nav.comments'),
     icon: 'mdi-comment-text',
     color: 'blue-grey',
     to: '/comments',
@@ -100,7 +103,7 @@ const listCards = computed(() => [
     updatedAt: dashboardStore.stats?.comments_updated_at || null,
   },
   {
-    label: 'Rated',
+    label: t('dashboardPage.rated'),
     icon: 'mdi-star',
     color: 'amber',
     to: '/ratings',
@@ -111,26 +114,26 @@ const listCards = computed(() => [
 
 function formatUpdatedAt(iso: string | null): string {
   if (!iso)
-    return 'Never'
+    return t('dashboardPage.never')
   const date = new Date(iso)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   const minutes = Math.floor(diff / 60000)
   if (minutes < 1)
-    return 'Just now'
+    return t('time.justNowCompact')
   if (minutes < 60)
-    return `${minutes}m ago`
+    return t('time.minutesAgoCompact', { n: minutes })
   const hours = Math.floor(minutes / 60)
   if (hours < 24)
-    return `${hours}h ago`
+    return t('time.hoursAgoCompact', { n: hours })
   const days = Math.floor(hours / 24)
   if (days < 30)
-    return `${days}d ago`
+    return t('time.daysAgoCompact', { n: days })
   const months = Math.floor(days / 30)
   if (months < 12)
-    return `${months}mo ago`
+    return t('time.monthsAgoCompact', { n: months })
 
-  return `${Math.floor(months / 12)}y ago`
+  return t('time.yearsAgoCompact', { n: Math.floor(months / 12) })
 }
 
 async function deleteAccount() {
@@ -140,7 +143,7 @@ async function deleteAccount() {
   }
   catch (error) {
     console.error('Failed to delete account:', error)
-    useToastStore().error('Could not delete your account. Please try again.')
+    useToastStore().error(t('dashboardPage.deleteAccountFailed'))
     deleting.value = false
   }
 }
@@ -166,18 +169,18 @@ onMounted(() => {
 
     <ErrorState
       v-if="dashboardStore.error"
-      message="Could not load your stats."
+      :message="t('dashboardPage.loadStatsFailed')"
       @retry="dashboardStore.fetchStats(true)"
     />
 
     <template v-else>
       <!-- Collection & Milestones -->
       <div class="text-overline text-medium-emphasis mb-1">
-        Your numbers
+        {{ t('dashboardPage.yourNumbers') }}
       </div>
 
       <div class="text-h5 font-weight-bold mb-4">
-        Collection &amp; milestones
+        {{ t('dashboardPage.collectionAndMilestones') }}
       </div>
 
       <v-row class="mb-8">
@@ -200,7 +203,7 @@ onMounted(() => {
             />
 
             <div class="text-h4 font-weight-bold">
-              {{ item.value.toLocaleString() }}
+              {{ n(item.value) }}
             </div>
 
             <div class="text-body-2 text-medium-emphasis">
@@ -212,11 +215,11 @@ onMounted(() => {
 
       <!-- Your Lists -->
       <div class="text-overline text-medium-emphasis mb-1">
-        Jump in
+        {{ t('dashboardPage.jumpIn') }}
       </div>
 
       <div class="text-h5 font-weight-bold mb-4">
-        Your lists
+        {{ t('dashboardPage.yourLists') }}
       </div>
 
       <v-row class="mb-8">
@@ -227,7 +230,7 @@ onMounted(() => {
           sm="6"
           lg="3"
         >
-          <NuxtLink
+          <NuxtLinkLocale
             :to="card.to"
             class="text-decoration-none"
           >
@@ -243,7 +246,7 @@ onMounted(() => {
               />
 
               <div class="text-h4 font-weight-bold">
-                {{ card.count.toLocaleString() }}
+                {{ n(card.count) }}
               </div>
 
               <div class="text-body-1 font-weight-medium mb-1">
@@ -251,7 +254,7 @@ onMounted(() => {
               </div>
 
               <div class="text-caption text-medium-emphasis">
-                Last updated {{ formatUpdatedAt(card.updatedAt) }}
+                {{ t('dashboardPage.lastUpdated', {"time": formatUpdatedAt(card.updatedAt)}) }}
               </div>
 
               <v-icon
@@ -261,7 +264,7 @@ onMounted(() => {
                 style="bottom: 16px; right: 16px;"
               />
             </v-card>
-          </NuxtLink>
+          </NuxtLinkLocale>
         </v-col>
       </v-row>
     </template>
@@ -273,13 +276,13 @@ onMounted(() => {
       class="mb-6"
     >
       <v-card-title class="text-error">
-        Delete Account
+        {{ t('dashboardPage.deleteAccount') }}
       </v-card-title>
 
       <v-card-text>
         <div class="mb-4">
           <div class="text-body-2 text-secondary">
-            Permanently delete your account and all associated data. This action cannot be undone.
+            {{ t('dashboardPage.deleteAccountWarning') }}
           </div>
         </div>
 
@@ -288,7 +291,7 @@ onMounted(() => {
           variant="elevated"
           @click="confirmDialog = true"
         >
-          Delete Account
+          {{ t('dashboardPage.deleteAccount') }}
         </v-btn>
       </v-card-text>
     </v-card>
@@ -305,7 +308,7 @@ onMounted(() => {
           id="delete-dialog-title"
           class="text-error"
         >
-          Delete Account?
+          {{ t('dashboardPage.deleteAccountConfirmTitle') }}
         </v-card-title>
 
         <v-card-text
@@ -313,11 +316,11 @@ onMounted(() => {
           class="text-body-2"
         >
           <div class="mb-2">
-            This will permanently delete your account and all associated data.
+            {{ t('dashboardPage.deleteAccountConfirmBody1') }}
           </div>
 
           <div>
-            This action cannot be undone.
+            {{ t('dashboardPage.deleteAccountConfirmBody2') }}
           </div>
         </v-card-text>
 
@@ -329,7 +332,7 @@ onMounted(() => {
             :disabled="deleting"
             @click="confirmDialog = false"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </v-btn>
 
           <v-btn
@@ -338,7 +341,7 @@ onMounted(() => {
             :loading="deleting"
             @click="deleteAccount"
           >
-            Delete Account
+            {{ t('dashboardPage.deleteAccount') }}
           </v-btn>
         </v-card-actions>
       </v-card>

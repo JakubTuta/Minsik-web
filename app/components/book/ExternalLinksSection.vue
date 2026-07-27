@@ -6,6 +6,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 
 interface ExternalLink {
   title: string
@@ -96,7 +97,7 @@ const hasLinks = computed(() => links.value.length > 0)
   <v-card v-if="hasLinks">
     <v-card-text>
       <h2 class="text-h6 font-weight-bold mb-3">
-        Check out this book on other platforms
+        {{ t('book.checkOtherPlatforms') }}
       </h2>
 
       <v-list lines="two">
@@ -132,7 +133,7 @@ const hasLinks = computed(() => links.value.length > 0)
                 color="primary"
                 append-icon="mdi-open-in-new"
               >
-                Open
+                {{ t('common.open') }}
               </v-btn>
             </template>
           </v-list-item>

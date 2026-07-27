@@ -9,6 +9,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { size: 'default' })
 
+const { t, n } = useI18n()
 const { mobile } = useDisplay()
 
 // Round rating down to nearest 0.5
@@ -50,9 +51,9 @@ const isSmall = computed(() => props.size === 'small')
         : 'text-body-1 text-secondary'"
       style="line-height: 1;"
     >
-      ({{ ratingCount.toLocaleString() }}{{ mobile
-        ? ''
-        : ' ratings' }})
+      {{ mobile
+        ? `(${n(ratingCount)})`
+        : t('common.ratingsCount', {'count': n(ratingCount)}) }}
     </span>
   </div>
 </template>

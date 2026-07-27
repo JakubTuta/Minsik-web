@@ -1,86 +1,78 @@
-const STORAGE_KEY = 'preferred_language'
-const COOKIE_NAME = 'pref_lang'
-const DEFAULT_LANGUAGE = 'en'
+import type { AppLocale } from '~~/locales.config'
+import { APP_LOCALES } from '~~/locales.config'
 
-function detectBrowserLanguage(): string {
-  if (import.meta.server)
-    return DEFAULT_LANGUAGE
-  const lang = navigator.language || DEFAULT_LANGUAGE
-
-  return lang.split('-')[0].slice(0, 8)
-}
-
+/**
+ * The one language the app speaks: it drives both the interface copy and the
+ * `language` the API is asked for, so a reader never gets Polish books in an
+ * English shell or the reverse.
+ *
+ * `@nuxtjs/i18n` owns the value and persists it in the `pref_lang` cookie.
+ * The cookie travels with the SSR request, so the server renders the same
+ * locale the client hydrates with — no flash of the wrong language, no
+ * hydration mismatch.
+ */
 export function useUserLanguage() {
+  const { locale, setLocale } = useI18n()
   const authStore = useAuthStore()
   const apiStore = useApiStore()
-  const langCookie = useCookie(COOKIE_NAME, { maxAge: 60 * 60 * 24 * 365 })
 
-  const language = computed<string>(() => {
-    if (authStore.user?.preferred_language)
-      return authStore.user.preferred_language
+  const language = computed<string>(() => locale.value)
 
-    if (langCookie.value)
-      return langCookie.value
+  const availableLocales = computed<AppLocale[]>(() => APP_LOCALES)
 
-    if (import.meta.client) {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored)
-        return stored
+  const currentLocale = computed<AppLocale | undefined>(() => APP_LOCALES.find(entry => entry.code === locale.value),
+  )
+
+  const isSupported = (code: string): boolean => APP_LOCALES.some(entry => entry.code === code)
+
+  async function persistToAccount(code: string): Promise<void> {
+    if (!authStore.isAuthenticated || !authStore.user)
+      return
+
+    // PUT, not PATCH: the gateway only exposes PUT /users/me, and every field
+    // on it is optional, so sending the language alone is a partial update.
+    // A PATCH here 405s, and the catch below would swallow it — leaving the
+    // account on its old language and letting syncOnLogin undo the switch on
+    // the next sign-in.
+    try {
+      await apiStore.client.put('/api/v1/users/me', { preferred_language: code })
+      authStore.user.preferred_language = code
     }
-
-    return DEFAULT_LANGUAGE
-  })
-
-  async function setLanguage(lang: string): Promise<void> {
-    langCookie.value = lang
-
-    if (import.meta.client)
-      localStorage.setItem(STORAGE_KEY, lang)
-
-    if (authStore.isAuthenticated && authStore.user) {
-      try {
-        await apiStore.client.patch('/api/v1/users/me', { preferred_language: lang })
-        if (authStore.user)
-          authStore.user.preferred_language = lang
-      }
-      catch (err) {
-        console.error('Failed to persist language preference:', err)
-      }
+    catch (error) {
+      console.error('Failed to persist language preference:', error)
     }
   }
 
+  async function setLanguage(code: string): Promise<void> {
+    if (!isSupported(code) || code === locale.value)
+      return
+
+    await setLocale(code)
+    await persistToAccount(code)
+  }
+
+  /**
+   * The account preference wins on sign-in: it is the choice the user made for
+   * this account, possibly on another device, and it should beat whatever this
+   * browser happened to detect. Switching afterwards persists back to the
+   * account, so the two never drift.
+   */
   async function syncOnLogin(): Promise<void> {
-    if (!authStore.user)
+    const accountLanguage = authStore.user?.preferred_language
+
+    if (!accountLanguage || !isSupported(accountLanguage))
       return
 
-    const serverLang = authStore.user.preferred_language || DEFAULT_LANGUAGE
-
-    if (serverLang !== DEFAULT_LANGUAGE)
-      return
-
-    const localLang = import.meta.client
-      ? localStorage.getItem(STORAGE_KEY)
-      : null
-
-    if (localLang && localLang !== DEFAULT_LANGUAGE)
-      await setLanguage(localLang)
-  }
-
-  function initGuestLanguage(): void {
-    if (import.meta.server)
-      return
-
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      const detected = detectBrowserLanguage()
-      localStorage.setItem(STORAGE_KEY, detected)
-      langCookie.value = detected
-    }
+    if (accountLanguage !== locale.value)
+      await setLocale(accountLanguage)
   }
 
   return {
     language,
+    availableLocales,
+    currentLocale,
+    isSupported,
     setLanguage,
     syncOnLogin,
-    initGuestLanguage,
   }
 }

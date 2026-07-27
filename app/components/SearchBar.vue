@@ -3,12 +3,6 @@ import type { SuggestItem } from '~/types/api'
 import { hashColor } from '~/utils/coverColor'
 import { totalRatingCount, weightedRating } from '~/utils/format'
 
-interface Props {
-  variant?: 'appbar' | 'full'
-  modelValue?: string
-  autofocus?: boolean
-}
-
 const props = withDefaults(defineProps<Props>(), {
   variant: 'appbar',
   modelValue: '',
@@ -18,6 +12,15 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
   'search': [query: string]
 }>()
+
+const { t, locale } = useI18n()
+const localePath = useLocalePath()
+
+interface Props {
+  variant?: 'appbar' | 'full'
+  modelValue?: string
+  autofocus?: boolean
+}
 
 const { modelValue } = toRefs(props)
 
@@ -123,7 +126,7 @@ function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter' && props.variant === 'appbar' && localQuery.value.trim()) {
     showResults.value = false
     router.push({
-      path: '/search',
+      path: localePath('/search'),
       query: { q: localQuery.value },
     })
   }
@@ -224,9 +227,8 @@ interface SubtitlePart {
   type: 'authors' | 'rating' | 'readers' | 'separator'
 }
 
-const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
-
 function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
+  const compactFmt = new Intl.NumberFormat(locale.value, { notation: 'compact', maximumFractionDigits: 1 })
   const parts: SubtitlePart[] = []
   const ratingCount = totalRatingCount(result.app_rating_count, result.ol_rating_count)
   const avg = weightedRating(result.app_avg_rating, result.app_rating_count, result.ol_avg_rating, result.ol_rating_count)
@@ -260,8 +262,8 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
       v-model="localQuery"
       :autofocus="autofocus"
       :placeholder="variant === 'appbar'
-        ? 'Search books, authors, series...'
-        : 'Search...'"
+        ? t('search.placeholderFull')
+        : t('search.placeholderShort')"
       prepend-inner-icon="mdi-magnify"
       :clearable="localQuery.length > 0"
       :density="variant === 'appbar'
@@ -294,7 +296,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
           />
 
           <div class="text-secondary mt-2 text-center">
-            Searching...
+            {{ t('search.searching') }}
           </div>
         </v-card-text>
 
@@ -309,7 +311,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
             />
 
             <div class="text-body-2 text-secondary">
-              No results found for "{{ localQuery }}"
+              {{ t('search.noResultsFor', {"query": localQuery}) }}
             </div>
           </div>
         </v-card-text>
@@ -328,7 +330,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
             >
               <div class="pa-3">
                 <div class="text-secondary font-weight-bold mb-2">
-                  BOOKS
+                  {{ t('search.groupBooks') }}
                 </div>
 
                 <v-list
@@ -339,7 +341,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
                     v-for="result in groupedResults.books"
                     :key="result.id"
                     :title="result.title"
-                    :to="`/books/${result.slug}`"
+                    :to="localePath(`/books/${result.slug}`)"
                     class="mb-1 rounded"
                     @click="showResults = false"
                   >
@@ -421,7 +423,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
             >
               <div class="pa-3">
                 <div class="text-secondary font-weight-bold mb-2">
-                  SERIES
+                  {{ t('search.groupSeries') }}
                 </div>
 
                 <v-list
@@ -432,7 +434,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
                     v-for="result in groupedResults.series"
                     :key="result.id"
                     :title="result.title"
-                    :to="`/series/${result.slug}`"
+                    :to="localePath(`/series/${result.slug}`)"
                     class="mb-1 rounded"
                     @click="showResults = false"
                   >
@@ -496,7 +498,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
             >
               <div class="pa-3">
                 <div class="text-secondary font-weight-bold mb-2">
-                  AUTHORS
+                  {{ t('search.groupAuthors') }}
                 </div>
 
                 <v-list
@@ -507,7 +509,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
                     v-for="result in groupedResults.authors"
                     :key="result.id"
                     :title="result.title"
-                    :to="`/authors/${result.slug}`"
+                    :to="localePath(`/authors/${result.slug}`)"
                     class="mb-1 rounded"
                     @click="showResults = false"
                   >

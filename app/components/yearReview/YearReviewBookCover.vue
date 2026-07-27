@@ -15,7 +15,7 @@ const height = computed(() => Math.round(props.width * 1.5))
 </script>
 
 <template>
-  <NuxtLink
+  <NuxtLinkLocale
     :to="`/books/${book.book_slug}`"
     class="cover-link text-decoration-none"
   >
@@ -56,7 +56,7 @@ const height = computed(() => Math.round(props.width * 1.5))
         <span class="text-caption font-weight-bold">{{ book.my_rating.toFixed(1) }}</span>
       </div>
     </div>
-  </NuxtLink>
+  </NuxtLinkLocale>
 </template>
 
 <style scoped>

@@ -13,8 +13,11 @@ const emit = defineEmits<{
   delete: []
 }>()
 
+const { t, locale, n } = useI18n()
+const localePath = useLocalePath()
+
 function formatShortDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+  return new Date(dateStr).toLocaleDateString(locale.value, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 interface Props {
@@ -89,29 +92,29 @@ const authorStats = computed(() => [
   {
     icon: 'mdi-book-multiple',
     value: props.author.books_count,
-    label: 'BOOKS',
+    label: t('stats.books'),
   },
   {
     icon: 'mdi-star',
     iconColor: 'warning',
     value: `${authorWeightedRating.value.toFixed(1)}`,
-    label: `AVG RATING (${authorTotalRatings.value.toLocaleString()})`,
+    label: t('stats.avgRating', { count: n(authorTotalRatings.value) }),
     tooltipLines: [
-      `Minsik: ${props.author.books_avg_rating?.toFixed(1) ?? '0.0'} (${(props.author.books_total_ratings ?? 0).toLocaleString()} ratings)`,
-      `Open Library: ${props.author.books_ol_avg_rating?.toFixed(1) ?? '0.0'} (${(props.author.books_ol_total_ratings ?? 0).toLocaleString()} ratings)`,
+      t('stats.minsikRatings', { rating: props.author.books_avg_rating?.toFixed(1) ?? '0.0', count: n(props.author.books_total_ratings ?? 0) }),
+      t('stats.olRatings', { rating: props.author.books_ol_avg_rating?.toFixed(1) ?? '0.0', count: n(props.author.books_ol_total_ratings ?? 0) }),
     ],
   },
   {
     icon: 'mdi-account-multiple',
-    value: authorTotalReaders.value.toLocaleString(),
-    label: 'READERS',
+    value: n(authorTotalReaders.value),
+    label: t('stats.readers'),
     tooltipLines: [
-      `Minsik - Want to Read: ${(props.author.app_want_to_read_count ?? 0).toLocaleString()}`,
-      `Minsik - Reading: ${(props.author.app_reading_count ?? 0).toLocaleString()}`,
-      `Minsik - Read: ${(props.author.app_read_count ?? 0).toLocaleString()}`,
-      `Open Library - Want to Read: ${(props.author.ol_want_to_read_count ?? 0).toLocaleString()}`,
-      `Open Library - Reading: ${(props.author.ol_currently_reading_count ?? 0).toLocaleString()}`,
-      `Open Library - Read: ${(props.author.ol_already_read_count ?? 0).toLocaleString()}`,
+      t('stats.minsikWantToRead', { count: n(props.author.app_want_to_read_count ?? 0) }),
+      t('stats.minsikReading', { count: n(props.author.app_reading_count ?? 0) }),
+      t('stats.minsikRead', { count: n(props.author.app_read_count ?? 0) }),
+      t('stats.olWantToRead', { count: n(props.author.ol_want_to_read_count ?? 0) }),
+      t('stats.olReading', { count: n(props.author.ol_currently_reading_count ?? 0) }),
+      t('stats.olRead', { count: n(props.author.ol_already_read_count ?? 0) }),
     ],
   },
 ])
@@ -119,7 +122,7 @@ const authorStats = computed(() => [
 const preTitleLine = computed(() => {
   const parts: string[] = []
   if (props.author.nationality)
-    parts.push(`${props.author.nationality.toUpperCase()} AUTHOR`)
+    parts.push(t('author.nationalityAuthor', { nationality: props.author.nationality }).toUpperCase())
   if (props.author.book_categories?.length)
     parts.push(...props.author.book_categories.slice(0, 2).map(c => c.toUpperCase()))
 
@@ -134,21 +137,21 @@ const deleteError = ref('')
 
 const slug = computed(() => props.author.slug)
 
-const authorEditFields: EditFieldConfig[] = [
-  { key: 'name', label: 'Name', type: 'text' },
-  { key: 'slug', label: 'Slug', type: 'text' },
-  { key: 'bio', label: 'Biography', type: 'textarea' },
-  { key: 'birth_date', label: 'Birth Date (YYYY-MM-DD)', type: 'text' },
-  { key: 'death_date', label: 'Death Date (YYYY-MM-DD)', type: 'text' },
-  { key: 'birth_place', label: 'Birth Place', type: 'text' },
-  { key: 'nationality', label: 'Nationality', type: 'text' },
-  { key: 'photo_url', label: 'Photo URL', type: 'text' },
-  { key: 'wikipedia_url', label: 'Wikipedia URL', type: 'text' },
-  { key: 'wikidata_id', label: 'Wikidata ID', type: 'text' },
-  { key: 'open_library_id', label: 'Open Library ID', type: 'text' },
-  { key: 'alternate_names', label: 'Alternate Names', type: 'array' },
-  { key: 'remote_ids', label: 'Remote IDs', type: 'json' },
-]
+const authorEditFields = computed<EditFieldConfig[]>(() => [
+  { key: 'name', label: t('author.fieldName'), type: 'text' },
+  { key: 'slug', label: t('common.fieldSlug'), type: 'text' },
+  { key: 'bio', label: t('author.fieldBiography'), type: 'textarea' },
+  { key: 'birth_date', label: t('author.fieldBirthDate'), type: 'text' },
+  { key: 'death_date', label: t('author.fieldDeathDate'), type: 'text' },
+  { key: 'birth_place', label: t('author.fieldBirthPlace'), type: 'text' },
+  { key: 'nationality', label: t('author.fieldNationality'), type: 'text' },
+  { key: 'photo_url', label: t('author.fieldPhotoUrl'), type: 'text' },
+  { key: 'wikipedia_url', label: t('author.fieldWikipediaUrl'), type: 'text' },
+  { key: 'wikidata_id', label: t('author.fieldWikidataId'), type: 'text' },
+  { key: 'open_library_id', label: t('common.fieldOpenLibraryId'), type: 'text' },
+  { key: 'alternate_names', label: t('author.fieldAlternateNames'), type: 'array' },
+  { key: 'remote_ids', label: t('author.fieldRemoteIds'), type: 'json' },
+])
 
 const authorEditOriginalData = computed(() => ({
   name: props.author.name ?? null,
@@ -174,7 +177,7 @@ async function handleAuthorDelete() {
     emit('delete')
   }
   else {
-    deleteError.value = (result as any).error || 'Delete failed'
+    deleteError.value = (result as any).error || t('admin.deleteFailed')
   }
 }
 
@@ -188,10 +191,10 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
       : slug.value
     await authorsStore.fetchAuthor(newSlug, true)
     if (newSlug !== slug.value)
-      await navigateTo(`/authors/${newSlug}`)
+      await navigateTo(localePath({ name: 'authors-slug', params: { slug: newSlug } }))
   }
   else {
-    editError.value = (result as any).error || 'Update failed'
+    editError.value = (result as any).error || t('admin.updateFailed')
   }
 }
 </script>
@@ -238,7 +241,7 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
         <span
           v-if="age !== null"
           class="ml-1"
-        >· {{ age }} yrs</span>
+        >· {{ t('author.ageYears', {age}) }}</span>
       </div>
     </v-col>
 
@@ -262,7 +265,7 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
         v-if="author.alternate_names && author.alternate_names.length > 0"
         class="text-body-2 text-medium-emphasis mb-4"
       >
-        Also known as: {{ author.alternate_names.slice(0, 2).join(', ') }}
+        {{ t('author.alsoKnownAs', {"names": author.alternate_names.slice(0, 2).join(', ')}) }}
       </p>
 
       <!-- Stats row -->
@@ -305,7 +308,7 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
             icon="mdi-wikipedia"
             size="small"
           />
-          Wikipedia
+          {{ t('author.wikipedia') }}
           <v-icon
             icon="mdi-open-in-new"
             size="x-small"
@@ -326,7 +329,7 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
             color="secondary"
             @click="editDialogOpen = true"
           >
-            Edit Author
+            {{ t('author.edit') }}
           </v-btn>
 
           <v-btn
@@ -336,14 +339,14 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
             color="error"
             @click="deleteDialogOpen = true"
           >
-            Delete Author
+            {{ t('author.delete') }}
           </v-btn>
         </div>
 
         <AdminEditDialog
           v-if="isAdmin"
           v-model="editDialogOpen"
-          title="Edit Author"
+          :title="t('author.edit')"
           :fields="authorEditFields"
           :original-data="authorEditOriginalData"
           :loading="adminStore.isUpdateLoading"
@@ -357,10 +360,10 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
           max-width="400"
         >
           <v-card>
-            <v-card-title>Delete Author?</v-card-title>
+            <v-card-title>{{ t('author.deleteConfirmTitle') }}</v-card-title>
 
             <v-card-text>
-              This action cannot be undone. Deleting "{{ author.name }}" will also permanently delete all books where they are the sole author, along with any series that only contained those books.
+              {{ t('author.deleteConfirmBody', {'name': author.name}) }}
               <v-alert
                 v-if="deleteError"
                 type="error"
@@ -377,7 +380,7 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
                 variant="text"
                 @click="deleteDialogOpen = false"
               >
-                Cancel
+                {{ t('common.cancel') }}
               </v-btn>
 
               <v-btn
@@ -386,7 +389,7 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
                 :loading="adminStore.isDeleteLoading"
                 @click="handleAuthorDelete"
               >
-                Delete
+                {{ t('common.delete') }}
               </v-btn>
             </v-card-actions>
           </v-card>

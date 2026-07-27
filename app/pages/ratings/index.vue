@@ -1,7 +1,9 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
 
-useSeo({ title: 'My Ratings', description: 'Books you have rated.' })
+const { t } = useI18n()
+
+useSeo({ title: t('ratingsPage.pageTitle'), description: t('ratingsPage.pageDescription') })
 
 const ratingsStore = useRatingsStore()
 const dashboardStore = useDashboardStore()
@@ -19,10 +21,10 @@ const filteredItems = computed(() => {
   return ratingsStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
-const sortOptions = [
-  { label: 'Date Rated', value: 'created_at' },
-  { label: 'Rating', value: 'overall_rating' },
-]
+const sortOptions = computed(() => [
+  { label: t('filter.dateRated'), value: 'created_at' },
+  { label: t('ratingsPage.rating'), value: 'overall_rating' },
+])
 
 function fetchWithFilters(reset = true) {
   const n = selectedRating.value
@@ -59,11 +61,11 @@ const ratingsCount = computed(() => dashboardStore.stats?.ratings_count ?? 0)
 
     <div class="mb-6 mt-4">
       <div class="text-h2 font-weight-bold">
-        {{ ratingsCount }} rated books
+        {{ t('ratingsPage.ratedBooksCount', {"count": ratingsCount}, ratingsCount) }}
       </div>
 
       <div class="text-body-1 text-medium-emphasis mt-1">
-        Overall score plus 8 optional dimensions — emotion, depth, writing, rereadability, pacing, readability, plot, humor.
+        {{ t('ratingsPage.pageHint') }}
       </div>
     </div>
 
@@ -73,7 +75,7 @@ const ratingsCount = computed(() => dashboardStore.stats?.ratings_count ?? 0)
     >
       <v-card-text>
         <h2 class="text-h6 font-weight-bold mb-4">
-          Rating Distribution
+          {{ t('ratingsPage.ratingDistribution') }}
         </h2>
 
         <RatingDistributionCard
@@ -106,28 +108,28 @@ const ratingsCount = computed(() => dashboardStore.stats?.ratings_count ?? 0)
       >
         <ErrorState
           v-if="ratingsStore.error"
-          message="Could not load your ratings."
+          :message="t('ratingsPage.loadFailed')"
           @retry="fetchWithFilters(true)"
         />
 
         <template v-else>
           <BookUserHeaderRow
             v-if="ratingsStore.hasData"
-            secondary-label="Rated On"
+            :secondary-label="t('ratingsPage.ratedOn')"
           >
             <template #metaHeaders>
               <div
                 class="text-caption text-medium-emphasis font-weight-bold text-uppercase flex-shrink-0"
                 style="width: 140px;"
               >
-                Your Rating
+                {{ t('rating.yourRating') }}
               </div>
 
               <div
                 class="text-caption text-medium-emphasis font-weight-bold text-uppercase flex-shrink-0"
                 style="width: 140px;"
               >
-                Community avg
+                {{ t('rating.communityAvg') }}
               </div>
             </template>
           </BookUserHeaderRow>
@@ -145,7 +147,7 @@ const ratingsCount = computed(() => dashboardStore.stats?.ratings_count ?? 0)
             class="py-12 text-center"
           >
             <div class="text-h6 text-secondary">
-              No books match "{{ titleFilter }}"
+              {{ t('filter.noMatch', {"query": titleFilter}) }}
             </div>
           </div>
 
@@ -182,11 +184,11 @@ const ratingsCount = computed(() => dashboardStore.stats?.ratings_count ?? 0)
             />
 
             <div class="text-h6 text-secondary">
-              No ratings yet
+              {{ t('rating.noRatingsYet') }}
             </div>
 
             <div class="text-secondary mt-2">
-              Rate books while browsing to see them here
+              {{ t('ratingsPage.emptyHint') }}
             </div>
           </div>
         </template>

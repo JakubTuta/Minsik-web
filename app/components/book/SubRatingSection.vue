@@ -12,6 +12,7 @@ import { Radar } from 'vue-chartjs'
 import { useTheme } from 'vuetify'
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 const theme = useTheme()
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip)
 
@@ -29,64 +30,64 @@ interface Props {
   slug: string
 }
 
-const dimensions: DimensionConfig[] = [
+const dimensions = computed<DimensionConfig[]>(() => [
   {
     key: 'emotional_impact',
-    label: 'Emotional Impact',
+    label: t('rating.dimensions.emotionalImpact'),
     color: 'red',
     rgbColor: '244, 67, 54',
-    descriptions: { 1: 'Leaves little emotional impression', 3: 'Moderately engaging emotionally', 5: 'Deeply moving and unforgettable' },
+    descriptions: { 1: t('rating.descriptions.emotionalImpact.1'), 3: t('rating.descriptions.emotionalImpact.3'), 5: t('rating.descriptions.emotionalImpact.5') },
   },
   {
     key: 'intellectual_depth',
-    label: 'Intellectual Depth',
+    label: t('rating.dimensions.intellectualDepth'),
     color: 'purple',
     rgbColor: '156, 39, 176',
-    descriptions: { 1: 'Light, surface-level content', 3: 'Some thought-provoking ideas', 5: 'Profoundly deep and philosophical' },
+    descriptions: { 1: t('rating.descriptions.intellectualDepth.1'), 3: t('rating.descriptions.intellectualDepth.3'), 5: t('rating.descriptions.intellectualDepth.5') },
   },
   {
     key: 'writing_quality',
-    label: 'Writing Quality',
+    label: t('rating.dimensions.writingQuality'),
     color: 'teal',
     rgbColor: '0, 150, 136',
-    descriptions: { 1: 'Below average prose', 3: 'Competent and clear writing', 5: 'Masterfully crafted language' },
+    descriptions: { 1: t('rating.descriptions.writingQuality.1'), 3: t('rating.descriptions.writingQuality.3'), 5: t('rating.descriptions.writingQuality.5') },
   },
   {
     key: 'rereadability',
-    label: 'Rereadability',
+    label: t('rating.dimensions.rereadability'),
     color: 'amber',
     rgbColor: '255, 193, 7',
-    descriptions: { 1: 'A one-time read', 3: 'Might revisit someday', 5: 'Worth rereading many times' },
+    descriptions: { 1: t('rating.descriptions.rereadability.1'), 3: t('rating.descriptions.rereadability.3'), 5: t('rating.descriptions.rereadability.5') },
   },
   {
     key: 'pacing',
-    label: 'Pacing',
+    label: t('rating.dimensions.pacing'),
     color: 'blue',
     rgbColor: '33, 150, 243',
-    descriptions: { 1: 'Slow and deliberate', 3: 'Balanced pacing throughout', 5: 'Fast-paced and gripping' },
+    descriptions: { 1: t('rating.descriptions.pacing.1'), 3: t('rating.descriptions.pacing.3'), 5: t('rating.descriptions.pacing.5') },
   },
   {
     key: 'readability',
-    label: 'Readability',
+    label: t('rating.dimensions.readability'),
     color: 'green',
     rgbColor: '76, 175, 80',
-    descriptions: { 1: 'Dense and challenging to read', 3: 'Moderate difficulty level', 5: 'Light and easy to read' },
+    descriptions: { 1: t('rating.descriptions.readability.1'), 3: t('rating.descriptions.readability.3'), 5: t('rating.descriptions.readability.5') },
   },
   {
     key: 'plot_complexity',
-    label: 'Plot Complexity',
+    label: t('rating.dimensions.plotComplexity'),
     color: 'orange',
     rgbColor: '255, 152, 0',
-    descriptions: { 1: 'Simple and straightforward story', 3: 'Moderately layered plot', 5: 'Complex and multi-layered narrative' },
+    descriptions: { 1: t('rating.descriptions.plotComplexity.1'), 3: t('rating.descriptions.plotComplexity.3'), 5: t('rating.descriptions.plotComplexity.5') },
   },
   {
     key: 'humor',
-    label: 'Humor',
+    label: t('rating.dimensions.humor'),
     color: 'pink',
     rgbColor: '233, 30, 99',
-    descriptions: { 1: 'This book is serious', 3: 'Has some lighter moments', 5: 'Genuinely funny throughout' },
+    descriptions: { 1: t('rating.descriptions.humor.1'), 3: t('rating.descriptions.humor.3'), 5: t('rating.descriptions.humor.5') },
   },
-]
+])
 
 function getAvg(key: string): number {
   const stat = props.stats[key]
@@ -99,7 +100,7 @@ function getAvg(key: string): number {
 function getDescription(dim: DimensionConfig): string {
   const avg = getAvg(dim.key)
   if (avg === 0)
-    return 'No ratings yet'
+    return t('rating.noRatingsYet')
   if (avg <= 2)
     return dim.descriptions[1]
   if (avg <= 3.5)
@@ -126,21 +127,21 @@ const chartColors = computed(() => {
   return colors
 })
 
-const dimensionLabelColors = computed(() => dimensions.map(d => `rgb(${d.rgbColor})`))
+const dimensionLabelColors = computed(() => dimensions.value.map(d => `rgb(${d.rgbColor})`))
 
 // Radar chart data
 const chartData = computed(() => ({
-  labels: dimensions.map(d => d.label),
+  labels: dimensions.value.map(d => d.label),
   datasets: [{
-    label: 'Average Rating',
-    data: dimensions.map(d => getAvg(d.key)),
+    label: t('rating.averageRating'),
+    data: dimensions.value.map(d => getAvg(d.key)),
     backgroundColor: chartColors.value.fill,
     borderColor: chartColors.value.border,
     borderWidth: 2,
     borderJoinStyle: 'round',
     tension: 0.25,
-    pointBackgroundColor: dimensions.map(d => `rgb(${d.rgbColor})`),
-    pointBorderColor: dimensions.map(d => `rgb(${d.rgbColor})`),
+    pointBackgroundColor: dimensions.value.map(d => `rgb(${d.rgbColor})`),
+    pointBorderColor: dimensions.value.map(d => `rgb(${d.rgbColor})`),
     pointRadius: 5,
     pointHoverRadius: 7,
     fill: true,
@@ -187,7 +188,7 @@ const chartOptions = computed(() => ({
 
 <template>
   <h2 class="text-h6 font-weight-bold">
-    Detailed Ratings
+    {{ t('rating.detailedRatings') }}
   </h2>
 
   <v-row no-gutters>

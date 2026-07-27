@@ -3,16 +3,17 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
     return
 
   const authStore = useAuthStore()
+  const localePath = useLocalePath()
 
   if (!authStore.authInitialized) {
     await authStore.autoLogin()
   }
 
   if (!authStore.isAuthenticated) {
-    return navigateTo('/')
+    return navigateTo(localePath('index'))
   }
 
   if (authStore.user?.role !== 'admin') {
-    return navigateTo('/')
+    return navigateTo(localePath('index'))
   }
 })

@@ -6,6 +6,7 @@ const route = useRoute()
 const authorsStore = useAuthorsStore()
 const recommendationsStore = useRecommendationsStore()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const slug = route.params.slug as string
 
@@ -36,7 +37,7 @@ const { data: author, error: authorError } = await useAsyncData(
 
 // Handle 404 early
 if (authorError.value || !author.value) {
-  throw createError({ statusCode: 404, message: 'Author not found', fatal: true })
+  throw createError({ statusCode: 404, message: t('authorPage.notFound'), fatal: true })
 }
 
 // Pagination state
@@ -116,13 +117,16 @@ async function loadMoreBooks() {
   booksOffset.value += result.books.length
 }
 
-// SEO
+// SEO — the author entity is language-agnostic (one row), so the canonical
+// just follows the current UI locale's URL; hreflang alternates come from
+// useLocaleHead() in app.vue.
 const config = useRuntimeConfig()
-const canonicalUrl = `${config.public.siteUrl}/authors/${slug}`
+const localePath = useLocalePath()
+const canonicalUrl = `${config.public.siteUrl}${route.path}`
 
 useSeo({
   title: author.value.name,
-  description: author.value.bio || `${author.value.name} - Author of ${author.value.books_count} books`,
+  description: author.value.bio || t('authorPage.seoDescriptionFallback', { name: author.value.name, count: author.value.books_count }),
   image: author.value.photo_url ?? undefined,
   type: 'profile',
   url: canonicalUrl,
@@ -139,20 +143,20 @@ useAuthorStructuredData({
 })
 
 useBreadcrumbStructuredData([
-  { name: 'Home', url: config.public.siteUrl as string },
+  { name: t('nav.home'), url: `${config.public.siteUrl}${localePath('index')}` },
   { name: author.value.name },
 ])
 
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 
-const sortOptions = [
-  { value: 'date-desc', title: 'Newest First' },
-  { value: 'date-asc', title: 'Oldest First' },
-  { value: 'rating-desc', title: 'Highest Rated' },
-  { value: 'rating-asc', title: 'Lowest Rated' },
-  { value: 'readers-desc', title: 'Most Readers' },
-  { value: 'readers-asc', title: 'Least Readers' },
-]
+const sortOptions = computed(() => [
+  { value: 'date-desc', title: t('authorPage.sortNewestFirst') },
+  { value: 'date-asc', title: t('authorPage.sortOldestFirst') },
+  { value: 'rating-desc', title: t('authorPage.sortHighestRated') },
+  { value: 'rating-asc', title: t('authorPage.sortLowestRated') },
+  { value: 'readers-desc', title: t('authorPage.sortMostReaders') },
+  { value: 'readers-asc', title: t('authorPage.sortLeastReaders') },
+])
 
 const authorRecommendations = ref<RecommendationSection[]>([])
 const personalizedAuthorRecs = ref<RecommendationSection[]>([])
@@ -174,7 +178,7 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
 }, { immediate: true })
 
 async function handleAuthorDelete() {
-  await navigateTo('/')
+  await navigateTo(localePath('index'))
 }
 </script>
 
@@ -207,7 +211,7 @@ async function handleAuthorDelete() {
       <v-card-text>
         <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2">
           <h2 class="text-h5 font-weight-bold">
-            Books
+            {{ t('authorPage.booksHeading') }}
           </h2>
 
           <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
@@ -233,7 +237,7 @@ async function handleAuthorDelete() {
                 size="small"
                 prepend-icon="mdi-view-list"
               >
-                List view
+                {{ t('authorPage.listView') }}
               </v-btn>
 
               <v-btn
@@ -241,7 +245,7 @@ async function handleAuthorDelete() {
                 size="small"
                 prepend-icon="mdi-timeline-outline"
               >
-                Timeline view
+                {{ t('authorPage.timelineView') }}
               </v-btn>
             </v-btn-toggle>
           </div>
@@ -253,7 +257,7 @@ async function handleAuthorDelete() {
           :loading="authorsStore.isLoadingBooks"
           :load-more="loadMoreBooks"
           :has-more="hasMoreBooks"
-          empty-message="No books found for this author."
+          :empty-message="t('authorPage.noBooksForAuthor')"
         />
 
         <AuthorTimeline

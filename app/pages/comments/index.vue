@@ -1,7 +1,9 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
 
-useSeo({ title: 'My Comments', description: 'Comments you have posted on books.' })
+const { t } = useI18n()
+
+useSeo({ title: t('comment.pageTitle'), description: t('comment.pageDescription') })
 
 const commentsStore = useUserCommentsStore()
 
@@ -17,10 +19,10 @@ const filteredItems = computed(() => {
   return commentsStore.items.filter(e => e.book_title.toLowerCase().includes(q))
 })
 
-const sortOptions = [
-  { label: 'Date Posted', value: 'created_at' },
-  { label: 'Last Updated', value: 'updated_at' },
-]
+const sortOptions = computed(() => [
+  { label: t('filter.datePosted'), value: 'created_at' },
+  { label: t('filter.lastUpdated'), value: 'updated_at' },
+])
 
 function fetchWithFilters(reset = true) {
   commentsStore.fetch({ sort_by: sortBy.value, order: order.value }, reset)
@@ -42,11 +44,11 @@ const { sentinel } = useInfiniteScroll(
 
     <div class="mb-6 mt-4">
       <div class="text-h2 font-weight-bold">
-        {{ commentsStore.total }} comments
+        {{ t('common.commentCount', {"count": commentsStore.total}, commentsStore.total) }}
       </div>
 
       <div class="text-body-1 text-medium-emphasis mt-1">
-        Every word you've shared on a book page.
+        {{ t('comment.pageHint') }}
       </div>
     </div>
 
@@ -69,14 +71,14 @@ const { sentinel } = useInfiniteScroll(
       >
         <ErrorState
           v-if="commentsStore.error"
-          message="Could not load your comments."
+          :message="t('comment.loadPageFailed')"
           @retry="fetchWithFilters(true)"
         />
 
         <template v-else>
           <BookUserHeaderRow
             v-if="commentsStore.hasData"
-            secondary-label="Updated"
+            :secondary-label="t('filter.updated')"
           />
 
           <div class="d-flex flex-column mt-2 gap-2">
@@ -92,7 +94,7 @@ const { sentinel } = useInfiniteScroll(
             class="py-12 text-center"
           >
             <div class="text-h6 text-secondary">
-              No comments match "{{ titleFilter }}"
+              {{ t('comment.noCommentsMatch', {"query": titleFilter}) }}
             </div>
           </div>
 
@@ -129,11 +131,11 @@ const { sentinel } = useInfiniteScroll(
             />
 
             <div class="text-h6 text-secondary">
-              No comments yet
+              {{ t('comment.noneYet') }}
             </div>
 
             <div class="text-secondary mt-2">
-              Comment on books while browsing to see them here
+              {{ t('comment.emptyHint') }}
             </div>
           </div>
         </template>

@@ -10,18 +10,17 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t } = useI18n()
 const themeStore = useThemeStore()
+const { monthName: monthNameOf } = useMonthName()
 
 const chipRef = ref<HTMLElement | null>(null)
 const titleRef = ref<HTMLElement | null>(null)
 const subtitleRef = ref<HTMLElement | null>(null)
 const deckRef = ref<HTMLElement | null>(null)
 
-const monthName = computed(() => {
-  const date = new Date(props.year, Math.max(props.monthsElapsed - 1, 0), 1)
-
-  return date.toLocaleString('en-US', { month: 'long' })
-})
+const currentMonthName = computed(() => monthNameOf(Math.max(props.monthsElapsed, 1)))
+const firstMonthName = computed(() => monthNameOf(1))
 
 const deckCovers = computed(() => props.coverUrls.slice(0, 5))
 
@@ -96,7 +95,7 @@ onMounted(() => {
                 icon="mdi-calendar-star"
                 class="mr-2"
               />
-              January – {{ monthName }}
+              {{ firstMonthName }} – {{ currentMonthName }}
             </v-chip>
           </div>
 
@@ -104,9 +103,9 @@ onMounted(() => {
             ref="titleRef"
             class="hero-title font-weight-black mb-6"
           >
-            Your <span class="year-number text-primary">{{ year }}</span>
+            {{ t('yearReview.heroTitlePrefix') }} <span class="year-number text-primary">{{ year }}</span>
 
-            <span class="d-block">in books</span>
+            <span class="d-block">{{ t('yearReview.heroTitleSuffix') }}</span>
           </h1>
 
           <p
@@ -114,13 +113,11 @@ onMounted(() => {
             class="text-h6 text-medium-emphasis hero-subtitle mx-md-0 mx-auto"
           >
             <template v-if="totalBooksFinished > 0">
-              {{ totalBooksFinished }} {{ totalBooksFinished === 1
-                ? 'book'
-                : 'books' }} finished so far — here's your reading story.
+              {{ t('yearReview.finishedSoFar', {"count": totalBooksFinished}) }}
             </template>
 
             <template v-else>
-              Your reading story for {{ year }} is just getting started.
+              {{ t('yearReview.justGettingStarted', {year}) }}
             </template>
           </p>
         </v-col>
@@ -144,7 +141,7 @@ onMounted(() => {
               <v-img
                 :src="cover"
                 lazy-src="/placeholder-book-lazy.jpg"
-                alt="Book cover"
+                :alt="t('yearReview.bookCoverAlt')"
                 width="150"
                 height="225"
                 cover

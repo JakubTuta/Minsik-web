@@ -3,6 +3,7 @@ import type { FavouriteEntry } from '~/types/user'
 import { defineStore } from 'pinia'
 
 export const useFavouritesStore = defineStore('favourites', () => {
+  const { t } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 
@@ -51,7 +52,7 @@ export const useFavouritesStore = defineStore('favourites', () => {
     }
     catch (err) {
       console.error('Failed to fetch favourites:', err)
-      error.value = 'Could not load your favourites.'
+      error.value = t('storeErrors.favouritesLoadFailed')
     }
     finally {
       isLoading.value = false
@@ -75,7 +76,7 @@ export const useFavouritesStore = defineStore('favourites', () => {
     }
     catch (err) {
       console.error('Failed to remove favourite:', err)
-      useToastStore().error('Could not remove this favourite. Please try again.')
+      useToastStore().error(t('storeErrors.favouriteRemoveFailed'))
       throw err
     }
   }

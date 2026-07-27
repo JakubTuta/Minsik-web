@@ -9,6 +9,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t } = useI18n()
+const recommendationTitle = useRecommendationTitle()
+
 const scrollContainer = ref<HTMLElement | null>(null)
 
 const itemCount = computed(() => (props.category.item_type === 'author'
@@ -54,10 +57,10 @@ onUnmounted(() => {
     <!-- Row header -->
     <div class="d-flex align-center justify-space-between mb-3 px-1">
       <h2 class="text-h5 font-weight-bold">
-        {{ category.display_name }}
+        {{ recommendationTitle(category) }}
       </h2>
 
-      <NuxtLink
+      <NuxtLinkLocale
         v-if="!hideShowMore"
         :to="`/recommendations/${category.key}`"
         class="text-decoration-none"
@@ -69,9 +72,9 @@ onUnmounted(() => {
           append-icon="mdi-chevron-right"
           class="text-none"
         >
-          Show more
+          {{ t('home.showMore') }}
         </v-btn>
-      </NuxtLink>
+      </NuxtLinkLocale>
     </div>
 
     <!-- Skeleton loading -->

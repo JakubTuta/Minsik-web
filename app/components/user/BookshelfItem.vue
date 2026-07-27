@@ -6,6 +6,9 @@ const props = defineProps<{
   isPublicProfile: boolean
 }>()
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
 const bookshelfStore = useBookshelfStore()
 
 const dialogOpen = ref(false)
@@ -58,7 +61,7 @@ async function handleDelete() {
         icon="mdi-open-in-new"
         size="small"
         variant="text"
-        :to="`/books/${entry.book_slug}`"
+        :to="localePath(`/books/${entry.book_slug}`)"
         :as="NuxtLink"
       />
 
@@ -90,11 +93,11 @@ async function handleDelete() {
   >
     <v-card>
       <v-card-title class="text-h6">
-        Remove from bookshelf?
+        {{ t('bookshelf.removeConfirmTitle') }}
       </v-card-title>
 
       <v-card-text>
-        "{{ entry.book_title }}" will be removed from your bookshelf.
+        {{ t('bookshelf.removeConfirmBody', {'title': entry.book_title}) }}
       </v-card-text>
 
       <v-card-actions>
@@ -104,7 +107,7 @@ async function handleDelete() {
           variant="text"
           @click="deleteConfirmOpen = false"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </v-btn>
 
         <v-btn
@@ -113,7 +116,7 @@ async function handleDelete() {
           :loading="deleting"
           @click="handleDelete"
         >
-          Remove
+          {{ t('common.remove') }}
         </v-btn>
       </v-card-actions>
     </v-card>

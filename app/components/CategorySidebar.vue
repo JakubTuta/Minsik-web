@@ -7,6 +7,10 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const localePath = useLocalePath()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -17,7 +21,7 @@ defineProps<Props>()
         <v-list-item
           v-for="category in categories"
           :key="category.slug"
-          :to="`/categories?category=${category.slug}`"
+          :to="localePath(`/categories?category=${category.slug}`)"
           :active="selectedSlug === category.slug"
           :title="category.name"
           color="primary"
@@ -34,7 +38,7 @@ defineProps<Props>()
   >
     <v-expansion-panel>
       <v-expansion-panel-title>
-        <span class="font-weight-bold">Browse Categories</span>
+        <span class="font-weight-bold">{{ t('categories.browse') }}</span>
       </v-expansion-panel-title>
 
       <v-expansion-panel-text class="pa-0">
@@ -42,7 +46,7 @@ defineProps<Props>()
           <v-list-item
             v-for="category in categories"
             :key="category.slug"
-            :to="`/categories?category=${category.slug}`"
+            :to="localePath(`/categories?category=${category.slug}`)"
             :active="selectedSlug === category.slug"
             :title="category.name"
             color="primary"

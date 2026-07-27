@@ -13,7 +13,7 @@ const emit = defineEmits<{
   discoverAnother: []
   backToFilters: []
 }>()
-
+const { t, n } = useI18n()
 const themeStore = useThemeStore()
 
 const cardInner = ref<HTMLElement | null>(null)
@@ -71,7 +71,7 @@ onMounted(async () => {
           </v-icon>
 
           <div class="text-h6 text-medium-emphasis">
-            Your Discovery
+            {{ t('discover.yourDiscovery') }}
           </div>
         </v-card>
       </div>
@@ -106,14 +106,14 @@ onMounted(async () => {
 
             <!-- Authors -->
             <div class="mb-3">
-              <NuxtLink
+              <NuxtLinkLocale
                 v-for="author in book.authors"
                 :key="author.author_id"
                 :to="`/authors/${author.slug}`"
                 class="text-body-1 text-primary text-decoration-none font-weight-medium mr-1"
               >
                 {{ author.name }}
-              </NuxtLink>
+              </NuxtLinkLocale>
             </div>
 
             <!-- Stats -->
@@ -130,7 +130,7 @@ onMounted(async () => {
                   icon="mdi-account-multiple"
                 />
 
-                <span>{{ totalReaders(book.app_want_to_read_count, book.app_reading_count, book.app_read_count, book.ol_want_to_read_count, book.ol_currently_reading_count, book.ol_already_read_count).toLocaleString() }} readers</span>
+                <span>{{ t('stats.readersCount', {"count": n(totalReaders(book.app_want_to_read_count, book.app_reading_count, book.app_read_count, book.ol_want_to_read_count, book.ol_currently_reading_count, book.ol_already_read_count))}) }}</span>
               </div>
             </div>
 
@@ -154,12 +154,12 @@ onMounted(async () => {
               prepend-icon="mdi-book-search"
               class="mb-5"
             >
-              {{ matchingCount }} books match your filters
+              {{ t('discover.matchingCount', {"count": matchingCount}, matchingCount ?? 0) }}
             </v-chip>
 
             <!-- Action buttons -->
             <div class="d-flex flex-wrap justify-center gap-3">
-              <NuxtLink
+              <NuxtLinkLocale
                 :to="`/books/${book.slug}`"
                 class="text-decoration-none"
               >
@@ -168,16 +168,16 @@ onMounted(async () => {
                   variant="elevated"
                   prepend-icon="mdi-book-open"
                 >
-                  View Book
+                  {{ t('caseGame.viewBook') }}
                 </v-btn>
-              </NuxtLink>
+              </NuxtLinkLocale>
 
               <v-btn
                 variant="outlined"
                 prepend-icon="mdi-compass"
                 @click="emit('discoverAnother')"
               >
-                Discover Another
+                {{ t('discover.discoverAnother') }}
               </v-btn>
 
               <v-btn
@@ -185,7 +185,7 @@ onMounted(async () => {
                 prepend-icon="mdi-filter"
                 @click="emit('backToFilters')"
               >
-                Edit Filters
+                {{ t('discover.editFilters') }}
               </v-btn>
             </div>
           </div>

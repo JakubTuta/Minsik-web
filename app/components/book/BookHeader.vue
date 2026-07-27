@@ -19,7 +19,14 @@ const props = withDefaults(defineProps<Props>(), {
   currentLang: 'en',
 })
 
+const { t, locale, n } = useI18n()
 const bookPageStore = useBookPageStore()
+const localePath = useLocalePath()
+const formatLabel = useFormatLabel()
+
+function variantPath(variant: BookLanguageVariant): string {
+  return localePath({ name: 'books-slug', params: { slug: variant.slug } }, variant.language)
+}
 
 const { optimized } = useOptimizedImage()
 const coverUrl = computed(() => optimized(props.book.primary_cover_url, 640))
@@ -34,8 +41,8 @@ const statisticsExpanded = ref(false)
 const langVariantsExpanded = ref(false)
 const externalLinksExpanded = ref(false)
 
-const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
-const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
+const compactFmt = computed(() => new Intl.NumberFormat(locale.value, { notation: 'compact', maximumFractionDigits: 1 }))
+const languageNames = computed(() => new Intl.DisplayNames([locale.value], { type: 'language' }))
 
 const languageDisplay = computed(() => {
   const lang = props.book.language
@@ -43,7 +50,7 @@ const languageDisplay = computed(() => {
     return null
 
   try {
-    return languageNames.of(lang) || lang
+    return languageNames.value.of(lang) || lang
   }
   catch {
     return lang
@@ -54,7 +61,7 @@ const combinedReaders = computed(() => props.book.app_want_to_read_count + props
   + props.book.ol_want_to_read_count + props.book.ol_currently_reading_count + props.book.ol_already_read_count,
 )
 
-const combinedReadersFormatted = computed(() => compactFmt.format(combinedReaders.value))
+const combinedReadersFormatted = computed(() => compactFmt.value.format(combinedReaders.value))
 
 interface ExternalLink {
   title: string
@@ -169,7 +176,7 @@ function toggleExternalLinks() {
 }
 
 function langLabel(code: string): string {
-  return languageNames.of(code) || code.toUpperCase()
+  return languageNames.value.of(code) || code.toUpperCase()
 }
 
 // The backend falls back to the best available edition when the requested
@@ -189,8 +196,8 @@ const bookStats = computed(() => {
   if (props.book.number_of_pages > 0) {
     items.push({
       icon: 'mdi-book-open-page-variant',
-      value: props.book.number_of_pages.toLocaleString(),
-      label: 'PAGES',
+      value: n(props.book.number_of_pages),
+      label: t('book.pages'),
     })
   }
 
@@ -198,7 +205,7 @@ const bookStats = computed(() => {
     items.push({
       icon: 'mdi-clock-outline',
       value: `~${readingTime.value}`,
-      label: 'READING TIME',
+      label: t('book.readingTime'),
     })
   }
 
@@ -206,7 +213,7 @@ const bookStats = computed(() => {
     items.push({
       icon: 'mdi-translate',
       value: languageDisplay.value,
-      label: 'LANGUAGE',
+      label: t('stats.language'),
     })
   }
 
@@ -214,7 +221,7 @@ const bookStats = computed(() => {
     items.push({
       icon: 'mdi-account-multiple',
       value: combinedReadersFormatted.value,
-      label: 'READERS',
+      label: t('stats.readers'),
     })
   }
 
@@ -300,7 +307,10 @@ function formatSeriesPosition(position: number | null) {
               density="compact"
               class="mb-4"
             >
-              Not yet available in {{ langLabel(currentLang) }} — showing the {{ langLabel(book.language) }} edition.
+              {{ t('book.fallbackNotice', {
+                'requested': langLabel(currentLang),
+                'served': langLabel(book.language),
+              }) }}
             </v-alert>
 
             <!-- Series -->
@@ -309,14 +319,14 @@ function formatSeriesPosition(position: number | null) {
               class="mb-4"
             >
               <div class="mb-2">
-                <span class="text-body-1">More from </span>
+                <span class="text-body-1">{{ t('series.moreFrom') }} </span>
 
-                <NuxtLink
+                <NuxtLinkLocale
                   class="font-weight-bold text-body-1 text-primary text-decoration-none"
                   :to="`/series/${book.series.slug}`"
                 >
                   {{ book.series.name }}
-                </NuxtLink>
+                </NuxtLinkLocale>
               </div>
 
               <!-- Series Books Horizontal Scroll -->
@@ -324,7 +334,7 @@ function formatSeriesPosition(position: number | null) {
                 v-if="seriesBooks.length > 0"
                 class="d-flex series-scroll gap-3"
               >
-                <NuxtLink
+                <NuxtLinkLocale
                   v-for="seriesBook in seriesBooks"
                   :key="seriesBook.book_id"
                   :to="`/books/${seriesBook.slug}`"
@@ -379,7 +389,7 @@ function formatSeriesPosition(position: number | null) {
                   >
                     {{ seriesBook.title }}
                   </v-tooltip>
-                </NuxtLink>
+                </NuxtLinkLocale>
               </div>
             </div>
 
@@ -393,7 +403,7 @@ function formatSeriesPosition(position: number | null) {
                 <div class="d-flex align-stretch">
                   <div class="d-flex flex-column align-center flex-1 pa-2 text-center">
                     <div class="text-caption text-secondary mb-1">
-                      Minsik readers
+                      {{ t('book.minsikReaders') }}
                     </div>
 
                     <div class="text-h4 font-weight-bold text-primary">
@@ -411,7 +421,7 @@ function formatSeriesPosition(position: number | null) {
                     />
 
                     <div class="text-caption text-secondary mt-1">
-                      {{ (bookPageStore.liveRatingCount ?? book.rating_count ?? 0).toLocaleString() }} ratings
+                      {{ t('stats.ratingsCountPlain', {'count': n(bookPageStore.liveRatingCount ?? book.rating_count ?? 0)}) }}
                     </div>
                   </div>
 
@@ -419,7 +429,7 @@ function formatSeriesPosition(position: number | null) {
 
                   <div class="d-flex flex-column align-center flex-1 pa-2 text-center">
                     <div class="text-caption text-secondary mb-1">
-                      Other platforms
+                      {{ t('book.otherPlatforms') }}
                     </div>
 
                     <div class="text-h4 font-weight-bold text-primary">
@@ -437,7 +447,7 @@ function formatSeriesPosition(position: number | null) {
                     />
 
                     <div class="text-caption text-secondary mt-1">
-                      {{ book.ol_rating_count.toLocaleString() }} ratings
+                      {{ t('stats.ratingsCountPlain', {'count': n(book.ol_rating_count)}) }}
                     </div>
                   </div>
                 </div>
@@ -453,7 +463,7 @@ function formatSeriesPosition(position: number | null) {
             <!-- Categories -->
             <CategoriesChips
               class="mt-6"
-              :categories="book.genres.map(e => e.name)"
+              :categories="book.genres"
             />
 
             <!-- Actions -->
@@ -474,7 +484,7 @@ function formatSeriesPosition(position: number | null) {
                 size="small"
                 @click="toggleDetails"
               >
-                Details
+                {{ t('book.details') }}
                 <v-icon
                   :icon="detailsExpanded
                     ? 'mdi-chevron-up'
@@ -488,7 +498,7 @@ function formatSeriesPosition(position: number | null) {
                 size="small"
                 @click="toggleStatistics"
               >
-                Statistics
+                {{ t('book.statistics') }}
                 <v-icon
                   :icon="statisticsExpanded
                     ? 'mdi-chevron-up'
@@ -503,7 +513,7 @@ function formatSeriesPosition(position: number | null) {
                 size="small"
                 @click="toggleLangVariants"
               >
-                Languages
+                {{ t('book.languages') }}
                 <v-icon
                   :icon="langVariantsExpanded
                     ? 'mdi-chevron-up'
@@ -518,7 +528,7 @@ function formatSeriesPosition(position: number | null) {
                 size="small"
                 @click="toggleExternalLinks"
               >
-                External Links
+                {{ t('book.externalLinks') }}
                 <v-icon
                   :icon="externalLinksExpanded
                     ? 'mdi-chevron-up'
@@ -537,7 +547,7 @@ function formatSeriesPosition(position: number | null) {
                       size="small"
                       class="mr-1"
                     />
-                    Published {{ book.original_publication_year }}
+                    {{ t('book.published', {'year': book.original_publication_year}) }}
                   </span>
 
                   <span v-if="book.publisher">
@@ -555,7 +565,7 @@ function formatSeriesPosition(position: number | null) {
                       size="small"
                       class="mr-1"
                     />
-                    {{ book.view_count.toLocaleString() }} views
+                    {{ t('book.viewsCount', {'count': n(book.view_count)}) }}
                   </span>
                 </div>
 
@@ -565,7 +575,7 @@ function formatSeriesPosition(position: number | null) {
                   class="mt-3"
                 >
                   <div class="text-secondary font-weight-bold mb-1">
-                    ISBN
+                    {{ t('book.isbn') }}
                   </div>
 
                   <div class="text-body-2">
@@ -579,7 +589,7 @@ function formatSeriesPosition(position: number | null) {
                   class="mt-3"
                 >
                   <div class="text-secondary font-weight-bold mb-1">
-                    Editions
+                    {{ t('book.editions') }}
                   </div>
 
                   <v-chip
@@ -589,7 +599,7 @@ function formatSeriesPosition(position: number | null) {
                     variant="outlined"
                     class="mb-1 mr-1"
                   >
-                    {{ toTitleCase(format) }}
+                    {{ formatLabel(format) }}
                   </v-chip>
                 </div>
               </div>
@@ -599,11 +609,10 @@ function formatSeriesPosition(position: number | null) {
             <v-expand-transition>
               <div v-show="langVariantsExpanded">
                 <div class="d-flex mt-2 gap-3 overflow-x-auto pb-2">
-                  <NuxtLink
+                  <NuxtLinkLocale
                     v-for="variant in langVariants"
                     :key="variant.language"
-                    :to="`/books/${slug}?lang=${variant.language}`"
-                    replace
+                    :to="variantPath(variant)"
                     class="text-decoration-none flex-shrink-0"
                   >
                     <div
@@ -625,7 +634,7 @@ function formatSeriesPosition(position: number | null) {
                         {{ langLabel(variant.language) }}
                       </span>
                     </div>
-                  </NuxtLink>
+                  </NuxtLinkLocale>
                 </div>
               </div>
             </v-expand-transition>
@@ -662,25 +671,25 @@ function formatSeriesPosition(position: number | null) {
                       size="small"
                       class="mr-1"
                     />
-                    {{ book.view_count.toLocaleString() }} views
+                    {{ t('book.viewsCount', {'count': n(book.view_count)}) }}
                   </span>
                 </div>
 
                 <!-- Bookshelf Stats -->
                 <div class="text-body-2 mt-3">
-                  <div>Minsik want to read: {{ book.app_want_to_read_count.toLocaleString() }}</div>
+                  <div>{{ t('stats.minsikWantToRead', {'count': n(book.app_want_to_read_count)}) }}</div>
 
-                  <div>Minsik reading: {{ book.app_reading_count.toLocaleString() }}</div>
+                  <div>{{ t('stats.minsikReading', {'count': n(book.app_reading_count)}) }}</div>
 
-                  <div>Minsik read: {{ book.app_read_count.toLocaleString() }}</div>
+                  <div>{{ t('stats.minsikRead', {'count': n(book.app_read_count)}) }}</div>
 
                   <div class="mt-3">
-                    Open Library want to read: {{ book.ol_want_to_read_count.toLocaleString() }}
+                    {{ t('stats.olWantToRead', {'count': n(book.ol_want_to_read_count)}) }}
                   </div>
 
-                  <div>Open Library reading: {{ book.ol_currently_reading_count.toLocaleString() }}</div>
+                  <div>{{ t('stats.olReading', {'count': n(book.ol_currently_reading_count)}) }}</div>
 
-                  <div>Open Library read: {{ book.ol_already_read_count.toLocaleString() }}</div>
+                  <div>{{ t('stats.olRead', {'count': n(book.ol_already_read_count)}) }}</div>
                 </div>
               </div>
             </v-expand-transition>

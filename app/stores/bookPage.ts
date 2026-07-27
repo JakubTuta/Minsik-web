@@ -3,6 +3,7 @@ import type { BookComment, BookCommentRating, BookCommentsListData, BookshelfSta
 import { defineStore } from 'pinia'
 
 export const useBookPageStore = defineStore('bookPage', () => {
+  const { t, te } = useI18n()
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const authStore = useAuthStore()
@@ -33,10 +34,8 @@ export const useBookPageStore = defineStore('bookPage', () => {
 
   const commentsHasMore = computed(() => comments.value.length < commentsTotal.value)
 
-  function extractError(error: any, fallback: string): string {
-    return error?.response?.data?.error?.message
-      || error?.response?.data?.message
-      || fallback
+  function extractError(error: any, fallbackKey: string): string {
+    return apiErrorMessage(error, t, te, fallbackKey)
   }
 
   // Keep the shared "on shelf" cache (list pages) in sync after optimistic changes
@@ -136,7 +135,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
           bookshelfStatus.value = previous
           syncSharedStatus()
         }
-        useToastStore().error(extractError(error, 'Could not update your bookshelf.'))
+        useToastStore().error(extractError(error, 'storeErrors.bookshelfUpdateFailed'))
       })
   }
 
@@ -155,7 +154,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
           isFavourite.value = previousFav
           syncSharedStatus()
         }
-        useToastStore().error(extractError(error, 'Could not remove this book.'))
+        useToastStore().error(extractError(error, 'storeErrors.bookRemoveFailed'))
       })
   }
 
@@ -178,7 +177,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
         bookshelfStatus.value = previousStatus
         syncSharedStatus()
       }
-      useToastStore().error(extractError(error, 'Could not update favourites.'))
+      useToastStore().error(extractError(error, 'storeErrors.favouriteUpdateFailed'))
     })
   }
 
@@ -192,7 +191,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
       .catch((error) => {
         if (currentSlug.value === slug)
           userRating.value = previous
-        useToastStore().error(extractError(error, 'Could not save your rating.'))
+        useToastStore().error(extractError(error, 'storeErrors.ratingSaveFailed'))
       })
   }
 
@@ -206,7 +205,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
       .catch((error) => {
         if (currentSlug.value === slug)
           userRating.value = previous
-        useToastStore().error(extractError(error, 'Could not delete your rating.'))
+        useToastStore().error(extractError(error, 'storeErrors.ratingDeleteFailed'))
       })
   }
 
@@ -305,7 +304,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
           myComment.value = null
           commentsTotal.value = Math.max(0, commentsTotal.value - 1)
         }
-        useToastStore().error(extractError(error, 'Could not post your comment.'))
+        useToastStore().error(extractError(error, 'storeErrors.commentPostFailed'))
       })
   }
 
@@ -334,7 +333,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
       .catch((error) => {
         if (currentSlug.value === slug)
           myComment.value = previous
-        useToastStore().error(extractError(error, 'Could not update your comment.'))
+        useToastStore().error(extractError(error, 'storeErrors.commentUpdateFailed'))
       })
   }
 
@@ -353,7 +352,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
           myComment.value = previous
           commentsTotal.value = previousTotal
         }
-        useToastStore().error(extractError(error, 'Could not delete your comment.'))
+        useToastStore().error(extractError(error, 'storeErrors.commentDeleteFailed'))
       })
   }
 

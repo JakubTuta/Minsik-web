@@ -33,16 +33,17 @@ const cardLink = computed(() => props.linkTo ?? `/books/${props.slug}`)
 const { optimized } = useOptimizedImage()
 const optimizedCoverUrl = computed(() => optimized(props.coverUrl, 360))
 
-const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
+const { locale } = useI18n()
+const compactFmt = computed(() => new Intl.NumberFormat(locale.value, { notation: 'compact', maximumFractionDigits: 1 }))
 
 const formattedRating = computed(() => (props.rating
   ? props.rating.toFixed(1)
   : '0.0'))
 const formattedRatingCount = computed(() => (props.ratingCount
-  ? `(${compactFmt.format(props.ratingCount)})`
+  ? `(${compactFmt.value.format(props.ratingCount)})`
   : '(0)'))
 const formattedReaders = computed(() => (props.readers
-  ? compactFmt.format(props.readers)
+  ? compactFmt.value.format(props.readers)
   : '0'))
 const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 const coverBg = computed(() => hashColor(props.title, props.authorNames.join(',')))
@@ -88,7 +89,7 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
       <!-- Info zone -->
       <div class="info-zone d-flex flex-column px-3 pb-2 pt-2">
         <!-- Title -->
-        <NuxtLink
+        <NuxtLinkLocale
           :to="cardLink"
           class="card-title font-weight-bold text-body-2 title-link"
           :class="compact
@@ -96,7 +97,7 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
             : 'line-clamp-2'"
         >
           {{ title }}
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <!-- Authors -->
         <div
@@ -107,12 +108,12 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
             v-for="(name, i) in visibleAuthors"
             :key="authorSlugs[i] ?? name"
           >
-            <NuxtLink
+            <NuxtLinkLocale
               :to="`/authors/${authorSlugs[i] ?? ''}`"
               class="author-link text-medium-emphasis text-decoration-none"
             >
               {{ name }}
-            </NuxtLink>
+            </NuxtLinkLocale>
 
             <span v-if="i < visibleAuthors.length - 1">, </span>
           </template>

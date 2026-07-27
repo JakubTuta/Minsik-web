@@ -8,6 +8,11 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const localePath = useLocalePath()
+
+const { t } = useI18n()
+const genreLabel = useGenreLabel()
+
 const authorNames = computed(() => props.book.authors.map(a => a.name).join(', '),
 )
 
@@ -30,7 +35,7 @@ const { optimized } = useOptimizedImage()
         class="font-weight-bold text-uppercase letter-spacing-wide mb-4"
         prepend-icon="mdi-star-four-points"
       >
-        Book of the Week
+        {{ t('home.bookOfTheWeek') }}
       </v-chip>
 
       <div class="d-flex ga-5">
@@ -50,24 +55,24 @@ const { optimized } = useOptimizedImage()
         </v-img>
 
         <div class="d-flex flex-column overflow-hidden">
-          <NuxtLink
+          <NuxtLinkLocale
             :to="`/books/${book.slug}`"
             class="text-decoration-none"
           >
             <div class="text-h5 font-weight-black text-high-emphasis bow-book-link mb-1 text-truncate">
               {{ book.title }}
             </div>
-          </NuxtLink>
+          </NuxtLinkLocale>
 
           <div class="d-flex ga-1 mb-3 flex-wrap">
-            <NuxtLink
+            <NuxtLinkLocale
               v-for="author in book.authors"
               :key="author.author_id"
               :to="`/authors/${author.slug}`"
               class="text-body-2 text-medium-emphasis text-decoration-none bow-author-link"
             >
               {{ author.name }}
-            </NuxtLink>
+            </NuxtLinkLocale>
           </div>
 
           <RatingDisplay
@@ -88,9 +93,9 @@ const { optimized } = useOptimizedImage()
               size="x-small"
               variant="flat"
               color="secondary"
-              :to="`/search?q=${encodeURIComponent(cat.slug)}&type=categories`"
+              :to="localePath(`/search?q=${encodeURIComponent(cat.slug)}&type=categories`)"
             >
-              {{ cat.name }}
+              {{ genreLabel(cat.slug) }}
             </v-chip>
           </div>
         </div>
