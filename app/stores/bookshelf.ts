@@ -9,7 +9,7 @@ export interface BookshelfParams {
 }
 
 export const useBookshelfStore = defineStore('bookshelf', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 

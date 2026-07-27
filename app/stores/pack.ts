@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import { RARITY_ORDER } from '~/types/case'
 
 export const usePackStore = defineStore('pack', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language: userLanguage } = useUserLanguage()

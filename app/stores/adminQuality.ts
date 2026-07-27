@@ -3,7 +3,7 @@ import type { APIResponse } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useAdminQualityStore = defineStore('adminQuality', () => {
-  const { t, te } = useI18n()
+  const { t, te } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 

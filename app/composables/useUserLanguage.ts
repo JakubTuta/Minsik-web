@@ -1,5 +1,5 @@
 import type { AppLocale } from '~~/locales.config'
-import { APP_LOCALES } from '~~/locales.config'
+import { APP_LOCALES, isSupportedLocale } from '~~/locales.config'
 
 /**
  * The one language the app speaks: it drives both the interface copy and the
@@ -12,7 +12,11 @@ import { APP_LOCALES } from '~~/locales.config'
  * hydration mismatch.
  */
 export function useUserLanguage() {
-  const { locale, setLocale } = useI18n()
+  // `useI18n()` needs a component instance, but this composable is also called
+  // from Pinia stores and plugins, which may be the first thing to touch it
+  // (e.g. auth.client.ts instantiating a store before any component mounts).
+  // `useNuxtApp().$i18n` is the same global composer, safe from anywhere.
+  const { locale, setLocale } = useNuxtApp().$i18n
   const authStore = useAuthStore()
   const apiStore = useApiStore()
 
@@ -23,7 +27,7 @@ export function useUserLanguage() {
   const currentLocale = computed<AppLocale | undefined>(() => APP_LOCALES.find(entry => entry.code === locale.value),
   )
 
-  const isSupported = (code: string): boolean => APP_LOCALES.some(entry => entry.code === code)
+  const isSupported = isSupportedLocale
 
   async function persistToAccount(code: string): Promise<void> {
     if (!authStore.isAuthenticated || !authStore.user)

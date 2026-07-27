@@ -3,7 +3,7 @@ import type { CasePhase, OpenCaseData } from '~/types/case'
 import { defineStore } from 'pinia'
 
 export const useCaseStore = defineStore('case', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language } = useUserLanguage()

@@ -34,3 +34,7 @@ export const APP_LOCALES: AppLocale[] = [
 ]
 
 export const DEFAULT_LOCALE = 'en'
+
+export function isSupportedLocale(code: string): boolean {
+  return APP_LOCALES.some(entry => entry.code === code)
+}

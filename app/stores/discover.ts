@@ -3,7 +3,7 @@ import type { BookLength, DiscoverBookData, DiscoverBookFilters, DiscoverPhase, 
 import { defineStore } from 'pinia'
 
 export const useDiscoverStore = defineStore('discover', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language } = useUserLanguage()

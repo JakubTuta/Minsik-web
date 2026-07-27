@@ -3,7 +3,7 @@ import type { UserStats } from '~/types/user'
 import { defineStore } from 'pinia'
 
 export const useDashboardStore = defineStore('dashboard', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const authStore = useAuthStore()
   const { client } = storeToRefs(apiStore)

@@ -10,7 +10,7 @@ const REFRESH_LEAD_SECONDS = 60
 const MIN_REFRESH_DELAY_SECONDS = 30
 
 export const useAuthStore = defineStore('auth', () => {
-  const { t, te } = useI18n()
+  const { t, te } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const router = useRouter()
