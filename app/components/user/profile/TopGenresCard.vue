@@ -6,6 +6,7 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+const genreLabel = useGenreLabel()
 </script>
 
 <template>
@@ -27,7 +28,7 @@ const { t } = useI18n()
           :key="genre.slug"
         >
           <div class="d-flex justify-space-between text-body-1 mb-2">
-            <span class="font-weight-medium">{{ genre.name }}</span>
+            <span class="font-weight-medium">{{ genreLabel(genre.slug) }}</span>
             <span class="text-medium-emphasis">{{ genre.percent }}%</span>
           </div>
 

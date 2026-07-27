@@ -21,6 +21,7 @@ const authStore = useAuthStore()
 const adminStore = useAdminStore()
 const recommendationsStore = useRecommendationsStore()
 const { t } = useI18n()
+const genreLabel = useGenreLabel()
 const { language: uiLanguage } = useUserLanguage()
 
 const slug = route.params.slug as string
@@ -119,7 +120,7 @@ useBookStructuredData({
   inLanguage: book.value.language,
   numberOfPages: book.value.number_of_pages || undefined,
   publisher: book.value.publisher || undefined,
-  genres: book.value.genres?.map(g => g.name),
+  genres: book.value.genres?.map(g => genreLabel(g.slug)),
   ratingValue: book.value.avg_rating || undefined,
   ratingCount: book.value.rating_count || undefined,
 })
