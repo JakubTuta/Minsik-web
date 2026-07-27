@@ -12,6 +12,10 @@
  * - which book editions may be linked or advertised (app/stores/books.ts)
  * - the root locale redirect (server/middleware/root-locale-redirect.ts)
  *
+ * One file does NOT read this list and has to be edited by hand:
+ * `public/robots.txt`, where every private path needs a copy under the new
+ * language's prefix.
+ *
  * Server-side, AVAILABLE_LANGUAGES likewise drives language resolution, the
  * per-language Elasticsearch analyzers, and edition preference.
  *

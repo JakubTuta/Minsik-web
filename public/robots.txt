@@ -1,0 +1,54 @@
+# Adding a language to locales.config.ts? Every private path below also exists
+# under that language's prefix (/pl/dashboard, /pl/auth/, ...). Copy each
+# Disallow line with the prefix, or crawlers will walk the translated copies.
+# They stay out of the index either way — nuxt.config.ts sends
+# X-Robots-Tag: noindex on those routes — but only after being crawled.
+
+User-Agent: *
+Disallow: /auth/
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /bookshelf
+Allow: /bookshelf/
+Disallow: /favourites
+Disallow: /ratings
+Disallow: /comments
+Disallow: /year-in-review
+Disallow: /open-case
+Disallow: /open-pack
+Disallow: /play-slots
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+Sitemap: https://minsik.jtuta.cloud/sitemap.xml
