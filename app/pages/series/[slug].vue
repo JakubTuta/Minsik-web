@@ -9,19 +9,23 @@ const authStore = useAuthStore()
 const adminStore = useAdminStore()
 const recommendationsStore = useRecommendationsStore()
 const { t } = useI18n()
+// A series resolves to a different per-language record with its own book list,
+// so the page's data follows the interface language.
+const { language } = useUserLanguage()
 
 const slug = route.params.slug as string
 
 const { data: series, error: seriesError } = await useAsyncData(
   `series-${slug}`,
   () => seriesStore.fetchSeries(slug),
+  { watch: [language] },
 )
 
 // Books list is secondary to page identity — don't block navigation
 const { data: books } = useLazyAsyncData(
   `series-books-${slug}`,
   () => seriesStore.fetchSeriesBooks(slug),
-  { default: () => [] },
+  { watch: [language], default: () => [] },
 )
 
 // Block on author for SSR/SEO — slug comes from series so no books dependency

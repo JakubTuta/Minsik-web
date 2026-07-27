@@ -3,6 +3,8 @@ import type { BookSummary } from '~/types/api'
 
 const route = useRoute()
 const { t, n } = useI18n()
+// Which edition of each book is listed depends on the reader's language.
+const { language } = useUserLanguage()
 const localePath = useLocalePath()
 const categoriesStore = useCategoriesStore()
 const { categories, getCategoryBySlug } = useCategories()
@@ -31,6 +33,7 @@ async function loadBooks(slug: string, sort: 'popularity' | 'rating', offset: nu
 const { data: initialBooksData } = useLazyAsyncData(
   `category-books-${selectedSlug.value}-${sortBy.value}`,
   () => loadBooks(selectedSlug.value!, sortBy.value, 0),
+  { watch: [language] },
 )
 
 watch(initialBooksData, (data) => {

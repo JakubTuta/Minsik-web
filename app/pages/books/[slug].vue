@@ -4,6 +4,8 @@ import type { Author, BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 import { APP_LOCALES, DEFAULT_LOCALE } from '~~/locales.config'
 
+const LANGUAGE_QUERY_RE = /^[a-z]{2,10}$/i
+
 // Each language edition has its own slug (see get_language_variants), so
 // switching editions navigates to a different slug under this same route —
 // force a remount when the slug param changes so the page's fetches don't
@@ -30,19 +32,24 @@ const slug = route.params.slug as string
 // link that already names its own language); absent that, the edition
 // follows the UI locale so a reader on /pl/... gets the Polish edition by
 // default without needing the query param.
-function resolvedLang(): string {
+//
+// Computed rather than read once: this page pins its route key to the slug
+// (see definePageMeta above), so switching the interface language navigates
+// to /xx/books/<slug> without re-creating the component. Without the watch
+// below, the reader would be left on the previous language's edition until
+// they reloaded by hand.
+const lang = computed<string>(() => {
   const q = route.query.lang
 
-  return typeof q === 'string' && /^[a-z]{2,10}$/i.test(q)
+  return typeof q === 'string' && LANGUAGE_QUERY_RE.test(q)
     ? q.toLowerCase()
     : uiLanguage.value
-}
-
-const lang = ref(resolvedLang())
+})
 
 const { data: book, error } = await useAsyncData(
-  `book-${slug}-${lang.value}`,
+  `book-${slug}`,
   () => booksStore.fetchBook(slug, lang.value),
+  { watch: [lang] },
 )
 
 // Language variants are secondary (hreflang only) — don't block navigation.
@@ -59,7 +66,7 @@ const { data: langVariantsData } = useLazyAsyncData(
       return []
     }
   },
-  { default: () => [] },
+  { watch: [book], default: () => [] },
 )
 
 // Handle 404
@@ -96,41 +103,48 @@ function localizedBookPath(bookSlug: string, language: string): string {
 }
 
 const config = useRuntimeConfig()
-const servedLang = book.value.language || lang.value
-const canonicalUrl = `${config.public.siteUrl}${localizedBookPath(slug, servedLang)}`
+// The served language can differ from the requested one (edition fallback) and
+// changes under the page when the interface language does, so everything the
+// head advertises is derived, not captured once.
+const servedLang = computed(() => book.value?.language || lang.value)
+const canonicalUrl = computed(() => `${config.public.siteUrl}${localizedBookPath(slug, servedLang.value)}`)
 
 useSeo({
-  title: book.value.title,
-  description: book.value.description || t('bookPage.seoDescriptionFallback', { title: book.value.title, authors: book.value.authors.map(a => a.name).join(', ') }),
-  image: book.value.primary_cover_url || undefined,
+  title: computed(() => book.value?.title ?? ''),
+  description: computed(() => book.value?.description
+    || t('bookPage.seoDescriptionFallback', {
+      title: book.value?.title ?? '',
+      authors: (book.value?.authors ?? []).map(a => a.name).join(', '),
+    })),
+  image: computed(() => book.value?.primary_cover_url || undefined),
   type: 'book',
   url: canonicalUrl,
-  author: book.value.authors[0]?.name,
+  author: computed(() => book.value?.authors[0]?.name),
 })
 
 // Structured data
-useBookStructuredData({
-  name: book.value.title,
-  author: book.value.authors.map(a => a.name),
-  isbn: book.value.isbn?.[0],
-  description: book.value.description || undefined,
-  image: book.value.primary_cover_url || undefined,
-  url: canonicalUrl,
-  datePublished: book.value.original_publication_year?.toString(),
-  inLanguage: book.value.language,
-  numberOfPages: book.value.number_of_pages || undefined,
-  publisher: book.value.publisher || undefined,
-  genres: book.value.genres?.map(g => genreLabel(g.slug)),
-  ratingValue: book.value.avg_rating || undefined,
-  ratingCount: book.value.rating_count || undefined,
-})
+useBookStructuredData(() => ({
+  name: book.value?.title ?? '',
+  author: (book.value?.authors ?? []).map(a => a.name),
+  isbn: book.value?.isbn?.[0],
+  description: book.value?.description || undefined,
+  image: book.value?.primary_cover_url || undefined,
+  url: canonicalUrl.value,
+  datePublished: book.value?.original_publication_year?.toString(),
+  inLanguage: servedLang.value,
+  numberOfPages: book.value?.number_of_pages || undefined,
+  publisher: book.value?.publisher || undefined,
+  genres: book.value?.genres?.map(g => genreLabel(g.slug)),
+  ratingValue: book.value?.avg_rating || undefined,
+  ratingCount: book.value?.rating_count || undefined,
+}))
 
-useBreadcrumbStructuredData([
+useBreadcrumbStructuredData(() => [
   { name: t('nav.home'), url: `${config.public.siteUrl}${localePath('index')}` },
-  ...(book.value.authors[0]
+  ...(book.value?.authors[0]
     ? [{ name: book.value.authors[0].name, url: `${config.public.siteUrl}${localePath({ name: 'authors-slug', params: { slug: book.value.authors[0].slug } })}` }]
     : []),
-  { name: book.value.title },
+  { name: book.value?.title ?? '' },
 ])
 
 // hreflang — point search engines at other language editions, each at its own slug/path
@@ -140,7 +154,7 @@ function variantHref(variantSlug: string, language: string): string {
 
 useHead(() => {
   const variants = langVariantsData.value ?? []
-  const selfLang = book.value?.language || lang.value
+  const selfLang = servedLang.value
 
   // Only editions the app has a locale for get advertised: an edition in an
   // unconfigured language has no URL that renders it in that language, so a
@@ -148,7 +162,7 @@ useHead(() => {
   // book simply has no alternates — it stays indexable through its canonical.
   const editions = [
     ...(supportedLocales.has(selfLang)
-      ? [{ language: selfLang, href: canonicalUrl }]
+      ? [{ language: selfLang, href: canonicalUrl.value }]
       : []),
     ...variants
       .filter(v => v.language !== selfLang && supportedLocales.has(v.language))
@@ -341,32 +355,16 @@ async function handleBookEditSave(editedData: Record<string, any>) {
   }
 }
 
-async function fetchLangVariants() {
-  if (book.value?.slug) {
-    try {
-      langVariantsData.value = await booksStore.fetchLanguageVariants(book.value.slug, book.value.language || lang.value)
-    }
-    catch { /* Silently fail */ }
-  }
-}
-
-onMounted(async () => {
-  if (book.value?.book_id) {
-    try {
-      bookRecommendations.value = await recommendationsStore.fetchBookRecommendations(book.value.book_id) ?? []
-    }
-    catch { /* Silently fail */ }
-  }
-})
-
-watch(() => route.query.lang, async () => {
-  const newLang = resolvedLang()
-  if (newLang === lang.value)
+// Recommendations are seeded from the edition on screen, so they follow it
+// when the edition changes under the reader.
+watch(() => book.value?.book_id, async (bookId) => {
+  if (!bookId)
     return
-  lang.value = newLang
-  book.value = await booksStore.fetchBook(slug, newLang)
-  fetchLangVariants()
-})
+  try {
+    bookRecommendations.value = await recommendationsStore.fetchBookRecommendations(bookId) ?? []
+  }
+  catch { /* Silently fail */ }
+}, { immediate: import.meta.client })
 
 watch(() => authStore.isAuthenticated, (isAuth) => {
   bookPageStore.resetState()
@@ -376,9 +374,9 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
   }
 }, { immediate: true })
 
-watch(() => authStore.isAuthenticated, async (isAuth) => {
-  if (isAuth && book.value?.book_id)
-    personalizedBookRecs.value = await recommendationsStore.fetchPersonalizedBookRecommendations(book.value.book_id) ?? []
+watch([() => authStore.isAuthenticated, () => book.value?.book_id], async ([isAuth, bookId]) => {
+  if (isAuth && bookId)
+    personalizedBookRecs.value = await recommendationsStore.fetchPersonalizedBookRecommendations(bookId) ?? []
   else
     personalizedBookRecs.value = []
 }, { immediate: true })

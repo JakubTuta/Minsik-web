@@ -7,6 +7,9 @@ const authorsStore = useAuthorsStore()
 const recommendationsStore = useRecommendationsStore()
 const authStore = useAuthStore()
 const { t } = useI18n()
+// Author stats and the editions of their books are language-dependent, so the
+// page's data follows the interface language rather than waiting for a reload.
+const { language } = useUserLanguage()
 
 const slug = route.params.slug as string
 
@@ -33,6 +36,7 @@ function getSortParams() {
 const { data: author, error: authorError } = await useAsyncData(
   `author-${slug}`,
   () => authorsStore.fetchAuthor(slug),
+  { watch: [language] },
 )
 
 // Handle 404 early
@@ -49,6 +53,7 @@ const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.valu
 const { data: initialBooksData } = useLazyAsyncData(
   `author-books-${slug}`,
   () => authorsStore.fetchAuthorBooksPage(slug, 'publication_year', 'desc', 0, 20),
+  { watch: [language] },
 )
 
 watch(initialBooksData, (val) => {
@@ -62,11 +67,13 @@ watch(initialBooksData, (val) => {
 const { data: authorQuote } = useLazyAsyncData(
   `author-quote-${slug}`,
   () => authorsStore.fetchAuthorQuote(slug),
+  { watch: [language] },
 )
 
 const { data: topBooks } = useLazyAsyncData(
   `author-top-books-${slug}`,
   () => authorsStore.fetchAuthorTopBooks(slug),
+  { watch: [language] },
 )
 
 // View mode: list or timeline

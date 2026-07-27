@@ -4,6 +4,8 @@ import type { RecommendationSection } from '~/types/recommendations'
 const recommendationsStore = useRecommendationsStore()
 const authStore = useAuthStore()
 const { t } = useI18n()
+// Home rows are built per language server-side.
+const { language } = useUserLanguage()
 
 // SEO
 useSeo({
@@ -13,6 +15,7 @@ useSeo({
 const { data: categories, error } = await useAsyncData(
   'home-recommendations',
   () => recommendationsStore.fetchHomeRecommendations(),
+  { watch: [language] },
 )
 
 const filteredCategories = computed<RecommendationSection[]>(() => (categories.value ?? []).filter(

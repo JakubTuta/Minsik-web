@@ -36,6 +36,14 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   // Cache TTL — 5 minutes
   const CACHE_TTL = 5 * 60 * 1000
 
+  /**
+   * Cache keys carry the reader's language wherever the server builds the list
+   * per language (home, category lists, book of the week, personal home). The
+   * rows keyed by a book, author or series id take their language from that
+   * entity itself, so those keys stay language-free.
+   */
+  const languageKey = (key: string) => `${language.value}:${key}`
+
   // Computed
   const hasHomeData = computed(() => homeCategories.value.length > 0)
 
@@ -49,7 +57,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
 
   // Fetch all home page recommendations
   async function fetchHomeRecommendations(force = false) {
-    if (!force && hasHomeData.value && isCacheFresh('home'))
+    if (!force && hasHomeData.value && isCacheFresh(languageKey('home')))
       return homeCategories.value
 
     isLoading.value = true
@@ -59,7 +67,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
         { params: { items_per_category: 10, language: language.value } },
       )
       homeCategories.value = response.data.data!.sections
-      lastFetchTime.value.set('home', Date.now())
+      lastFetchTime.value.set(languageKey('home'), Date.now())
 
       return homeCategories.value
     }
@@ -82,7 +90,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     offset = 0,
     force = false,
   ) {
-    const cacheKey = `${category}-${offset}`
+    const cacheKey = languageKey(`${category}-${offset}`)
 
     if (!force && categoryData.value.has(cacheKey) && isCacheFresh(cacheKey))
       return categoryData.value.get(cacheKey)!
@@ -188,7 +196,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
 
   // Fetch personalized home recommendations (authenticated)
   async function fetchPersonalizedHomeRecommendations(force = false) {
-    const cacheKey = 'personal-home'
+    const cacheKey = languageKey('personal-home')
     if (!force && personalizedHomeCategories.value.length > 0 && isCacheFresh(cacheKey))
       return personalizedHomeCategories.value
     isLoadingPersonalizedHome.value = true
@@ -296,7 +304,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   }
 
   async function fetchBookOfTheWeek(force = false): Promise<BookOfTheWeek | null> {
-    const cacheKey = 'book-of-the-week'
+    const cacheKey = languageKey('book-of-the-week')
     if (!force && bookOfTheWeek.value && isCacheFresh(cacheKey))
       return bookOfTheWeek.value
 

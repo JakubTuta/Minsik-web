@@ -16,22 +16,29 @@ export const useSeriesStore = defineStore('series', () => {
   // Cache TTL
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
+  /**
+   * The reader's language is part of every cache key: a series resolves to a
+   * different per-language record with its own book list, so a language switch
+   * has to miss the cache rather than keep serving the previous language.
+   */
+  const cacheKey = (...parts: string[]) => [language.value, ...parts].join(':')
+
   // Computed
   const hasData = computed(() => series.value.size > 0)
   const currentSeriesSlug = computed(() => currentSeries.value?.slug || null)
   const currentSeriesBooks = computed(() => (currentSeries.value
-    ? seriesBooks.value.get(currentSeries.value.slug) || []
+    ? seriesBooks.value.get(cacheKey(currentSeries.value.slug)) || []
     : []),
   )
 
   // Check if series exists in cache
   const hasSeries = (slug: string) => {
-    return series.value.has(slug)
+    return series.value.has(cacheKey(slug))
   }
 
   // Check if cached data is fresh
-  const isCacheFresh = (slug: string) => {
-    const timestamp = lastFetchTime.value.get(slug)
+  const isCacheFresh = (key: string) => {
+    const timestamp = lastFetchTime.value.get(key)
     if (!timestamp)
       return false
 
@@ -40,8 +47,10 @@ export const useSeriesStore = defineStore('series', () => {
 
   // Fetch series details
   const fetchSeries = async (slug: string, force = false) => {
-    if (!force && hasSeries(slug) && isCacheFresh(slug)) {
-      currentSeries.value = series.value.get(slug)!
+    const key = cacheKey(slug)
+
+    if (!force && hasSeries(slug) && isCacheFresh(key)) {
+      currentSeries.value = series.value.get(key)!
 
       return currentSeries.value
     }
@@ -55,8 +64,8 @@ export const useSeriesStore = defineStore('series', () => {
       const seriesData = response.data.data!
 
       // Cache the series
-      series.value.set(slug, seriesData)
-      lastFetchTime.value.set(slug, Date.now())
+      series.value.set(key, seriesData)
+      lastFetchTime.value.set(key, Date.now())
       currentSeries.value = seriesData
 
       return seriesData
@@ -72,10 +81,10 @@ export const useSeriesStore = defineStore('series', () => {
 
   // Fetch ALL series books (load all at once, sorted by position)
   const fetchSeriesBooks = async (slug: string, force = false) => {
-    const cacheKey = `${slug}_books`
+    const key = cacheKey(slug, 'books')
 
-    if (!force && seriesBooks.value.has(slug) && isCacheFresh(cacheKey)) {
-      return seriesBooks.value.get(slug)!
+    if (!force && seriesBooks.value.has(key) && isCacheFresh(key)) {
+      return seriesBooks.value.get(key)!
     }
 
     isLoadingBooks.value = true
@@ -93,8 +102,8 @@ export const useSeriesStore = defineStore('series', () => {
       const books = response.data.data?.books || []
 
       // Cache the books
-      seriesBooks.value.set(slug, books)
-      lastFetchTime.value.set(cacheKey, Date.now())
+      seriesBooks.value.set(key, books)
+      lastFetchTime.value.set(key, Date.now())
 
       return books
     }
@@ -108,13 +117,13 @@ export const useSeriesStore = defineStore('series', () => {
 
   // Cache a series
   const cacheSeries = (seriesData: Series) => {
-    series.value.set(seriesData.slug, seriesData)
-    lastFetchTime.value.set(seriesData.slug, Date.now())
+    series.value.set(cacheKey(seriesData.slug), seriesData)
+    lastFetchTime.value.set(cacheKey(seriesData.slug), Date.now())
   }
 
   // Get series from cache
   const getSeries = (slug: string) => {
-    return series.value.get(slug) || null
+    return series.value.get(cacheKey(slug)) || null
   }
 
   // Refresh current series

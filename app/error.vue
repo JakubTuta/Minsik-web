@@ -29,7 +29,8 @@ useHead(() => ({
 }))
 
 function handleClearError() {
-  clearError({ redirect: '/' })
+  // A bare '/' would drop a reader of any non-default locale into English.
+  clearError({ redirect: localePath('index') })
 }
 </script>
 

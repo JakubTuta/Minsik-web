@@ -1,15 +1,18 @@
-import type { MaybeRef } from 'vue'
+import type { MaybeRef, MaybeRefOrGetter } from 'vue'
 
+// Everything here is a MaybeRef: a page whose content language can change
+// without the component being re-created (see app/pages/books/[slug].vue) has
+// to be able to hand over a canonical URL and an image that change with it.
 interface SeoOptions {
   title?: MaybeRef<string>
   description?: MaybeRef<string>
-  image?: string
+  image?: MaybeRef<string | undefined>
   type?: 'website' | 'article' | 'book' | 'profile'
-  url?: string
-  author?: string
-  publishedTime?: string
-  modifiedTime?: string
-  keywords?: string[]
+  url?: MaybeRef<string>
+  author?: MaybeRef<string | undefined>
+  publishedTime?: MaybeRef<string | undefined>
+  modifiedTime?: MaybeRef<string | undefined>
+  keywords?: MaybeRef<string[] | undefined>
 }
 
 export function useSeo(options: SeoOptions = {}) {
@@ -20,6 +23,10 @@ export function useSeo(options: SeoOptions = {}) {
   useHead(() => {
     const titleStr = unref(options.title)
     const descStr = unref(options.description)
+    const author = unref(options.author)
+    const publishedTime = unref(options.publishedTime)
+    const modifiedTime = unref(options.modifiedTime)
+    const keywords = unref(options.keywords)
 
     const fullTitle = titleStr
       ? `${titleStr} | ${config.public.siteName}`
@@ -28,9 +35,9 @@ export function useSeo(options: SeoOptions = {}) {
     const description = descStr || config.public.siteDescription as string
 
     // Use route.path (no query params) for canonical URL
-    const canonicalUrl = options.url || `${config.public.siteUrl}${route.path}`
+    const canonicalUrl = unref(options.url) || `${config.public.siteUrl}${route.path}`
 
-    const imageUrl = options.image || `${config.public.siteUrl}/og-image.jpg`
+    const imageUrl = unref(options.image) || `${config.public.siteUrl}/og-image.jpg`
 
     const metaTags: { name?: string, property?: string, content: string }[] = [
       { name: 'description', content: description },
@@ -46,21 +53,21 @@ export function useSeo(options: SeoOptions = {}) {
       { name: 'twitter:image', content: imageUrl },
     ]
 
-    if (options.author) {
-      metaTags.push({ name: 'author', content: options.author })
-      metaTags.push({ property: 'article:author', content: options.author })
+    if (author) {
+      metaTags.push({ name: 'author', content: author })
+      metaTags.push({ property: 'article:author', content: author })
     }
 
-    if (options.publishedTime) {
-      metaTags.push({ property: 'article:published_time', content: options.publishedTime })
+    if (publishedTime) {
+      metaTags.push({ property: 'article:published_time', content: publishedTime })
     }
 
-    if (options.modifiedTime) {
-      metaTags.push({ property: 'article:modified_time', content: options.modifiedTime })
+    if (modifiedTime) {
+      metaTags.push({ property: 'article:modified_time', content: modifiedTime })
     }
 
-    if (options.keywords && options.keywords.length > 0) {
-      metaTags.push({ name: 'keywords', content: options.keywords.join(', ') })
+    if (keywords && keywords.length > 0) {
+      metaTags.push({ name: 'keywords', content: keywords.join(', ') })
     }
 
     return {
@@ -73,19 +80,20 @@ export function useSeo(options: SeoOptions = {}) {
 
 // Helper for structured data (JSON-LD)
 // Unhead v2 removed `children` — use `innerHTML` so the JSON renders as script content
-export function useStructuredData(data: Record<string, any>) {
-  useHead({
+// Accepts a getter so a page whose content changes in place (a book switching
+// edition with the interface language) does not leave stale JSON-LD behind.
+export function useStructuredData(data: MaybeRefOrGetter<Record<string, any>>) {
+  useHead(() => ({
     script: [
       {
         type: 'application/ld+json',
-        innerHTML: JSON.stringify(data),
+        innerHTML: JSON.stringify(toValue(data)),
       },
     ],
-  })
+  }))
 }
 
-// Book structured data helper
-export function useBookStructuredData(book: {
+interface BookStructuredData {
   name: string
   author: string | string[]
   isbn?: string
@@ -99,74 +107,82 @@ export function useBookStructuredData(book: {
   genres?: string[]
   ratingValue?: number
   ratingCount?: number
-}) {
-  const structuredData: Record<string, any> = {
-    '@context': 'https://schema.org',
-    '@type': 'Book',
-    'name': book.name,
-    'author': Array.isArray(book.author)
-      ? book.author.map(name => ({
-          '@type': 'Person',
-          'name': name,
-        }))
-      : {
-          '@type': 'Person',
-          'name': book.author,
-        },
-    'url': book.url,
-  }
+}
 
-  if (book.isbn) {
-    structuredData.isbn = book.isbn
-  }
-
-  if (book.description) {
-    structuredData.description = book.description
-  }
-
-  if (book.image) {
-    structuredData.image = book.image
-  }
-
-  if (book.datePublished) {
-    structuredData.datePublished = book.datePublished
-  }
-
-  if (book.inLanguage) {
-    structuredData.inLanguage = book.inLanguage
-  }
-
-  if (book.numberOfPages) {
-    structuredData.numberOfPages = book.numberOfPages
-  }
-
-  if (book.publisher) {
-    structuredData.publisher = { '@type': 'Organization', 'name': book.publisher }
-  }
-
-  if (book.genres && book.genres.length > 0) {
-    structuredData.genre = book.genres
-  }
-
-  if (book.ratingValue && book.ratingCount) {
-    structuredData.aggregateRating = {
-      '@type': 'AggregateRating',
-      'ratingValue': book.ratingValue,
-      'ratingCount': book.ratingCount,
-      'bestRating': 5,
-      'worstRating': 1,
+// Book structured data helper
+export function useBookStructuredData(source: MaybeRefOrGetter<BookStructuredData>) {
+  useStructuredData(() => {
+    const book = toValue(source)
+    const structuredData: Record<string, any> = {
+      '@context': 'https://schema.org',
+      '@type': 'Book',
+      'name': book.name,
+      'author': Array.isArray(book.author)
+        ? book.author.map(name => ({
+            '@type': 'Person',
+            'name': name,
+          }))
+        : {
+            '@type': 'Person',
+            'name': book.author,
+          },
+      'url': book.url,
     }
-  }
 
-  useStructuredData(structuredData)
+    if (book.isbn) {
+      structuredData.isbn = book.isbn
+    }
+
+    if (book.description) {
+      structuredData.description = book.description
+    }
+
+    if (book.image) {
+      structuredData.image = book.image
+    }
+
+    if (book.datePublished) {
+      structuredData.datePublished = book.datePublished
+    }
+
+    if (book.inLanguage) {
+      structuredData.inLanguage = book.inLanguage
+    }
+
+    if (book.numberOfPages) {
+      structuredData.numberOfPages = book.numberOfPages
+    }
+
+    if (book.publisher) {
+      structuredData.publisher = { '@type': 'Organization', 'name': book.publisher }
+    }
+
+    if (book.genres && book.genres.length > 0) {
+      structuredData.genre = book.genres
+    }
+
+    if (book.ratingValue && book.ratingCount) {
+      structuredData.aggregateRating = {
+        '@type': 'AggregateRating',
+        'ratingValue': book.ratingValue,
+        'ratingCount': book.ratingCount,
+        'bestRating': 5,
+        'worstRating': 1,
+      }
+    }
+
+    return structuredData
+  })
 }
 
 // Breadcrumb structured data helper
-export function useBreadcrumbStructuredData(items: { name: string, url?: string }[]) {
-  useStructuredData({
+export function useBreadcrumbStructuredData(
+  items: MaybeRefOrGetter<{ name: string, url?: string }[]>,
+) {
+  useStructuredData(() => ({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    'itemListElement': items.map((item, index) => ({
+    'itemListElement': toValue(items).map((item, index) => ({
       '@type': 'ListItem',
       'position': index + 1,
       'name': item.name,
@@ -174,7 +190,7 @@ export function useBreadcrumbStructuredData(items: { name: string, url?: string 
         ? { item: item.url }
         : {}),
     })),
-  })
+  }))
 }
 
 // Author structured data helper

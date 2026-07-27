@@ -16,22 +16,30 @@ export const useAuthorsStore = defineStore('authors', () => {
   // Cache TTL
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
+  /**
+   * The reader's language is part of every cache key. An author's stats and the
+   * editions of their books both change with it, so a language switch has to
+   * miss the cache — otherwise the interface changes language and the data
+   * silently does not until the entry expires.
+   */
+  const cacheKey = (...parts: (string | number)[]) => [language.value, ...parts].join(':')
+
   // Computed
   const hasData = computed(() => authors.value.size > 0)
   const currentAuthorSlug = computed(() => currentAuthor.value?.slug || null)
   const currentAuthorBooks = computed(() => (currentAuthor.value
-    ? authorBooks.value.get(currentAuthor.value.slug) || []
+    ? authorBooks.value.get(cacheKey(currentAuthor.value.slug)) || []
     : []),
   )
 
   // Check if author exists in cache
   const hasAuthor = (slug: string) => {
-    return authors.value.has(slug)
+    return authors.value.has(cacheKey(slug))
   }
 
   // Check if cached data is fresh
-  const isCacheFresh = (slug: string) => {
-    const timestamp = lastFetchTime.value.get(slug)
+  const isCacheFresh = (key: string) => {
+    const timestamp = lastFetchTime.value.get(key)
     if (!timestamp)
       return false
 
@@ -53,8 +61,10 @@ export const useAuthorsStore = defineStore('authors', () => {
 
   // Fetch author details
   const fetchAuthor = async (slug: string, force = false) => {
-    if (!force && hasAuthor(slug) && isCacheFresh(slug)) {
-      currentAuthor.value = authors.value.get(slug)!
+    const key = cacheKey(slug)
+
+    if (!force && hasAuthor(slug) && isCacheFresh(key)) {
+      currentAuthor.value = authors.value.get(key)!
 
       return currentAuthor.value
     }
@@ -71,8 +81,8 @@ export const useAuthorsStore = defineStore('authors', () => {
       computeDisplayDates(author)
 
       // Cache the author
-      authors.value.set(slug, author)
-      lastFetchTime.value.set(slug, Date.now())
+      authors.value.set(key, author)
+      lastFetchTime.value.set(key, Date.now())
       currentAuthor.value = author
 
       return author
@@ -119,10 +129,10 @@ export const useAuthorsStore = defineStore('authors', () => {
     order: 'asc' | 'desc' = 'desc',
     force = false,
   ) => {
-    const cacheKey = `${slug}_books_${sortBy}_${order}`
+    const key = cacheKey(slug, 'books', sortBy, order)
 
-    if (!force && authorBooks.value.has(cacheKey) && isCacheFresh(cacheKey)) {
-      return authorBooks.value.get(cacheKey)!
+    if (!force && authorBooks.value.has(key) && isCacheFresh(key)) {
+      return authorBooks.value.get(key)!
     }
 
     isLoadingBooks.value = true
@@ -142,8 +152,8 @@ export const useAuthorsStore = defineStore('authors', () => {
       const books = response.data.data?.books || []
 
       // Cache the books
-      authorBooks.value.set(cacheKey, books)
-      lastFetchTime.value.set(cacheKey, Date.now())
+      authorBooks.value.set(key, books)
+      lastFetchTime.value.set(key, Date.now())
 
       return books
     }
@@ -159,14 +169,17 @@ export const useAuthorsStore = defineStore('authors', () => {
   const authorTopBooksCache = ref(new Map<string, { data: BookSummary[], timestamp: number }>())
 
   const fetchAuthorQuote = async (slug: string, force = false): Promise<AuthorQuote | null> => {
-    const cached = authorQuoteCache.value.get(slug)
+    const key = cacheKey(slug)
+    const cached = authorQuoteCache.value.get(key)
     if (!force && cached && Date.now() - cached.timestamp < CACHE_TTL)
       return cached.data
 
     try {
-      const response = await apiStore.client.get<APIResponse<AuthorQuote>>(`/api/v1/authors/${slug}/quote`)
+      const response = await apiStore.client.get<APIResponse<AuthorQuote>>(`/api/v1/authors/${slug}/quote`, {
+        params: { language: language.value },
+      })
       const data = response.data.data ?? null
-      authorQuoteCache.value.set(slug, { data, timestamp: Date.now() })
+      authorQuoteCache.value.set(key, { data, timestamp: Date.now() })
 
       return data
     }
@@ -176,14 +189,17 @@ export const useAuthorsStore = defineStore('authors', () => {
   }
 
   const fetchAuthorTopBooks = async (slug: string, force = false): Promise<BookSummary[]> => {
-    const cached = authorTopBooksCache.value.get(slug)
+    const key = cacheKey(slug)
+    const cached = authorTopBooksCache.value.get(key)
     if (!force && cached && Date.now() - cached.timestamp < CACHE_TTL)
       return cached.data
 
     try {
-      const response = await apiStore.client.get<APIResponse<AuthorTopBooksResponse>>(`/api/v1/authors/${slug}/top-books`)
+      const response = await apiStore.client.get<APIResponse<AuthorTopBooksResponse>>(`/api/v1/authors/${slug}/top-books`, {
+        params: { language: language.value },
+      })
       const books = response.data.data?.books ?? []
-      authorTopBooksCache.value.set(slug, { data: books, timestamp: Date.now() })
+      authorTopBooksCache.value.set(key, { data: books, timestamp: Date.now() })
 
       return books
     }
@@ -195,13 +211,13 @@ export const useAuthorsStore = defineStore('authors', () => {
   // Cache an author
   const cacheAuthor = (author: Author) => {
     computeDisplayDates(author)
-    authors.value.set(author.slug, author)
-    lastFetchTime.value.set(author.slug, Date.now())
+    authors.value.set(cacheKey(author.slug), author)
+    lastFetchTime.value.set(cacheKey(author.slug), Date.now())
   }
 
   // Get author from cache
   const getAuthor = (slug: string) => {
-    return authors.value.get(slug) || null
+    return authors.value.get(cacheKey(slug)) || null
   }
 
   // Refresh current author

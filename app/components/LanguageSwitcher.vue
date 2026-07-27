@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { localeFlagUrl } from '~~/locales.config'
+
 const { t } = useI18n()
 const { language, availableLocales, currentLocale, setLanguage } = useUserLanguage()
 </script>
@@ -13,7 +15,20 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
         :aria-label="t('language.change')"
         :title="currentLocale?.name ?? language"
       >
-        <v-icon icon="mdi-translate" />
+        <v-img
+          v-if="currentLocale && localeFlagUrl(currentLocale)"
+          :src="localeFlagUrl(currentLocale)"
+          width="22"
+          height="16"
+          cover
+          rounded="sm"
+          alt=""
+        />
+
+        <v-icon
+          v-else
+          icon="mdi-translate"
+        />
       </v-btn>
     </template>
 
@@ -21,8 +36,6 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
       min-width="180"
       density="compact"
     >
-      <v-list-subheader>{{ t('language.label') }}</v-list-subheader>
-
       <v-list-item
         v-for="entry in availableLocales"
         :key="entry.code"
@@ -30,6 +43,19 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
         :title="entry.name"
         @click="setLanguage(entry.code)"
       >
+        <template #prepend>
+          <v-img
+            v-if="localeFlagUrl(entry)"
+            :src="localeFlagUrl(entry)"
+            width="20"
+            height="15"
+            cover
+            rounded="sm"
+            class="mr-2"
+            alt=""
+          />
+        </template>
+
         <template #append>
           <v-icon
             v-if="entry.code === language"

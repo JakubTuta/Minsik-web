@@ -30,11 +30,27 @@ export interface AppLocale {
 }
 
 export const APP_LOCALES: AppLocale[] = [
-  { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
+  { code: 'en', language: 'en-GB', name: 'English', file: 'en.json' },
 ]
 
 export const DEFAULT_LOCALE = 'en'
 
 export function isSupportedLocale(code: string): boolean {
   return APP_LOCALES.some(entry => entry.code === code)
+}
+
+/**
+ * Flag image URL for a locale's app-bar switcher entry, built from the region
+ * subtag of `language` (e.g. `en-US` -> `US`) so a new locale needs no flag
+ * asset of its own here — only a correctly regioned `language` tag.
+ *
+ * Served from flagcdn.com rather than a regional-indicator emoji: Windows has
+ * no colour glyphs for those and renders the raw letters instead.
+ */
+export function localeFlagUrl(locale: AppLocale): string | undefined {
+  const region = locale.language.split('-')[1]
+
+  return region && region.length === 2
+    ? `https://flagcdn.com/${region.toLowerCase()}.svg`
+    : undefined
 }

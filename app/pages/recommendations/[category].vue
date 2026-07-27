@@ -3,6 +3,8 @@ import type { RecommendationAuthorItem, RecommendationBookItem } from '~/types/r
 
 const route = useRoute()
 const { t } = useI18n()
+// The list is built per language server-side.
+const { language } = useUserLanguage()
 const recommendationsStore = useRecommendationsStore()
 const recommendationTitle = useRecommendationTitle()
 
@@ -12,6 +14,7 @@ const category = route.params.category as string
 const { data: categoryData, error } = await useAsyncData(
   `recommendation-${category}`,
   () => recommendationsStore.fetchCategoryRecommendations(category, 20, 0),
+  { watch: [language] },
 )
 
 const pageTitle = computed(() => (categoryData.value

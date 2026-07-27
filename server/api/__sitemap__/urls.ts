@@ -1,7 +1,7 @@
 import type { SitemapUrlInput } from '#sitemap/types'
 import { APP_LOCALES, DEFAULT_LOCALE } from '~~/locales.config'
 
-const SUPPORTED_LOCALES = new Set(APP_LOCALES.map(entry => entry.code))
+const LOCALE_BY_CODE = new Map(APP_LOCALES.map(entry => [entry.code, entry]))
 
 interface APIResponse<T> {
   success: boolean
@@ -9,7 +9,12 @@ interface APIResponse<T> {
 }
 
 interface SitemapSlugsData {
-  items: { slug: string, updated_at: string | null, language: string | null }[]
+  items: {
+    slug: string
+    updated_at: string | null
+    language: string | null
+    work_id: string | null
+  }[]
   total_count: number
 }
 
@@ -38,15 +43,117 @@ const ENTITY_CAPS: Record<string, number> = {
   series: 10000,
 }
 
+/**
+ * Path an edition is served at: the default locale unprefixed, every other
+ * configured locale under its own prefix, matching `prefix_except_default`
+ * and how the book page takes its content language from the UI locale.
+ *
+ * The catalogue holds editions in languages the app ships no locale for. Those
+ * have no prefixed route of their own, so they are only reachable through the
+ * default locale's path — where the backend's edition fallback serves them —
+ * and they get no URL of their own here.
+ */
+function editionPath(slug: string, language: string | null): string | null {
+  if (!language || language === DEFAULT_LOCALE)
+    return `/books/${slug}`
+
+  return LOCALE_BY_CODE.has(language)
+    ? `/${language}/books/${slug}`
+    : null
+}
+
+/**
+ * Books: one URL per edition, each carrying the other editions of the same work
+ * as `alternatives`.
+ *
+ * A translation is only indexable if it has a URL of its own, and search
+ * engines only understand two URLs as the same work in different languages if
+ * each one points at the other. The module cannot infer this pairing itself:
+ * every edition has its own slug, so swapping the locale prefix — which is all
+ * `_i18nTransform` can do — would produce URLs that do not exist.
+ */
+function buildBookUrls(items: SitemapSlugsData['items']): SitemapUrlInput[] {
+  const byWork = new Map<string, { path: string, language: string, lastmod: string | null }[]>()
+
+  for (const item of items) {
+    const path = editionPath(item.slug, item.language)
+    if (!path)
+      continue
+
+    const work = item.work_id || item.slug
+    const editions = byWork.get(work) ?? []
+    // Two editions of one work can slugify identically; at the same path they
+    // are one page, not two entries.
+    if (editions.some(edition => edition.path === path))
+      continue
+
+    editions.push({
+      path,
+      language: item.language || DEFAULT_LOCALE,
+      lastmod: item.updated_at,
+    })
+    byWork.set(work, editions)
+  }
+
+  const urls: SitemapUrlInput[] = []
+
+  for (const editions of byWork.values()) {
+    const alternatives = editions.flatMap((edition) => {
+      const locale = LOCALE_BY_CODE.get(edition.language)
+
+      return locale
+        ? [{ hreflang: locale.language, href: edition.path }]
+        : []
+    })
+
+    for (const edition of editions) {
+      urls.push({
+        loc: edition.path,
+        ...(edition.lastmod
+          ? { lastmod: edition.lastmod }
+          : {}),
+        ...(alternatives.length > 1
+          ? { alternatives }
+          : {}),
+      })
+    }
+  }
+
+  return urls
+}
+
+/**
+ * Authors and series share one slug across languages, so each is a single page
+ * that exists under every locale prefix — exactly what `_i18nTransform` expands,
+ * alternates included.
+ */
+function buildSharedSlugUrls(
+  items: SitemapSlugsData['items'],
+  prefix: string,
+): SitemapUrlInput[] {
+  const seen = new Set<string>()
+  const urls: SitemapUrlInput[] = []
+
+  for (const item of items) {
+    if (seen.has(item.slug))
+      continue
+    seen.add(item.slug)
+
+    urls.push({
+      loc: `${prefix}${item.slug}`,
+      _i18nTransform: true,
+      ...(item.updated_at
+        ? { lastmod: item.updated_at }
+        : {}),
+    })
+  }
+
+  return urls
+}
+
 async function fetchEntitySlugs(apiBase: string, entity: string): Promise<SitemapUrlInput[]> {
   const urls: SitemapUrlInput[] = []
-  const seen = new Set<string>()
   const cap = ENTITY_CAPS[entity] ?? SLUGS_PAGE_SIZE
-  const prefix = entity === 'books'
-    ? '/books/'
-    : entity === 'authors'
-      ? '/authors/'
-      : '/series/'
 
   let offset = 0
   let total = Number.POSITIVE_INFINITY
@@ -64,39 +171,16 @@ async function fetchEntitySlugs(apiBase: string, entity: string): Promise<Sitema
     if (offset === 0 && data.total_count > 0)
       total = data.total_count
 
-    for (const item of data.items) {
-      // Each language edition lives at its own path: the default locale is
-      // unprefixed, every other configured locale is UI-locale-prefixed —
-      // matching the `prefix_except_default` i18n routing strategy, and
-      // matching how the book/author/series pages default their content
-      // language from the UI locale (see app/pages/books/[slug].vue).
-      //
-      // The catalogue holds editions in languages the app ships no locale for.
-      // Those have no prefixed route, so they are served at the unprefixed
-      // path; prefixing them anyway would fill the sitemap with 404s.
-      const localePrefix = item.language
-        && item.language !== DEFAULT_LOCALE
-        && SUPPORTED_LOCALES.has(item.language)
-        ? `/${item.language}`
-        : ''
-      // Dedupe on the resulting URL, not the slug: two editions of one work
-      // often slugify identically, and whether that is a duplicate depends on
-      // the locale prefix. Same path (two unconfigured-locale editions) is one
-      // entry; `/books/x` and `/pl/books/x` are two distinct pages.
-      const loc = `${localePrefix}${prefix}${item.slug}`
-      if (seen.has(loc))
-        continue
-      seen.add(loc)
+    urls.push(...(entity === 'books'
+      ? buildBookUrls(data.items)
+      : buildSharedSlugUrls(data.items, entity === 'authors'
+          ? '/authors/'
+          : '/series/')))
 
-      urls.push({
-        loc,
-        ...(item.updated_at
-          ? { lastmod: item.updated_at }
-          : {}),
-      })
-    }
-
-    offset += data.items.length
+    // A books page holds every edition of the works it covers, so it returns
+    // more rows than it was asked for. Paging follows the page size requested,
+    // never the row count.
+    offset += SLUGS_PAGE_SIZE
   }
 
   return urls
@@ -179,9 +263,12 @@ async function harvestPopularContent(apiBase: string): Promise<SitemapUrlInput[]
   }
   catch { /* Categories unavailable — return what we have */ }
 
+  // Harvested endpoints carry no edition language, so books land on the default
+  // locale's path and rely on the backend's fallback; author pages are the same
+  // page in every locale and expand across all of them.
   return [
     ...Array.from(bookSlugs, slug => ({ loc: `/books/${slug}` })),
-    ...Array.from(authorSlugs, slug => ({ loc: `/authors/${slug}` })),
+    ...Array.from(authorSlugs, slug => ({ loc: `/authors/${slug}`, _i18nTransform: true })),
   ]
 }
 

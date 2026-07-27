@@ -9,12 +9,18 @@ export const useYearInReviewStore = defineStore('yearInReview', () => {
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
 
+  const { language } = useUserLanguage()
+
   const review = ref<YearInReview | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const lastFetchedAt = ref(0)
+  // The books are rendered in the reader's language, so a cached review from
+  // before a language switch is as stale as an expired one.
+  const fetchedLanguage = ref('')
 
-  const isStale = computed(() => Date.now() - lastFetchedAt.value > CACHE_TTL_MS)
+  const isStale = computed(() => Date.now() - lastFetchedAt.value > CACHE_TTL_MS
+    || fetchedLanguage.value !== language.value)
 
   const fetch = async (force = false) => {
     if (isLoading.value)
@@ -30,6 +36,7 @@ export const useYearInReviewStore = defineStore('yearInReview', () => {
       )
       review.value = response.data.data!.review
       lastFetchedAt.value = Date.now()
+      fetchedLanguage.value = language.value
     }
     catch (err) {
       console.error('Failed to fetch year in review:', err)
