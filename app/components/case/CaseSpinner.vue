@@ -2,7 +2,6 @@
 import type { OpenCaseData, Rarity } from '~/types/case'
 import gsap from 'gsap'
 import { useDisplay } from 'vuetify'
-import { RARITY_COLORS } from '~/types/case'
 
 interface Props {
   data: OpenCaseData
@@ -12,6 +11,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{ spinComplete: [] }>()
 
 const { mobile } = useDisplay()
+const { RARITY_ICONS, getRandomRarity, getIconColor } = useRarity()
 
 const containerRef = ref<HTMLElement | null>(null)
 const trackRef = ref<HTMLElement | null>(null)
@@ -21,31 +21,6 @@ const ITEM_WIDTH = computed(() => (mobile.value
   : 160))
 const ITEM_GAP = 12
 const SLOT_SIZE = computed(() => ITEM_WIDTH.value + ITEM_GAP)
-
-const ICONS: Record<Rarity, string> = {
-  legendary: 'mdi-snowflake',
-  ultra_rare: 'mdi-diamond-stone',
-  super_rare: 'mdi-star-shooting',
-  rare: 'mdi-star',
-  uncommon: 'mdi-shield-star',
-  common: 'mdi-circle',
-}
-
-function getRandomRarity(): Rarity {
-  const rand = Math.random()
-  if (rand < 0.015)
-    return 'legendary'
-  if (rand < 0.05)
-    return 'ultra_rare'
-  if (rand < 0.15)
-    return 'super_rare'
-  if (rand < 0.35)
-    return 'rare'
-  if (rand < 0.65)
-    return 'uncommon'
-
-  return 'common'
-}
 
 // Generate 40 items for a smooth long spin.
 // We will land on index 35.
@@ -82,10 +57,6 @@ onMounted(async () => {
     },
   )
 })
-
-function getIconColor(rarity: string | null | undefined) {
-  return RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] ?? '#95A5A6'
-}
 
 function getGlowStyle(rarity: string | null | undefined) {
   const color = getIconColor(rarity)
@@ -137,7 +108,7 @@ function getGlowStyle(rarity: string | null | undefined) {
 
           <!-- Rarity Icon -->
           <v-icon
-            :icon="ICONS[rarity as Rarity] || ICONS.common"
+            :icon="RARITY_ICONS[rarity as Rarity] || RARITY_ICONS.common"
             :color="getIconColor(rarity)"
             :size="ITEM_WIDTH * 0.5"
             class="slot-icon"

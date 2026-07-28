@@ -12,12 +12,6 @@ export interface APIResponse<T = any> {
   error?: ErrorDetail | null
 }
 
-export interface BookDetailResponse {
-  success: boolean
-  data: Book
-  error?: ErrorDetail | null
-}
-
 export interface PaginatedResponse<T> {
   items: T[]
   total: number
@@ -209,21 +203,6 @@ export interface BookLanguageVariant {
   primary_cover_url?: string | null
 }
 
-// Card Display Types — kept for BookCard.vue compatibility
-
-export interface BookCardData {
-  slug: string
-  title: string
-  primary_cover_url?: string | null
-  authors: Array<{ name: string, slug: string }>
-  series?: { name: string, slug: string } | null
-  series_position?: number | null
-  avg_rating: number
-  rating_count?: number
-  ol_avg_rating: number
-  ol_rating_count?: number
-}
-
 // Search Types
 
 export interface SearchResult {
@@ -297,10 +276,3 @@ export interface SuggestResponse {
 // Filter Types
 
 export type SearchType = 'all' | 'books' | 'authors' | 'series' | 'categories'
-
-// Cache Types
-
-export interface CacheEntry<T> {
-  data: T
-  timestamp: number
-}

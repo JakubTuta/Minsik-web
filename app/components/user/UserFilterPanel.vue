@@ -16,7 +16,7 @@ interface Props {
   status?: BookshelfStatus | null
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   status: null,
 })
 

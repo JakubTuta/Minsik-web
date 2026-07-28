@@ -2,7 +2,6 @@
 import type { Rarity, SpinSlotsData } from '~/types/case'
 import gsap from 'gsap'
 import { useDisplay } from 'vuetify'
-import { RARITY_COLORS } from '~/types/case'
 
 interface Props {
   data: SpinSlotsData | null
@@ -13,17 +12,9 @@ const props = defineProps<Props>()
 const emit = defineEmits<{ spinComplete: [] }>()
 
 const { mobile } = useDisplay()
+const { RARITY_ICONS, getRandomRarity, getIconColor } = useRarity()
 
 const reelsRef = ref<HTMLElement[]>([])
-
-const ICONS: Record<Rarity, string> = {
-  legendary: 'mdi-snowflake',
-  ultra_rare: 'mdi-diamond-stone',
-  super_rare: 'mdi-star-shooting',
-  rare: 'mdi-star',
-  uncommon: 'mdi-shield-star',
-  common: 'mdi-circle',
-}
 
 const ITEM_SIZE = computed(() => (mobile.value
   ? 80
@@ -41,22 +32,6 @@ const machineHeight = computed(() => (expanded.value
 
 // 3 columns
 const reelsContent = ref<Rarity[][]>([[], [], []])
-
-function getRandomRarity(): Rarity {
-  const rand = Math.random()
-  if (rand < 0.015)
-    return 'legendary'
-  if (rand < 0.05)
-    return 'ultra_rare'
-  if (rand < 0.15)
-    return 'super_rare'
-  if (rand < 0.35)
-    return 'rare'
-  if (rand < 0.65)
-    return 'uncommon'
-
-  return 'common'
-}
 
 function initializeReels() {
   const initial: Rarity[][] = [[], [], []]
@@ -139,10 +114,6 @@ watch(() => props.spinning, async (isSpinning) => {
     })
   }
 })
-
-function getIconColor(rarity: Rarity) {
-  return RARITY_COLORS[rarity]
-}
 </script>
 
 <template>
@@ -189,7 +160,7 @@ function getIconColor(rarity: Rarity) {
             }"
           >
             <v-icon
-              :icon="ICONS[item]"
+              :icon="RARITY_ICONS[item]"
               :color="getIconColor(item)"
               :size="ITEM_SIZE * 0.5"
               class="slot-icon"

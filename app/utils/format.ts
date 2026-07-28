@@ -54,3 +54,12 @@ export function toTitleCase(text: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
+
+export function formatSeriesPosition(position: number | null | undefined): string {
+  if (!position)
+    return ''
+
+  return Number.isInteger(position)
+    ? `#${position.toFixed(0)}`
+    : `#${position.toFixed(1)}`
+}

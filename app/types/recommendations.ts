@@ -1,26 +1,3 @@
-// Recommendation Category Keys
-
-export type RecommendationSectionKey
-  = | 'most_read'
-    | 'most_wanted'
-    | 'trending_reads'
-    | 'most_viewed'
-    | 'highest_rated'
-    | 'community_top_rated'
-    | 'most_rated'
-    | 'recently_added'
-    | 'classics'
-    | 'user_favorites'
-    | 'recently_finished'
-    | 'currently_reading'
-    | 'best_writing'
-    | 'most_emotional'
-    | 'funniest'
-    | 'most_thought_provoking'
-    | 'most_rereadable'
-    | 'top_authors'
-    | 'popular_authors'
-
 // Item schemas
 
 export interface RecommendationBookItem {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Author, Book, BookLanguageVariant, BookSummary } from '~/types/api'
 import { hashColor } from '~/utils/coverColor'
+import { formatSeriesPosition } from '~/utils/format'
 import { formatReadingTime } from '~/utils/readingTime'
 
 interface Props {
@@ -227,16 +228,6 @@ const bookStats = computed(() => {
 
   return items
 })
-
-function formatSeriesPosition(position: number | null) {
-  if (!position)
-    return ''
-
-  if (Number.isInteger(position))
-    return `#${position.toFixed(0)}`
-
-  return `#${position.toFixed(1)}`
-}
 </script>
 
 <template>

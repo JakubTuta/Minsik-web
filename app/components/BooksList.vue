@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { BookSummary } from '~/types/api'
-import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
+import { formatSeriesPosition, totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
   books: BookSummary[]
@@ -19,15 +19,6 @@ const { sentinel } = useInfiniteScroll(() => props.loadMore?.(), { enabled: scro
 const { optimized } = useOptimizedImage()
 
 useShelfStatuses(() => props.books)
-
-function formatSeriesPosition(position: number | null | undefined) {
-  if (!position)
-    return ''
-
-  return Number.isInteger(position)
-    ? `#${position.toFixed(0)}`
-    : `#${position.toFixed(1)}`
-}
 </script>
 
 <template>
