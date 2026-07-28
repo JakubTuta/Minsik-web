@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { localeFlagUrl } from '~~/locales.config'
 
+interface Props {
+  /** `icon`: flag-only button (app bar). `list-item`: full-width row, click anywhere to open (drawer). */
+  variant?: 'icon' | 'list-item'
+}
+
+withDefaults(defineProps<Props>(), { variant: 'icon' })
+
 const { t } = useI18n()
 const { language, availableLocales, currentLocale, setLanguage } = useUserLanguage()
 </script>
@@ -9,6 +16,7 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
   <v-menu location="bottom end">
     <template #activator="{'props': menuProps}">
       <v-btn
+        v-if="variant === 'icon'"
         v-bind="menuProps"
         icon
         variant="text"
@@ -30,6 +38,32 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
           icon="mdi-translate"
         />
       </v-btn>
+
+      <v-list-item
+        v-else
+        v-bind="menuProps"
+        :title="t('language.label')"
+        :subtitle="currentLocale?.name ?? language"
+      >
+        <template #prepend>
+          <v-img
+            v-if="currentLocale && localeFlagUrl(currentLocale)"
+            :src="localeFlagUrl(currentLocale)"
+            width="22"
+            height="16"
+            cover
+            rounded="sm"
+            class="me-2"
+            alt=""
+          />
+
+          <v-icon
+            v-else
+            icon="mdi-translate"
+            class="me-2"
+          />
+        </template>
+      </v-list-item>
     </template>
 
     <v-list

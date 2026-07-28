@@ -61,15 +61,7 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
       </div>
     </v-list-item>
 
-    <v-list-item>
-      <div class="d-flex align-center justify-space-between w-100">
-        <v-list-item-title>{{ t('language.label') }}</v-list-item-title>
-
-        <div @click.stop>
-          <LanguageSwitcher />
-        </div>
-      </div>
-    </v-list-item>
+    <LanguageSwitcher variant="list-item" />
 
     <!-- Public pages - always visible -->
     <v-list-item
