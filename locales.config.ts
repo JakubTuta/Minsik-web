@@ -35,6 +35,10 @@ export interface AppLocale {
 
 export const APP_LOCALES: AppLocale[] = [
   { code: 'en', language: 'en-GB', name: 'English', file: 'en.json' },
+  { code: 'pl', language: 'pl-PL', name: 'Polski', file: 'pl.json' },
+  { code: 'de', language: 'de-DE', name: 'Deutsch', file: 'de.json' },
+  { code: 'es', language: 'es-ES', name: 'Español', file: 'es.json' },
+  { code: 'fr', language: 'fr-FR', name: 'Français', file: 'fr.json' },
 ]
 
 export const DEFAULT_LOCALE = 'en'

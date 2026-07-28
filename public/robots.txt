@@ -18,6 +18,58 @@ Disallow: /open-case
 Disallow: /open-pack
 Disallow: /play-slots
 
+Disallow: /pl/auth/
+Disallow: /pl/dashboard
+Disallow: /pl/admin
+Disallow: /pl/bookshelf
+Allow: /pl/bookshelf/
+Disallow: /pl/favourites
+Disallow: /pl/ratings
+Disallow: /pl/comments
+Disallow: /pl/year-in-review
+Disallow: /pl/open-case
+Disallow: /pl/open-pack
+Disallow: /pl/play-slots
+
+Disallow: /de/auth/
+Disallow: /de/dashboard
+Disallow: /de/admin
+Disallow: /de/bookshelf
+Allow: /de/bookshelf/
+Disallow: /de/favourites
+Disallow: /de/ratings
+Disallow: /de/comments
+Disallow: /de/year-in-review
+Disallow: /de/open-case
+Disallow: /de/open-pack
+Disallow: /de/play-slots
+
+Disallow: /es/auth/
+Disallow: /es/dashboard
+Disallow: /es/admin
+Disallow: /es/bookshelf
+Allow: /es/bookshelf/
+Disallow: /es/favourites
+Disallow: /es/ratings
+Disallow: /es/comments
+Disallow: /es/year-in-review
+Disallow: /es/open-case
+Disallow: /es/open-pack
+Disallow: /es/play-slots
+
+Disallow: /fr/auth/
+Disallow: /fr/dashboard
+Disallow: /fr/admin
+Disallow: /fr/bookshelf
+Allow: /fr/bookshelf/
+Disallow: /fr/favourites
+Disallow: /fr/ratings
+Disallow: /fr/comments
+Disallow: /fr/year-in-review
+Disallow: /fr/open-case
+Disallow: /fr/open-pack
+Disallow: /fr/play-slots
+
 User-agent: GPTBot
 Disallow: /
 
