@@ -17,11 +17,24 @@ const mdiSvg: IconSet = {
 }
 
 export default defineNuxtPlugin((app) => {
-  // @nuxtjs/color-mode resolves the user's theme (from cookie, falling back to
-  // system preference) identically on the server and the client, so Vuetify's
-  // initial theme matches what will be hydrated — no light->dark flash.
   const colorMode = useColorMode()
-  const initialTheme = colorMode.value === 'dark'
+
+  // Derived from `preference`, never from `value`. @nuxtjs/color-mode's SSR
+  // plugin seeds `preference` from the persisted cookie (which is why
+  // `colorMode.storage` is set to 'cookie'), but leaves `value` at the
+  // literal unresolved string "system" — only a browser can resolve that.
+  // So this expression evaluates identically on the server and on the client,
+  // which is the point: Vuetify hydrates against exactly the theme stylesheet
+  // the server inlined, instead of silently constructing a second instance on
+  // a different theme.
+  //
+  // For an explicit 'dark'/'light' choice that's already the final answer.
+  // For 'system' the server can only guess (light), and the client watcher
+  // below then performs a *real* theme change — which matters, because
+  // Vuetify only rewrites its <style> element when `styles` actually changes.
+  // Constructing the client instance directly on the resolved theme would
+  // leave that stylesheet permanently stale at whatever the server sent.
+  const initialTheme = colorMode.preference === 'dark'
     ? 'dark'
     : 'light'
 
@@ -219,10 +232,15 @@ export default defineNuxtPlugin((app) => {
   app.vueApp.use(vuetify)
 
   if (import.meta.client) {
+    // `immediate: true` is what resolves 'system' on boot: `initialTheme`
+    // above deliberately guessed light, so this first run is a genuine theme
+    // change that makes Vuetify regenerate and re-inline its stylesheet.
+    // Without it, a system-dark visitor would get dark components sitting on
+    // the server's light page chrome until they toggled the theme by hand.
     watch(() => colorMode.value, (newTheme) => {
       vuetify.theme.change(newTheme === 'dark'
         ? 'dark'
         : 'light')
-    })
+    }, { immediate: true })
   }
 })

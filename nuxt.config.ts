@@ -160,11 +160,17 @@ export default defineNuxtConfig({
   // Color mode configuration. `disableTransition` stops the browser from
   // animating every `transition:` rule in the app at once during the class
   // swap on toggle — Vuetify's own theme.change() handles the swap itself.
+  // `storage: 'cookie'` (default is `localStorage`) is what lets the SERVER
+  // render the user's actual last-picked theme instead of always guessing
+  // `fallback` — `localStorage` is invisible to SSR, so with `preference:
+  // 'system'` the server can never resolve it and always ships light-mode
+  // HTML, correcting to the real theme only after client JS runs.
   colorMode: {
     preference: 'system',
     fallback: 'light',
     classSuffix: '',
     disableTransition: true,
+    storage: 'cookie',
   },
 
   // CSS configuration
@@ -194,14 +200,16 @@ export default defineNuxtConfig({
   routeRules: withLocalizedRouteRules({
     // Public content — SSR for SEO and fast first paint.
     //
-    // `/` is cacheable only because server/middleware/root-locale-redirect
-    // settles the locale ahead of the render handler, leaving nothing but
-    // default-locale HTML for the cache to hold. Nitro keys this cache on the
-    // path alone and stores 3xx as readily as 200, so a redirect emitted from
-    // inside the render handler would be replayed to every later visitor.
-    // Read that middleware before changing anything here or in
-    // `detectBrowserLanguage`.
-    '/': { ssr: true, swr: 300 },
+    // `/` is NOT swr-cached. Nitro keys that cache on the request path alone,
+    // so a single rendered snapshot gets replayed to every later visitor —
+    // but the HTML is not visitor-independent: Vuetify inlines a theme
+    // stylesheet and stamps `v-theme--light`/`v-theme--dark` on the root
+    // element from the reader's own colour-mode cookie. Caching it served
+    // whoever came first their theme and everyone after that a page whose
+    // chrome disagreed with its components. The same argument applies to the
+    // locale, which is why server/middleware/root-locale-redirect has to
+    // settle that before the render handler either way.
+    '/': { ssr: true },
     '/books/**': { ssr: true },
     '/authors/**': { ssr: true },
     '/series/**': { ssr: true },

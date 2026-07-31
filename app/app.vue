@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const themeStore = useThemeStore()
 const { t } = useI18n()
 const i18nHead = useLocaleHead()
 
@@ -13,10 +12,6 @@ useHead(() => ({
 
 useSeoMeta({
   description: () => t('app.description'),
-})
-
-onMounted(() => {
-  themeStore.initialize()
 })
 </script>
 

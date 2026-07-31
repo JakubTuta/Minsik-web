@@ -3,9 +3,19 @@ export const useThemeStore = defineStore('theme', () => {
 
   const colorMode = useColorMode()
 
-  const currentTheme = computed<Themes>(() => (colorMode.value === 'dark'
-    ? 'dark'
-    : 'light'))
+  // Resolved the same way as app/plugins/vuetify.ts, so store-driven markup
+  // and Vuetify's own theme can never disagree. `colorMode.value` is the
+  // literal unresolved string "system" during SSR — only `preference` carries
+  // the persisted choice there — so reading `value` alone pinned every server
+  // render to the light branch even once Vuetify itself rendered dark.
+  const currentTheme = computed<Themes>(() => {
+    if (colorMode.value === 'dark' || colorMode.value === 'light')
+      return colorMode.value
+
+    return colorMode.preference === 'dark'
+      ? 'dark'
+      : 'light'
+  })
 
   const isDark = computed(() => currentTheme.value === 'dark')
 
@@ -19,15 +29,10 @@ export const useThemeStore = defineStore('theme', () => {
       : 'dark')
   }
 
-  // Kept for callers that used to gate on this; @nuxtjs/color-mode
-  // resolves the correct theme before hydration, so there's nothing to init.
-  const initialize = () => {}
-
   return {
     currentTheme,
     isDark,
     setTheme,
     toggleTheme,
-    initialize,
   }
 })
