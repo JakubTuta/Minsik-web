@@ -46,6 +46,7 @@ const { optimized } = useOptimizedImage()
           min-width="120"
           height="180"
           cover
+          eager
           rounded="lg"
           class="bow-cover elevation-6"
         >
@@ -82,7 +83,7 @@ const { optimized } = useOptimizedImage()
             class="mb-3"
           />
 
-          <div class="bow-quote text-body-1 text-medium-emphasis text-serif mb-3 font-italic">
+          <div class="bow-quote text-body-1 text-medium-emphasis mb-3 font-italic">
             "{{ book.first_sentence }}"
           </div>
 
@@ -109,7 +110,6 @@ const { optimized } = useOptimizedImage()
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   border-radius: 20px !important;
   position: relative;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .bow-glow {

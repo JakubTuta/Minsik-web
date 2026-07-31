@@ -18,6 +18,7 @@ const themeStore = useThemeStore()
 
 const cardInner = ref<HTMLElement | null>(null)
 const flipped = ref(false)
+let tween: gsap.core.Tween | null = null
 
 const descriptionSnippet = computed(() => {
   const desc = props.book.description
@@ -34,7 +35,7 @@ onMounted(async () => {
   if (!cardInner.value)
     return
 
-  gsap.fromTo(
+  tween = gsap.fromTo(
     cardInner.value,
     { rotateY: 0 },
     {
@@ -45,6 +46,11 @@ onMounted(async () => {
       onComplete: () => { flipped.value = true },
     },
   )
+})
+
+onUnmounted(() => {
+  tween?.kill()
+  tween = null
 })
 </script>
 
@@ -240,8 +246,10 @@ onMounted(async () => {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
-.mystery-icon {
-  animation: mystery-pulse 2s ease-in-out infinite;
+@media (prefers-reduced-motion: no-preference) {
+  .mystery-icon {
+    animation: mystery-pulse 2s ease-in-out infinite;
+  }
 }
 
 @keyframes mystery-pulse {

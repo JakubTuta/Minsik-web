@@ -46,7 +46,7 @@ const lang = computed<string>(() => {
     : uiLanguage.value
 })
 
-const { data: book, error } = await useAsyncData(
+const { data: book, error } = await useCachedAsyncData(
   `book-${slug}`,
   () => booksStore.fetchBook(slug, lang.value),
   { watch: [lang] },
@@ -204,6 +204,11 @@ useHead(() => {
   }
 })
 
+// `server: false` — unlike the language variants above, neither of these
+// feeds a <head> tag, so there's no SEO cost to keeping them off SSR. Without
+// it they'd still block the server response: `book` is a top-level `await`,
+// so both watchers already fire during SSR the moment it resolves, forcing a
+// second server-side round trip before the HTML can ship.
 const { data: primaryAuthor } = useLazyAsyncData<Author | null>(
   `book-primary-author-${slug}`,
   async () => {
@@ -216,7 +221,7 @@ const { data: primaryAuthor } = useLazyAsyncData<Author | null>(
       return null
     }
   },
-  { watch: [book], default: () => null },
+  { watch: [book], default: () => null, server: false },
 )
 
 const { data: seriesBooks } = useLazyAsyncData<BookSummary[]>(
@@ -231,7 +236,7 @@ const { data: seriesBooks } = useLazyAsyncData<BookSummary[]>(
       return []
     }
   },
-  { watch: [book], default: () => [] },
+  { watch: [book], default: () => [], server: false },
 )
 
 const bookRecommendations = ref<RecommendationSection[]>([])
@@ -492,7 +497,7 @@ onUnmounted(() => {
             </h2>
 
             <div class="max-w-full md:max-w-3/5">
-              <p class="text-h5 mb-0 font-serif font-italic">
+              <p class="text-h5 mb-0 font-italic">
                 {{ formatFirstSentence(book.first_sentence) }}
               </p>
             </div>
@@ -508,7 +513,8 @@ onUnmounted(() => {
         <!-- Rating -->
         <v-card class="mt-4">
           <v-card-text>
-            <SubRatingSection
+            <LazySubRatingSection
+              hydrate-on-visible
               :stats="bookPageStore.liveSubRatingStats ?? book.sub_rating_stats ?? {}"
               :rating-count="bookPageStore.liveRatingCount ?? book.rating_count ?? 0"
               :slug="slug"

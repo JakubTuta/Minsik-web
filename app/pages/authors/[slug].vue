@@ -33,7 +33,7 @@ function getSortParams() {
 }
 
 // Fetch author data
-const { data: author, error: authorError } = await useAsyncData(
+const { data: author, error: authorError } = await useCachedAsyncData(
   `author-${slug}`,
   () => authorsStore.fetchAuthor(slug),
   { watch: [language] },
@@ -50,10 +50,10 @@ const booksOffset = ref(0)
 const booksTotalCount = ref(0)
 const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.value)
 
-const { data: initialBooksData } = useLazyAsyncData(
+const { data: initialBooksData } = useCachedAsyncData(
   `author-books-${slug}`,
   () => authorsStore.fetchAuthorBooksPage(slug, 'publication_year', 'desc', 0, 20),
-  { watch: [language] },
+  { lazy: true, watch: [language] },
 )
 
 watch(initialBooksData, (val) => {
@@ -64,16 +64,16 @@ watch(initialBooksData, (val) => {
   }
 }, { immediate: true })
 
-const { data: authorQuote } = useLazyAsyncData(
+const { data: authorQuote } = useCachedAsyncData(
   `author-quote-${slug}`,
   () => authorsStore.fetchAuthorQuote(slug),
-  { watch: [language] },
+  { lazy: true, watch: [language] },
 )
 
-const { data: topBooks } = useLazyAsyncData(
+const { data: topBooks } = useCachedAsyncData(
   `author-top-books-${slug}`,
   () => authorsStore.fetchAuthorTopBooks(slug),
-  { watch: [language] },
+  { lazy: true, watch: [language] },
 )
 
 // View mode: list or timeline

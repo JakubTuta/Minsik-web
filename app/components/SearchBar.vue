@@ -35,27 +35,22 @@ const resultsCardRef = ref()
 const dropdownStyle = ref({ top: '0px', left: '0px', width: '0px' })
 
 // Update dropdown position when it shows (centered below search field)
+let positionRaf = 0
 function updateDropdownPosition() {
   if (props.variant !== 'appbar' || !searchFieldRef.value)
     return
 
-  const rect = searchFieldRef.value.getBoundingClientRect()
-  const centerX = rect.left + rect.width / 2
-  dropdownStyle.value = {
-    top: `${rect.bottom + 4}px`,
-    left: `${centerX}px`,
-    width: 'auto',
-  }
+  cancelAnimationFrame(positionRaf)
+  positionRaf = requestAnimationFrame(() => {
+    const rect = searchFieldRef.value.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    dropdownStyle.value = {
+      top: `${rect.bottom + 4}px`,
+      left: `${centerX}px`,
+      width: 'auto',
+    }
+  })
 }
-
-// Watch showResults to update position
-watch(showResults, (newVal) => {
-  if (newVal && props.variant === 'appbar') {
-    nextTick(() => {
-      updateDropdownPosition()
-    })
-  }
-})
 
 // Hide results when clicking outside both search field and results card
 function handleClickOutside(event: MouseEvent) {
@@ -71,15 +66,34 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-// Update position on scroll/resize and handle outside clicks
+// The scroll listener only needs to run while the dropdown is open — attaching
+// it for the component's whole lifetime meant every scroll of every nested
+// scroller on every page (each home-page carousel included) forced a layout
+// read and a reactive write, even when there was nothing to reposition.
+// `capture: true` still catches scrolls on nested scrollable ancestors, which
+// don't bubble to `window` by default.
 if (import.meta.client) {
+  watch(showResults, (isOpen) => {
+    if (props.variant !== 'appbar')
+      return
+
+    if (isOpen) {
+      nextTick(() => updateDropdownPosition())
+      window.addEventListener('scroll', updateDropdownPosition, { capture: true, passive: true })
+      window.addEventListener('resize', updateDropdownPosition, { passive: true })
+    }
+    else {
+      window.removeEventListener('scroll', updateDropdownPosition, true)
+      window.removeEventListener('resize', updateDropdownPosition)
+    }
+  })
+
   onMounted(() => {
-    window.addEventListener('scroll', updateDropdownPosition, true)
-    window.addEventListener('resize', updateDropdownPosition)
     document.addEventListener('click', handleClickOutside, true)
   })
 
   onUnmounted(() => {
+    cancelAnimationFrame(positionRaf)
     window.removeEventListener('scroll', updateDropdownPosition, true)
     window.removeEventListener('resize', updateDropdownPosition)
     document.removeEventListener('click', handleClickOutside, true)
@@ -349,6 +363,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
                           v-if="result.cover_url"
                           :src="result.cover_url"
                           :alt="result.title"
+                          eager
                         >
                           <template #placeholder>
                             <HashedFill :color="hashColor(result.title)" />
@@ -516,6 +531,7 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
                           v-if="result.cover_url"
                           :src="result.cover_url"
                           :alt="result.title"
+                          eager
                         >
                           <template #placeholder>
                             <HashedFill :color="hashColor(result.title)" />

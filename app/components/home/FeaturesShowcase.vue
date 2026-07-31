@@ -263,7 +263,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
 .bento-card {
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   border-radius: 24px !important;
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
   transform: translateY(0);
 }
@@ -300,7 +300,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
 }
 
 .bento-icon {
-  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .absolute-icon {

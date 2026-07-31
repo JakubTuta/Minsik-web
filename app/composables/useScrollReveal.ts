@@ -1,5 +1,3 @@
-import gsap from 'gsap'
-
 interface ScrollRevealOptions {
   delay?: number
   duration?: number
@@ -25,6 +23,7 @@ export function useScrollReveal(
   }
 
   let observer: IntersectionObserver | null = null
+  let tween: gsap.core.Tween | null = null
 
   onMounted(() => {
     const el = resolveEl(element.value)
@@ -42,19 +41,29 @@ export function useScrollReveal(
     if (targets.length === 0)
       return
 
-    gsap.set(targets, { opacity: 0, y })
+    // Hide via plain style writes rather than `gsap.set` — this keeps gsap
+    // (70KB) out of the home/discover critical path entirely; it's only
+    // imported once something actually needs to animate, below.
+    for (const target of targets) {
+      target.style.opacity = '0'
+      target.style.transform = `translateY(${y}px)`
+    }
 
     observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        entries.forEach(async (entry) => {
           if (!entry.isIntersecting)
             return
+
+          observer?.disconnect()
 
           const animTargets = stagger > 0
             ? targets
             : [entry.target as HTMLElement]
 
-          gsap.to(animTargets, {
+          const { default: gsap } = await import('gsap')
+
+          tween = gsap.to(animTargets, {
             opacity: 1,
             y: 0,
             duration,
@@ -70,8 +79,6 @@ export function useScrollReveal(
               animTargets.forEach(el => el.style.removeProperty('will-change'))
             },
           })
-
-          observer?.disconnect()
         })
       },
       { threshold: 0.1, rootMargin: '0px 0px -40px 0px' },
@@ -88,5 +95,7 @@ export function useScrollReveal(
   onUnmounted(() => {
     observer?.disconnect()
     observer = null
+    tween?.kill()
+    tween = null
   })
 }

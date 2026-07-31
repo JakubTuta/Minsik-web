@@ -15,10 +15,11 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const packRef = ref<HTMLElement | null>(null)
+let tween: gsap.core.Tween | null = null
 
 watch(() => props.opening, (val) => {
   if (val && packRef.value) {
-    gsap.to(packRef.value, {
+    tween = gsap.to(packRef.value, {
       keyframes: [
         { rotate: -4, scale: 1.06, duration: 0.1 },
         { rotate: 4, scale: 1.1, duration: 0.1 },
@@ -28,6 +29,11 @@ watch(() => props.opening, (val) => {
       ],
     })
   }
+})
+
+onUnmounted(() => {
+  tween?.kill()
+  tween = null
 })
 </script>
 
@@ -296,16 +302,18 @@ watch(() => props.opening, (val) => {
 }
 
 /* Idle floating animation */
-.pack-idle {
-  animation: pack-float 3s ease-in-out infinite;
-}
+@media (prefers-reduced-motion: no-preference) {
+  .pack-idle {
+    animation: pack-float 3s ease-in-out infinite;
+  }
 
-.pack-idle .pack-shape {
-  animation: pack-shape-glow 2.5s ease-in-out infinite;
-}
+  .pack-idle .pack-shape {
+    animation: pack-shape-glow 2.5s ease-in-out infinite;
+  }
 
-.pack-idle .pack-ambient-glow {
-  animation: pack-ambient-pulse 2.5s ease-in-out infinite;
+  .pack-idle .pack-ambient-glow {
+    animation: pack-ambient-pulse 2.5s ease-in-out infinite;
+  }
 }
 
 /* Hover */

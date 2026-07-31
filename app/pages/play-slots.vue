@@ -237,8 +237,10 @@ onUnmounted(() => {
   height: 64px !important;
 }
 
-.spin-btn--pulse {
-  animation: spin-pulse 2.8s ease-in-out infinite;
+@media (prefers-reduced-motion: no-preference) {
+  .spin-btn--pulse {
+    animation: spin-pulse 2.8s ease-in-out infinite;
+  }
 }
 
 @keyframes spin-pulse {

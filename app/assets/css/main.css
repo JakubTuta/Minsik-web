@@ -1,32 +1,11 @@
-/* Global font family and line height */
+/* Single app-wide font family and line height */
 html,
 body {
   font-family: 'Montserrat', sans-serif;
   line-height: 1.67;
 }
 
-/* Ensure all Vuetify components use Montserrat */
 .v-application {
   font-family: 'Montserrat', sans-serif !important;
   line-height: 1.67 !important;
-}
-
-/* Override Vuetify typography classes to use consistent line height */
-.v-application .text-body-1,
-.v-application .text-body-2,
-.v-application .text-subtitle-1,
-.v-application .text-subtitle-2,
-.v-application p {
-  font-family: 'Montserrat', sans-serif !important;
-  line-height: 1.67 !important;
-}
-
-/* Serif accent — first sentences, pull quotes, blockquotes */
-.font-serif,
-.text-serif,
-.v-application .font-serif,
-.v-application .text-serif,
-.v-application blockquote,
-.v-application q {
-  font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif !important;
 }

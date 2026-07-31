@@ -15,7 +15,7 @@ const resolvedSecondaryLabel = computed(() => props.secondaryLabel ?? t('bookUse
 <template>
   <div
     v-if="!mobile"
-    class="d-flex align-center px-3 py-2 text-caption text-medium-emphasis font-weight-bold text-uppercase"
+    class="d-flex align-center text-caption text-medium-emphasis font-weight-bold text-uppercase px-3 py-2"
     style="position: sticky; top: var(--app-bar-height); z-index: 2; background: rgb(var(--v-theme-surface)); border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
     rounded-xl
   >

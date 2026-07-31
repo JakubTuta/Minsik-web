@@ -15,21 +15,21 @@ const { language } = useUserLanguage()
 
 const slug = route.params.slug as string
 
-const { data: series, error: seriesError } = await useAsyncData(
+const { data: series, error: seriesError } = await useCachedAsyncData(
   `series-${slug}`,
   () => seriesStore.fetchSeries(slug),
   { watch: [language] },
 )
 
 // Books list is secondary to page identity — don't block navigation
-const { data: books } = useLazyAsyncData(
+const { data: books } = useCachedAsyncData(
   `series-books-${slug}`,
   () => seriesStore.fetchSeriesBooks(slug),
-  { watch: [language], default: () => [] },
+  { lazy: true, watch: [language], default: () => [] },
 )
 
 // Block on author for SSR/SEO — slug comes from series so no books dependency
-const { data: primaryAuthor } = await useAsyncData(
+const { data: primaryAuthor } = await useCachedAsyncData(
   `series-author-${slug}`,
   async () => {
     const authorSlug = series.value?.author?.slug
@@ -198,7 +198,10 @@ onMounted(async () => {
       class="mt-6"
     >
       <v-col cols="12">
-        <SeriesEvolutionCard :books="books!" />
+        <LazySeriesEvolutionCard
+          hydrate-on-visible
+          :books="books!"
+        />
       </v-col>
     </v-row>
 

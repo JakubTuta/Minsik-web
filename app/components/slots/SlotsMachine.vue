@@ -80,6 +80,8 @@ watch(() => props.data, (newData) => {
   }
 }, { deep: true })
 
+let spinTweens: gsap.core.Tween[] = []
+
 watch(() => props.spinning, async (isSpinning) => {
   if (isSpinning) {
     if (props.data) {
@@ -95,13 +97,13 @@ watch(() => props.spinning, async (isSpinning) => {
     await nextTick()
 
     // Spin reels
-    reelsRef.value.forEach((reel, i) => {
+    spinTweens = reelsRef.value.map((reel, i) => {
       // We want index 27 to end up in the middle.
       // Since height is 3 items, the middle item is offset by 1.
       // So y translation should be -(27 - 1) * TOTAL_ITEM_SIZE.value
       const targetY = -26 * TOTAL_ITEM_SIZE.value
 
-      gsap.to(reel, {
+      return gsap.to(reel, {
         y: targetY,
         duration: 4 + i * 0.8,
         ease: 'power3.inOut',
@@ -113,6 +115,11 @@ watch(() => props.spinning, async (isSpinning) => {
       })
     })
   }
+})
+
+onUnmounted(() => {
+  spinTweens.forEach(tween => tween.kill())
+  spinTweens = []
 })
 </script>
 

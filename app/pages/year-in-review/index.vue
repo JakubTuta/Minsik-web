@@ -116,7 +116,10 @@ const isEmpty = computed(() => {
               cols="12"
               md="7"
             >
-              <YearReviewMonthlyChart :monthly="review.monthly" />
+              <LazyYearReviewMonthlyChart
+                hydrate-on-visible
+                :monthly="review.monthly"
+              />
             </v-col>
 
             <v-col

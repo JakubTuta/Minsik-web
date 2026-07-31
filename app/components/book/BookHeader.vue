@@ -313,7 +313,7 @@ const bookStats = computed(() => {
                 <span class="text-body-1">{{ t('series.moreFrom') }} </span>
 
                 <NuxtLinkLocale
-                  class="font-weight-bold text-body-1 text-primary text-decoration-none"
+                  class="font-weight-bold text-body-1 ml-2 text-primary text-decoration-none"
                   :to="`/series/${book.series.slug}`"
                 >
                   {{ book.series.name }}

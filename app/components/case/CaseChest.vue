@@ -81,14 +81,6 @@ const { t } = useI18n()
   filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
 }
 
-.chest-idle {
-  animation: float 3s ease-in-out infinite;
-}
-
-.chest-idle .chest-icon {
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
 .chest-idle:hover .chest-icon {
   filter: drop-shadow(0 0 35px rgba(255, 215, 0, 0.7));
 }
@@ -102,8 +94,18 @@ const { t } = useI18n()
   pointer-events: none;
 }
 
-.click-label {
-  animation: label-pulse 2s ease-in-out infinite;
+@media (prefers-reduced-motion: no-preference) {
+  .chest-idle {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .chest-idle .chest-icon {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  .click-label {
+    animation: label-pulse 2s ease-in-out infinite;
+  }
 }
 
 .opacity-0 {

@@ -192,8 +192,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (!import.meta.client)
       return
 
-    if (authInitialized.value)
+    if (authInitialized.value) {
+      _authReadyResolve?.()
+
       return
+    }
 
     // csrf_token is a non-httpOnly marker set alongside the refresh cookie on login/refresh.
     // Its absence means there is no session to resume, so skip the network round-trip entirely.

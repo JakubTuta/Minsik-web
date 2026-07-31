@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { hashColor } from '~/utils/coverColor'
+import { compactNumberFormat } from '~/utils/format'
 
 interface Props {
   name: string
@@ -27,7 +28,7 @@ const { optimized } = useOptimizedImage()
 const optimizedPhotoUrl = computed(() => optimized(props.photoUrl, 280))
 
 const { locale } = useI18n()
-const compactFmt = computed(() => new Intl.NumberFormat(locale.value, { notation: 'compact', maximumFractionDigits: 1 }))
+const compactFmt = computed(() => compactNumberFormat(locale.value))
 
 const formattedRating = computed(() => (props.rating
   ? props.rating.toFixed(1)

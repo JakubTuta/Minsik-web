@@ -90,7 +90,12 @@ useScrollReveal(ctaRef, { stagger: 0.1, y: 40 })
 
 .cta-icon {
   filter: drop-shadow(0 0 20px rgba(var(--v-theme-primary), 0.4));
-  animation: float 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cta-icon {
+    animation: float 3s ease-in-out infinite;
+  }
 }
 
 @keyframes float {

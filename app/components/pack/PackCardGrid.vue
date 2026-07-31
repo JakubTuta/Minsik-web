@@ -22,6 +22,7 @@ interface Props {
 const cardRefs = ref<(HTMLElement | null)[]>([])
 const cardInnerRefs = ref<(HTMLElement | null)[]>([])
 const flippingCards = ref(new Set<number>())
+const activeTweens = new Set<gsap.core.Tween>()
 
 function getRarityColor(rarity: string | null | undefined) {
   return RARITY_COLORS[(rarity as Rarity) ?? 'common'] ?? '#95A5A6'
@@ -45,15 +46,17 @@ function handleCardClick(index: number) {
 
   flippingCards.value.add(index)
 
-  gsap.to(innerEl, {
+  const tween = gsap.to(innerEl, {
     rotateY: 180,
     duration: 0.55,
     ease: 'power2.inOut',
     onComplete: () => {
+      activeTweens.delete(tween)
       flippingCards.value.delete(index)
       emit('reveal', index)
     },
   })
+  activeTweens.add(tween)
 }
 
 onMounted(async () => {
@@ -64,7 +67,7 @@ onMounted(async () => {
   if (!els.length)
     return
 
-  gsap.fromTo(
+  const tween = gsap.fromTo(
     els,
     { y: 50, opacity: 0, scale: 0.85 },
     {
@@ -74,8 +77,15 @@ onMounted(async () => {
       duration: 0.45,
       stagger: 0.07,
       ease: 'back.out(1.4)',
+      onComplete: () => activeTweens.delete(tween),
     },
   )
+  activeTweens.add(tween)
+})
+
+onUnmounted(() => {
+  activeTweens.forEach(tween => tween.kill())
+  activeTweens.clear()
 })
 </script>
 

@@ -36,7 +36,6 @@ const appBarSearchQuery = ref('')
     <v-menu
       location="bottom"
       open-on-hover
-      eager
     >
       <template #activator="{'props': menuProps}">
         <v-btn
@@ -200,11 +199,14 @@ const appBarSearchQuery = ref('')
 </template>
 
 <style scoped>
-/* Frosted-glass surface bar — sits on any page background, subtle bottom hairline */
+/* Opaque surface bar — sits on any page background, subtle bottom hairline.
+   Was a frosted `backdrop-filter: blur(...)`, which forces the browser to
+   recomposite a 16px blur of everything scrolling underneath on every scroll
+   frame, every route change and every theme toggle, on every page. A
+   near-opaque solid background reads the same at this alpha with none of
+   that cost. */
 .app-bar-glass {
-  background: rgba(var(--v-theme-surface), 0.72) !important;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(var(--v-theme-surface), 0.96) !important;
   border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 

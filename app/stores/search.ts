@@ -20,6 +20,44 @@ export const useSearchStore = defineStore('search', () => {
   const cache = new Map<string, { data: SearchResult[], timestamp: number, total: number }>()
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
+  // Identity -> index in `results.value`, so appending a page can dedupe
+  // against everything shown so far in O(page size) instead of re-running
+  // dedupByWork over the whole accumulated list on every page (O(n) work
+  // repeated per page -> O(n^2) over a long infinite-scroll session).
+  const resultIndex = new Map<string, number>()
+
+  function resultKey(item: SearchResult): string {
+    const identity = item.type === 'book'
+      ? (item.work_id || item.slug)
+      : item.slug
+
+    return `${item.type}:${identity}`
+  }
+
+  // Same tie-break as dedupByWork: an edition in the preferred language wins
+  // outright; otherwise the one with more readers wins.
+  function mergeResults(newItems: SearchResult[]) {
+    for (const item of dedupByWork(newItems, language.value)) {
+      const key = resultKey(item)
+      const existingIdx = resultIndex.get(key)
+
+      if (existingIdx === undefined) {
+        resultIndex.set(key, results.value.length)
+        results.value.push(item)
+        continue
+      }
+
+      const existing = results.value[existingIdx]!
+      const isPreferred = item.language === language.value
+      const existingIsPreferred = existing.language === language.value
+      const shouldReplace = (isPreferred && !existingIsPreferred)
+        || (!existingIsPreferred && !isPreferred && item.readers > existing.readers)
+
+      if (shouldReplace)
+        results.value[existingIdx] = item
+    }
+  }
+
   // Computed
   const hasData = computed(() => results.value.length > 0)
   const hasMore = computed(() => results.value.length < total.value)
@@ -29,6 +67,7 @@ export const useSearchStore = defineStore('search', () => {
   const clear = () => {
     query.value = ''
     results.value = []
+    resultIndex.clear()
     offset.value = 0
     total.value = 0
     isLoading.value = false
@@ -48,8 +87,10 @@ export const useSearchStore = defineStore('search', () => {
     return Date.now() - cached.timestamp < CACHE_TTL
   }
 
-  // Search function with debouncing
-  const searchDebounced = useDebounceFn(async (force = false) => {
+  // Search function — extracted from the debounce wrapper so a deep link
+  // with a query already in the URL (see `search` below) can fetch
+  // immediately instead of paying the 300ms debounce meant for live typing.
+  const performSearch = async (force = false) => {
     if (!query.value.trim()) {
       clear()
       isLoading.value = false
@@ -63,10 +104,12 @@ export const useSearchStore = defineStore('search', () => {
     if (!force && isCacheFresh(cacheKey)) {
       const cached = cache.get(cacheKey)!
       if (offset.value === 0) {
-        results.value = cached.data
+        results.value = []
+        resultIndex.clear()
+        mergeResults(cached.data)
       }
       else {
-        results.value = [...results.value, ...cached.data]
+        mergeResults(cached.data)
       }
       total.value = cached.total
       isLoading.value = false
@@ -99,11 +142,10 @@ export const useSearchStore = defineStore('search', () => {
 
       // Append or replace results
       if (offset.value === 0) {
-        results.value = newResults
+        results.value = []
+        resultIndex.clear()
       }
-      else {
-        results.value = dedupByWork([...results.value, ...newResults], language.value)
-      }
+      mergeResults(newResults)
 
       total.value = searchData.total_count || 0
       lastFetchTime.value = Date.now()
@@ -118,11 +160,18 @@ export const useSearchStore = defineStore('search', () => {
     finally {
       isLoading.value = false
     }
-  }, 300) // 300ms debounce
+  }
 
-  // Main search method
-  const search = async (force = false) => {
-    await searchDebounced(force)
+  const searchDebounced = useDebounceFn(performSearch, 300)
+
+  // Main search method. `immediate` skips the debounce — for a deep link
+  // whose query is already known on page load, there's no typing to debounce
+  // against, and waiting 300ms just delays the first paint of results.
+  const search = async (force = false, immediate = false) => {
+    if (immediate)
+      await performSearch(force)
+    else
+      await searchDebounced(force)
   }
 
   // Refresh (force reload)

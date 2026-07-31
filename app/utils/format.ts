@@ -1,3 +1,18 @@
+// `new Intl.NumberFormat` does its own locale data lookup — cheap once, but
+// this app only ever needs 5 distinct instances (one per shipped locale), so
+// there's no reason each rendered card should construct its own.
+const compactNumberFormatters = new Map<string, Intl.NumberFormat>()
+
+export function compactNumberFormat(locale: string): Intl.NumberFormat {
+  let formatter = compactNumberFormatters.get(locale)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 })
+    compactNumberFormatters.set(locale, formatter)
+  }
+
+  return formatter
+}
+
 export function weightedRating(avgRating: number | undefined, ratingCount: number | undefined, olAvgRating: number | undefined, olRatingCount: number | undefined): number {
   if (avgRating === undefined || ratingCount === undefined)
     return olAvgRating ?? 0

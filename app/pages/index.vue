@@ -12,10 +12,14 @@ useSeo({
   description: t('home.seoDescription'),
 })
 
-const { data: categories, error } = await useAsyncData(
+// Lazy: a blocking fetch here would stall the whole route transition (and the
+// URL/history update with it) until it resolves, on every navigation to this
+// page — including a locale switch. The skeleton below already covers the
+// loading state.
+const { data: categories, error } = useCachedAsyncData(
   'home-recommendations',
   () => recommendationsStore.fetchHomeRecommendations(),
-  { watch: [language] },
+  { lazy: true, watch: [language] },
 )
 
 const filteredCategories = computed<RecommendationSection[]>(() => (categories.value ?? []).filter(
@@ -48,8 +52,6 @@ if (import.meta.client) {
 <template>
   <div>
     <HeroBanner />
-
-    <LandingMarquee />
 
     <v-container class="py-8">
       <FeaturesShowcase />

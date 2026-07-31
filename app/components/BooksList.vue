@@ -19,6 +19,19 @@ const { sentinel } = useInfiniteScroll(() => props.loadMore?.(), { enabled: scro
 const { optimized } = useOptimizedImage()
 
 useShelfStatuses(() => props.books)
+
+// Precomputed per template re-render rather than inline in the template —
+// Vuetify re-renders every mounted component on a theme toggle, which would
+// otherwise re-run coverColor/weightedRating/totalRatingCount/totalReaders
+// for the whole (unboundedly long, infinite-scroll) list on every toggle.
+// This only recomputes when `books` itself changes (e.g. a new page appended).
+const rows = computed(() => props.books.map(book => ({
+  book,
+  coverBg: coverColor(book),
+  rating: weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count),
+  ratingCount: totalRatingCount(book.rating_count, book.ol_rating_count),
+  readers: totalReaders(book.app_want_to_read_count, book.app_reading_count, book.app_read_count, book.ol_want_to_read_count, book.ol_currently_reading_count, book.ol_already_read_count),
+})))
 </script>
 
 <template>
@@ -29,7 +42,7 @@ useShelfStatuses(() => props.books)
       class="books-list"
     >
       <NuxtLinkLocale
-        v-for="book in books"
+        v-for="{book, coverBg, rating, ratingCount, readers} in rows"
         :key="book.book_id"
         :to="`/books/${book.slug}`"
         class="book-item text-decoration-none"
@@ -50,7 +63,7 @@ useShelfStatuses(() => props.books)
               cover
             >
               <template #placeholder>
-                <HashedFill :color="coverColor(book)" />
+                <HashedFill :color="coverBg" />
               </template>
             </v-img>
 
@@ -102,7 +115,7 @@ useShelfStatuses(() => props.books)
                 />
 
                 <span class="text-body-2">
-                  {{ weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count).toFixed(1) }} ({{ n(totalRatingCount(book.rating_count, book.ol_rating_count)) }})
+                  {{ rating.toFixed(1) }} ({{ n(ratingCount) }})
                 </span>
 
                 <v-tooltip
@@ -128,7 +141,7 @@ useShelfStatuses(() => props.books)
                   color="info"
                 />
 
-                <span class="text-body-2">{{ n(totalReaders(book.app_want_to_read_count, book.app_reading_count, book.app_read_count, book.ol_want_to_read_count, book.ol_currently_reading_count, book.ol_already_read_count)) }}</span>
+                <span class="text-body-2">{{ n(readers) }}</span>
 
                 <v-tooltip
                   activator="parent"

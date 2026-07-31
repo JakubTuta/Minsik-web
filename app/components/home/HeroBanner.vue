@@ -1,47 +1,28 @@
 <script setup lang="ts">
 import type { BookOfTheWeek } from '~/types/recommendations'
-import gsap from 'gsap'
 
 const localePath = useLocalePath()
 
 const { t } = useI18n()
 const themeStore = useThemeStore()
 const recommendationsStore = useRecommendationsStore()
+const { language } = useUserLanguage()
 
-const iconRef = ref<HTMLElement | null>(null)
-const titleRef = ref<HTMLElement | null>(null)
-const subtitleRef = ref<HTMLElement | null>(null)
-const btnsRef = ref<HTMLElement | null>(null)
-const visualRef = ref<HTMLElement | null>(null)
-
-// Lazy fetch — keeps book-of-the-week off the SSR critical path so the hero (LCP) renders immediately
-const { data: botw } = useLazyAsyncData<BookOfTheWeek | null>(
+// `server: false` keeps book-of-the-week off the SSR critical path — `lazy` alone does not, it only
+// stops the fetch blocking client-side navigation, while SSR still waits for every async data call.
+// The card is decoration, not indexable content, so the hero (LCP) is worth more than having it in
+// the server HTML.
+// `watch: [language]` re-runs the fetch on locale switch — without it the static key means the UI
+// locale switches instantly but the card keeps showing whichever language it first loaded in.
+const { data: botw, status } = useCachedAsyncData<BookOfTheWeek | null>(
   'hero-book-of-the-week',
   () => recommendationsStore.fetchBookOfTheWeek(),
-  { default: () => null },
+  { lazy: true, default: () => null, server: false, watch: [language] },
 )
 
-onMounted(() => {
-  const tl = gsap.timeline()
-
-  tl.from([iconRef.value, titleRef.value, subtitleRef.value, btnsRef.value], {
-    opacity: 0,
-    y: 30,
-    duration: 0.6,
-    stagger: 0.15,
-    ease: 'power3.out',
-  })
-
-  if (visualRef.value) {
-    tl.from(visualRef.value, {
-      opacity: 0,
-      scale: 0.95,
-      x: 30,
-      duration: 0.8,
-      ease: 'power3.out',
-    }, '-=0.6')
-  }
-})
+// The store answers null when the API has no book to give. Without this the skeleton below would
+// stand in for a card that is never coming and the hero would look permanently stuck loading.
+const hasNoBook = computed(() => status.value === 'error' || (status.value === 'success' && !botw.value))
 </script>
 
 <template>
@@ -60,10 +41,7 @@ onMounted(() => {
           lg="5"
           class="text-md-left mb-md-0 mb-10 text-center"
         >
-          <div
-            ref="iconRef"
-            class="d-inline-block mb-6"
-          >
+          <div class="d-inline-block hero-anim-icon mb-6">
             <v-chip
               color="primary"
               :variant="themeStore.isDark
@@ -80,10 +58,7 @@ onMounted(() => {
             </v-chip>
           </div>
 
-          <h1
-            ref="titleRef"
-            class="text-h3 text-md-h2 font-weight-black hero-title mb-6"
-          >
+          <h1 class="text-h3 text-md-h2 font-weight-black hero-title hero-anim-title mb-6">
             {{ t('home.heroLine1') }}<br>
 
             {{ t('home.heroLine2') }}<br>
@@ -91,17 +66,11 @@ onMounted(() => {
             <span class="text-primary glow-text">{{ t('home.heroLine3') }}</span>
           </h1>
 
-          <p
-            ref="subtitleRef"
-            class="text-h6 text-medium-emphasis hero-subtitle mx-md-0 mx-auto mb-8"
-          >
+          <p class="text-h6 text-medium-emphasis hero-subtitle hero-anim-subtitle mx-md-0 mx-auto mb-8">
             {{ t('home.heroSubtitle') }}
           </p>
 
-          <div
-            ref="btnsRef"
-            class="d-flex ga-4 justify-md-start flex-wrap justify-center"
-          >
+          <div class="d-flex ga-4 justify-md-start hero-anim-btns flex-wrap justify-center">
             <v-btn
               :to="localePath('/search')"
               color="primary"
@@ -129,15 +98,13 @@ onMounted(() => {
 
         <!-- Book of the Week -->
         <v-col
+          v-if="!hasNoBook"
           cols="12"
           md="6"
           offset-md="1"
           class="position-relative"
         >
-          <div
-            ref="visualRef"
-            class="hero-visual-container"
-          >
+          <div class="hero-visual-container hero-anim-visual">
             <div class="hero-visual-glow" />
 
             <div class="position-relative z-1 w-100">
@@ -270,6 +237,61 @@ onMounted(() => {
     min-height: auto;
     padding-top: 2rem !important;
     padding-bottom: 2rem !important;
+  }
+}
+
+/* Entrance animation — CSS keyframes instead of a JS timeline so the hero
+   (the LCP element) is never hidden waiting for gsap to parse and run at
+   hydration; it starts animating on first paint instead. */
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+@keyframes hero-fade-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateX(30px);
+  }
+}
+
+.hero-anim-icon,
+.hero-anim-title,
+.hero-anim-subtitle,
+.hero-anim-btns {
+  animation: hero-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-anim-icon {
+  animation-delay: 0s;
+}
+
+.hero-anim-title {
+  animation-delay: 0.15s;
+}
+
+.hero-anim-subtitle {
+  animation-delay: 0.3s;
+}
+
+.hero-anim-btns {
+  animation-delay: 0.45s;
+}
+
+.hero-anim-visual {
+  animation: hero-fade-scale 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.45s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-anim-icon,
+  .hero-anim-title,
+  .hero-anim-subtitle,
+  .hero-anim-btns,
+  .hero-anim-visual {
+    animation: none;
   }
 }
 </style>

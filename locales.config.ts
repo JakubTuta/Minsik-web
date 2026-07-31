@@ -50,15 +50,17 @@ export function isSupportedLocale(code: string): boolean {
 /**
  * Flag image URL for a locale's app-bar switcher entry, built from the region
  * subtag of `language` (e.g. `en-US` -> `US`) so a new locale needs no flag
- * asset of its own here — only a correctly regioned `language` tag.
+ * asset of its own here beyond dropping an SVG at `public/flags/<region>.svg`.
  *
- * Served from flagcdn.com rather than a regional-indicator emoji: Windows has
- * no colour glyphs for those and renders the raw letters instead.
+ * Served from a local asset rather than a regional-indicator emoji (Windows
+ * has no colour glyphs for those) or a remote CDN like flagcdn.com — flags
+ * never change, so there's no reason to pay a cold DNS/TLS/HTTP round trip
+ * to a third-party origin for them on every session's first paint.
  */
 export function localeFlagUrl(locale: AppLocale): string | undefined {
   const region = locale.language.split('-')[1]
 
   return region && region.length === 2
-    ? `https://flagcdn.com/${region.toLowerCase()}.svg`
+    ? `/flags/${region.toLowerCase()}.svg`
     : undefined
 }

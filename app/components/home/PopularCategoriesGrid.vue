@@ -32,9 +32,13 @@ function getVisual(slug: string) {
   return CATEGORY_VISUALS[slug] ?? DEFAULT_VISUAL
 }
 
-const { data: categories } = await useAsyncData<PopularCategory[]>(
+// Lazy: language-independent, so nothing here should block route transitions
+// (a locale switch stalls the whole page swap until every blocking fetch on
+// it resolves).
+const { data: categories } = useCachedAsyncData<PopularCategory[]>(
   'home-popular-categories',
   () => categoriesStore.fetchPopularCategories(12),
+  { lazy: true },
 )
 </script>
 
@@ -115,7 +119,7 @@ const { data: categories } = await useAsyncData<PopularCategory[]>(
   border-radius: 16px !important;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   min-height: 140px;
   cursor: pointer;
 }
@@ -130,12 +134,7 @@ const { data: categories } = await useAsyncData<PopularCategory[]>(
   position: absolute;
   inset: 0;
   opacity: 1;
-  transition: opacity 0.4s ease;
   z-index: 0;
-}
-
-.category-tile:hover .category-tile-bg {
-  opacity: 1.5;
 }
 
 .z-1 {

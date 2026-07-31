@@ -93,11 +93,20 @@ export default defineNuxtConfig({
     },
   },
 
-  // Self-hosted fonts (replaces render-blocking Google Fonts stylesheet)
+  // Self-hosted fonts (replaces render-blocking Google Fonts stylesheet).
+  // One family app-wide — `latin`/`latin-ext` cover every shipped locale
+  // (en/pl/de/es/fr), so the other 5 default subsets are dead weight.
+  // Weights match actual usage (font-weight-bold/medium/black classes);
+  // Vuetify declares `Roboto` internally but nothing renders it, so it's
+  // pinned to `none` rather than silently downloaded.
   fonts: {
+    defaults: {
+      subsets: ['latin', 'latin-ext'],
+      preload: true,
+    },
     families: [
-      { name: 'Montserrat', provider: 'google', weights: [300, 400, 500, 600, 700, 800] },
-      { name: 'Source Serif 4', provider: 'google', weights: [300, 400, 500, 600, 700], styles: ['normal', 'italic'] },
+      { name: 'Montserrat', provider: 'google', weights: [400, 500, 700, 800] },
+      { name: 'Roboto', provider: 'none' },
     ],
   },
 
@@ -126,13 +135,36 @@ export default defineNuxtConfig({
       // and surprises a user who typed/clicked a specific-language URL.
       redirectOn: 'root',
     },
+    // Composition-API-only build tree-shakes vue-i18n's Options API glue and
+    // built-in components/directives we never use.
+    bundle: { fullInstall: false },
+    experimental: {
+      // Inline messages into the SSR HTML instead of a separate dynamic
+      // import — removes a serial ~70KB round trip after the entry chunk
+      // parses on every first load.
+      preload: true,
+      // `preload` defaults this to true, which drops any key not rendered
+      // during SSR (dialogs, menus, client-only branches) — keep it off
+      // until those call sites are audited with useI18nPreloadKeys.
+      stripMessagesPayload: false,
+      // One regex route per page instead of one per (page x locale).
+      compactRoutes: true,
+      // Static hashed messages.json instead of the Nitro /_i18n route, so a
+      // locale switch after the first load is a cached static-asset fetch.
+      prerenderMessages: true,
+      cacheLifetime: 86400,
+      httpCacheDuration: 86400,
+    },
   },
 
-  // Color mode configuration
+  // Color mode configuration. `disableTransition` stops the browser from
+  // animating every `transition:` rule in the app at once during the class
+  // swap on toggle — Vuetify's own theme.change() handles the swap itself.
   colorMode: {
     preference: 'system',
     fallback: 'light',
     classSuffix: '',
+    disableTransition: true,
   },
 
   // CSS configuration

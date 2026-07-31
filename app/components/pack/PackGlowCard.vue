@@ -10,12 +10,13 @@ const emit = defineEmits<{ glowComplete: [] }>()
 
 const cardRef = ref<HTMLElement | null>(null)
 const glowRef = ref<HTMLElement | null>(null)
+let tl: gsap.core.Timeline | null = null
 
 onMounted(() => {
   if (!cardRef.value || !glowRef.value)
     return
 
-  const tl = gsap.timeline({
+  tl = gsap.timeline({
     onComplete: () => emit('glowComplete'),
   })
 
@@ -31,6 +32,11 @@ onMounted(() => {
     '-=0.3',
   )
   tl.to({}, { duration: 2 })
+})
+
+onUnmounted(() => {
+  tl?.kill()
+  tl = null
 })
 </script>
 
@@ -113,7 +119,12 @@ onMounted(() => {
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 0 30px currentColor;
-  animation: question-pulse 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .question-mark {
+    animation: question-pulse 1.5s ease-in-out infinite;
+  }
 }
 
 @keyframes question-pulse {

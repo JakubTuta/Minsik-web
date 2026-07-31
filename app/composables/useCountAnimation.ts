@@ -1,5 +1,3 @@
-import gsap from 'gsap'
-
 export function useCountAnimation(
   element: Ref<HTMLElement | null>,
   target: Ref<number> | number,
@@ -10,6 +8,7 @@ export function useCountAnimation(
 
   const displayValue = ref(0)
   let observer: IntersectionObserver | null = null
+  let tween: gsap.core.Tween | null = null
 
   onMounted(() => {
     if (!element.value)
@@ -28,11 +27,15 @@ export function useCountAnimation(
 
     observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        entries.forEach(async (entry) => {
           if (!entry.isIntersecting)
             return
 
-          gsap.to(displayValue, {
+          observer?.disconnect()
+
+          const { default: gsap } = await import('gsap')
+
+          tween = gsap.to(displayValue, {
             value: targetVal,
             duration,
             ease: 'power2.out',
@@ -40,8 +43,6 @@ export function useCountAnimation(
               displayValue.value = Math.round(displayValue.value)
             },
           })
-
-          observer?.disconnect()
         })
       },
       { threshold: 0.3 },
@@ -53,6 +54,8 @@ export function useCountAnimation(
   onUnmounted(() => {
     observer?.disconnect()
     observer = null
+    tween?.kill()
+    tween = null
   })
 
   return displayValue

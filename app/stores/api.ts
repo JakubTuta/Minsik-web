@@ -41,10 +41,13 @@ export const useApiStore = defineStore('api', () => {
       // Request interceptor
       client.interceptors.request.use(
         async (config) => {
-          const authEndpoints = ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/refresh', '/api/v1/auth/google']
-          const isAuthEndpoint = authEndpoints.some(ep => config.url?.endsWith(ep))
+          // Only endpoints that read the signed-in user need to wait for
+          // autoLogin — public content (books, authors, search, ...) must not
+          // queue behind the refresh call, or every page's first paint stalls
+          // on it even though the data itself doesn't depend on auth state.
+          const isUserScopedEndpoint = config.url?.includes('/api/v1/users/me')
 
-          if (!isAuthEndpoint && import.meta.client) {
+          if (isUserScopedEndpoint && import.meta.client) {
             const authStore = useAuthStore()
             await authStore.waitForAuth()
           }

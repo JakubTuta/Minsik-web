@@ -37,10 +37,12 @@ function cardStyle(index: number, total: number) {
   }
 }
 
+let tl: gsap.core.Timeline | null = null
+
 onMounted(() => {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  const tl = gsap.timeline()
+  tl = gsap.timeline()
 
   tl.from([chipRef.value, titleRef.value, subtitleRef.value], {
     opacity: 0,
@@ -62,6 +64,11 @@ onMounted(() => {
       ease: 'back.out(1.4)',
     }, '-=0.3')
   }
+})
+
+onUnmounted(() => {
+  tl?.kill()
+  tl = null
 })
 </script>
 

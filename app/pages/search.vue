@@ -27,7 +27,10 @@ onMounted(() => {
   }
 
   if (query) {
-    searchStore.search()
+    // Immediate: this is a deep link with the query already known, not a
+    // user typing — the 300ms debounce exists for the latter and only
+    // delays the first paint of results here.
+    searchStore.search(false, true)
   }
 })
 

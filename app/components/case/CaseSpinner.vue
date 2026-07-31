@@ -33,6 +33,8 @@ function initializeTrack() {
   generatedList.value = list
 }
 
+let tween: gsap.core.Tween | null = null
+
 onMounted(async () => {
   initializeTrack()
   await nextTick()
@@ -46,7 +48,7 @@ onMounted(async () => {
   const randomOffset = (Math.random() - 0.5) * (ITEM_WIDTH.value * 0.4)
   const startX = SLOT_SIZE.value * 3
 
-  gsap.fromTo(
+  tween = gsap.fromTo(
     trackRef.value,
     { x: startX },
     {
@@ -56,6 +58,11 @@ onMounted(async () => {
       onComplete: () => emit('spinComplete'),
     },
   )
+})
+
+onUnmounted(() => {
+  tween?.kill()
+  tween = null
 })
 
 function getGlowStyle(rarity: string | null | undefined) {
