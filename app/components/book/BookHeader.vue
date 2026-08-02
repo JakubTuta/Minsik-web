@@ -22,11 +22,17 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { t, locale, n } = useI18n()
 const bookPageStore = useBookPageStore()
-const localePath = useLocalePath()
 const formatLabel = useFormatLabel()
 
-function variantPath(variant: BookLanguageVariant): string {
-  return localePath({ name: 'books-slug', params: { slug: variant.slug } }, variant.language)
+// Stay on the current UI locale — only the edition (slug + `?lang=`) changes,
+// not the app's interface language. See app/pages/books/[slug].vue, which
+// reads `?lang=` to pick which edition to fetch for a given slug.
+function variantTo(variant: BookLanguageVariant) {
+  return {
+    name: 'books-slug',
+    params: { slug: variant.slug },
+    query: { lang: variant.language },
+  }
 }
 
 const { optimized } = useOptimizedImage()
@@ -603,7 +609,7 @@ const bookStats = computed(() => {
                   <NuxtLinkLocale
                     v-for="variant in langVariants"
                     :key="variant.language"
-                    :to="variantPath(variant)"
+                    :to="variantTo(variant)"
                     class="text-decoration-none flex-shrink-0"
                   >
                     <div

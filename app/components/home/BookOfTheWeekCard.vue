@@ -12,6 +12,7 @@ const localePath = useLocalePath()
 
 const { t } = useI18n()
 const genreLabel = useGenreLabel()
+const themeStore = useThemeStore()
 
 const authorNames = computed(() => props.book.authors.map(a => a.name).join(', '),
 )
@@ -23,6 +24,7 @@ const { optimized } = useOptimizedImage()
 <template>
   <v-card
     class="bow-card bg-surface-variant overflow-hidden"
+    :theme="themeStore.currentTheme"
     elevation="4"
   >
     <div class="bow-glow" />

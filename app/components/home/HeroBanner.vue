@@ -177,7 +177,7 @@ const hasNoBook = computed(() => status.value === 'error' || (status.value === '
     rgba(var(--v-theme-surface), 1) 100%
   );
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  min-height: 80vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
 }

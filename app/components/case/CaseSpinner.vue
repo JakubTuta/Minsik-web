@@ -27,7 +27,7 @@ const SLOT_SIZE = computed(() => ITEM_WIDTH.value + ITEM_GAP)
 const generatedList = ref<Rarity[]>([])
 
 function initializeTrack() {
-  const list = Array.from({ length: 40 }).fill(getRandomRarity())
+  const list = Array.from({ length: 40 }, () => getRandomRarity())
   // The winner is placed at our landing index
   list[35] = props.data.winner.rarity as Rarity
   generatedList.value = list

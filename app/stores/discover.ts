@@ -93,8 +93,8 @@ export const useDiscoverStore = defineStore('discover', () => {
 
   const fetchMatchingCount = async () => {
     try {
-      const response = await client.value.post<APIResponse<DiscoverBookData>>(
-        '/api/v1/discover',
+      const response = await client.value.post<APIResponse<{ matching_count: number }>>(
+        '/api/v1/discover/count',
         filtersPayload.value,
       )
       matchingCount.value = response.data.data?.matching_count ?? 0
