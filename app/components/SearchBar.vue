@@ -166,16 +166,17 @@ const isLoading = computed(() => (props.variant === 'appbar'
   ? quickSearchStore.isLoading
   : searchStore.isLoading))
 
-// Group results by type for appbar dropdown (limit to 10 per category for scrolling)
+// Group results by type for the appbar dropdown. The server already caps
+// each bucket (books/authors/series), so no further slicing is needed here.
 const groupedResults = computed(() => {
   if (props.variant !== 'appbar')
     return null
 
   const results = quickSearchStore.results
 
-  const books = results.filter(r => r.type === 'book').slice(0, 10)
-  const series = results.filter(r => r.type === 'series').slice(0, 10)
-  const authors = results.filter(r => r.type === 'author').slice(0, 10)
+  const books = results.filter(r => r.type === 'book')
+  const series = results.filter(r => r.type === 'series')
+  const authors = results.filter(r => r.type === 'author')
 
   return { books, series, authors }
 })

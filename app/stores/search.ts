@@ -1,6 +1,5 @@
 import type { SearchResponse, SearchResult, SearchType } from '~/types/api'
 import { defineStore } from 'pinia'
-import { dedupByWork } from '~/utils/dedupResults'
 
 export const useSearchStore = defineStore('search', () => {
   const apiStore = useApiStore()
@@ -20,44 +19,6 @@ export const useSearchStore = defineStore('search', () => {
   const cache = new Map<string, { data: SearchResult[], timestamp: number, total: number }>()
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
-  // Identity -> index in `results.value`, so appending a page can dedupe
-  // against everything shown so far in O(page size) instead of re-running
-  // dedupByWork over the whole accumulated list on every page (O(n) work
-  // repeated per page -> O(n^2) over a long infinite-scroll session).
-  const resultIndex = new Map<string, number>()
-
-  function resultKey(item: SearchResult): string {
-    const identity = item.type === 'book'
-      ? (item.work_id || item.slug)
-      : item.slug
-
-    return `${item.type}:${identity}`
-  }
-
-  // Same tie-break as dedupByWork: an edition in the preferred language wins
-  // outright; otherwise the one with more readers wins.
-  function mergeResults(newItems: SearchResult[]) {
-    for (const item of dedupByWork(newItems, language.value)) {
-      const key = resultKey(item)
-      const existingIdx = resultIndex.get(key)
-
-      if (existingIdx === undefined) {
-        resultIndex.set(key, results.value.length)
-        results.value.push(item)
-        continue
-      }
-
-      const existing = results.value[existingIdx]!
-      const isPreferred = item.language === language.value
-      const existingIsPreferred = existing.language === language.value
-      const shouldReplace = (isPreferred && !existingIsPreferred)
-        || (!existingIsPreferred && !isPreferred && item.readers > existing.readers)
-
-      if (shouldReplace)
-        results.value[existingIdx] = item
-    }
-  }
-
   // Computed
   const hasData = computed(() => results.value.length > 0)
   const hasMore = computed(() => results.value.length < total.value)
@@ -67,7 +28,6 @@ export const useSearchStore = defineStore('search', () => {
   const clear = () => {
     query.value = ''
     results.value = []
-    resultIndex.clear()
     offset.value = 0
     total.value = 0
     isLoading.value = false
@@ -103,14 +63,11 @@ export const useSearchStore = defineStore('search', () => {
     // Check cache
     if (!force && isCacheFresh(cacheKey)) {
       const cached = cache.get(cacheKey)!
-      if (offset.value === 0) {
-        results.value = []
-        resultIndex.clear()
-        mergeResults(cached.data)
-      }
-      else {
-        mergeResults(cached.data)
-      }
+      if (offset.value === 0)
+        results.value = [...cached.data]
+      else
+        results.value.push(...cached.data)
+
       total.value = cached.total
       isLoading.value = false
 
@@ -131,7 +88,7 @@ export const useSearchStore = defineStore('search', () => {
       })
 
       const searchData = response.data.data
-      const newResults = dedupByWork(searchData.results || [], language.value)
+      const newResults = searchData.results || []
 
       // Update cache
       cache.set(cacheKey, {
@@ -141,11 +98,10 @@ export const useSearchStore = defineStore('search', () => {
       })
 
       // Append or replace results
-      if (offset.value === 0) {
-        results.value = []
-        resultIndex.clear()
-      }
-      mergeResults(newResults)
+      if (offset.value === 0)
+        results.value = newResults
+      else
+        results.value.push(...newResults)
 
       total.value = searchData.total_count || 0
       lastFetchTime.value = Date.now()

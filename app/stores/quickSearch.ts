@@ -1,6 +1,5 @@
 import type { SuggestItem, SuggestResponse } from '~/types/api'
 import { defineStore } from 'pinia'
-import { dedupByWork } from '~/utils/dedupResults'
 
 export const useQuickSearchStore = defineStore('quickSearch', () => {
   const apiStore = useApiStore()
@@ -15,6 +14,18 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
   // Computed
   const hasResults = computed(() => results.value.length > 0)
 
+  // Guards against a slower earlier request (e.g. "hob") resolving after a
+  // faster later one (e.g. "hobbit") and overwriting it with stale results.
+  let requestToken = 0
+
+  const clear = () => {
+    requestToken++
+    results.value = []
+    isLoading.value = false
+    isEmpty.value = false
+    lastQuery.value = ''
+  }
+
   const search = async (query: string) => {
     if (!query.trim()) {
       clear()
@@ -22,6 +33,7 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
       return
     }
 
+    const token = ++requestToken
     lastQuery.value = query
     isLoading.value = true
     isEmpty.value = false
@@ -34,25 +46,25 @@ export const useQuickSearchStore = defineStore('quickSearch', () => {
           language: language.value,
         },
       })
-      const items = response.data.data.items || []
-      results.value = dedupByWork(items, language.value)
+
+      if (token !== requestToken)
+        return
+
+      results.value = response.data.data.items || []
       isEmpty.value = results.value.length === 0
     }
     catch (error) {
+      if (token !== requestToken)
+        return
+
       console.error('Quick search error:', error)
       results.value = []
       isEmpty.value = true
     }
     finally {
-      isLoading.value = false
+      if (token === requestToken)
+        isLoading.value = false
     }
-  }
-
-  const clear = () => {
-    results.value = []
-    isLoading.value = false
-    isEmpty.value = false
-    lastQuery.value = ''
   }
 
   return {
