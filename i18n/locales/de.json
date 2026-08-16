@@ -235,6 +235,8 @@
     "clickEachCard": "Klicke jede Karte, um sie aufzudecken"
   },
   "caseGame": {
+    "seoTitle": "Buch-Case öffnen - Minsik",
+    "seoDescription": "Öffne einen Buch-Case und enthülle ein zufälliges Buch aus einer von sechs Seltenheitsstufen.",
     "openABookCase": "Buch-Case öffnen",
     "clickToReveal": "Klicken, um ein zufälliges Buch aufzudecken",
     "viewBook": "Buch ansehen",
@@ -786,6 +788,8 @@
     "firstSentence": "Erster Satz"
   },
   "discoverPage": {
+    "seoTitle": "Ein Buch entdecken - Minsik",
+    "seoDescription": "Lege deine Vorlieben fest und Minsik findet ein Buch, das zu deiner Stimmung passt.",
     "setPreferences": "Lege deine Vorlieben fest und finde dein nächstes Lieblingsbuch",
     "filtersOptionalHint": "Alle Filter sind optional, aber je mehr du festlegst, desto besser die Übereinstimmung!",
     "discoverABook": "Ein Buch entdecken",

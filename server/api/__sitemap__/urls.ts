@@ -1,7 +1,13 @@
 import type { SitemapUrlInput } from '#sitemap/types'
+import axios from 'axios'
 import { APP_LOCALES, DEFAULT_LOCALE } from '~~/locales.config'
+import { serializeQueryParams } from '~~/shared/utils/queryParams'
 
 const LOCALE_BY_CODE = new Map(APP_LOCALES.map(entry => [entry.code, entry]))
+const SITEMAP_LANGUAGES = APP_LOCALES.map(entry => entry.code)
+
+const SITEMAP_ENTITIES = ['books', 'authors', 'series'] as const
+type SitemapEntity = typeof SITEMAP_ENTITIES[number]
 
 interface APIResponse<T> {
   success: boolean
@@ -18,40 +24,34 @@ interface SitemapSlugsData {
   total_count: number
 }
 
-interface HomeSection {
-  book_items: { slug: string, author_slugs: string[] }[] | null
-  author_items: { slug: string }[] | null
-}
-
-interface CategoryBook {
-  slug: string
-  authors: { slug: string }[]
-}
-
-// Category books endpoint rejects limit > 50. Only offset 0 is served from the
-// API's Redis cache — deeper pages hit heavy DB queries that time out, so the
-// fallback harvests just the first page per category.
-const HARVEST_PAGES_PER_CATEGORY = 1
-const PAGE_SIZE = 50
-const CONCURRENCY = 7
-
-// Backend slugs endpoint pagination — entities ordered by popularity, capped to keep the sitemap sane
 const SLUGS_PAGE_SIZE = 10000
-const ENTITY_CAPS: Record<string, number> = {
-  books: 50000,
-  authors: 50000,
-  series: 10000,
+
+/**
+ * How far down each entity's popularity ranking the sitemap reaches. The
+ * catalogue is far larger than these (462k works, 35k authors, 20k series) and
+ * the caps are deliberately a small slice of it.
+ *
+ * Two reasons, and neither is the catalogue's size. Every URL listed here is
+ * held in the Nitro cache for a day and materialised again — times five, for
+ * the locale variants — whenever a sitemap file is rendered, so the cap is what
+ * bounds this container's memory. And a domain this young is granted a crawl
+ * budget of a few thousand URLs a day: a sitemap of every work spends that
+ * budget on pages nobody searches for. Everything omitted here is still
+ * reachable through category, author and series links, so it stays crawlable —
+ * a sitemap ranks discovery, it does not gate it.
+ *
+ * Raise these only alongside a memory measurement.
+ */
+const ENTITY_CAPS: Record<SitemapEntity, number> = {
+  books: 10000,
+  authors: 5000,
+  series: 2000,
 }
 
 /**
  * Path an edition is served at: the default locale unprefixed, every other
  * configured locale under its own prefix, matching `prefix_except_default`
  * and how the book page takes its content language from the UI locale.
- *
- * The catalogue holds editions in languages the app ships no locale for. Those
- * have no prefixed route of their own, so they are only reachable through the
- * default locale's path — where the backend's edition fallback serves them —
- * and they get no URL of their own here.
  */
 function editionPath(slug: string, language: string | null): string | null {
   if (!language || language === DEFAULT_LOCALE)
@@ -151,138 +151,84 @@ function buildSharedSlugUrls(
   return urls
 }
 
-async function fetchEntitySlugs(apiBase: string, entity: string): Promise<SitemapUrlInput[]> {
+function buildUrls(entity: SitemapEntity, items: SitemapSlugsData['items']): SitemapUrlInput[] {
+  if (entity === 'books')
+    return buildBookUrls(items)
+
+  return buildSharedSlugUrls(items, entity === 'authors'
+    ? '/authors/'
+    : '/series/')
+}
+
+/**
+ * axios, not `$fetch`: under the bun preset `$fetch` resolves an absolute URL
+ * through Bun's own fetch, which cannot reach the Docker service name the
+ * in-cluster gateway is published under — it fails with a bare "Unable to
+ * connect" while axios, on the Node compatibility layer, resolves it fine.
+ * Every other SSR fetch already goes through axios for this reason.
+ */
+async function fetchEntityUrls(apiBase: string, entity: SitemapEntity): Promise<SitemapUrlInput[]> {
   const urls: SitemapUrlInput[] = []
-  const cap = ENTITY_CAPS[entity] ?? SLUGS_PAGE_SIZE
+  const cap = ENTITY_CAPS[entity]
 
   let offset = 0
   let total = Number.POSITIVE_INFINITY
 
   while (offset < Math.min(cap, total)) {
+    const limit = Math.min(SLUGS_PAGE_SIZE, cap - offset)
+
     // eslint-disable-next-line no-await-in-loop
-    const response = await $fetch<APIResponse<SitemapSlugsData>>(
+    const response = await axios.get<APIResponse<SitemapSlugsData>>(
       `${apiBase}/api/v1/sitemap/slugs`,
-      { params: { entity, limit: SLUGS_PAGE_SIZE, offset }, timeout: 30000 },
+      {
+        params: { entity, limit, offset, languages: SITEMAP_LANGUAGES },
+        paramsSerializer: serializeQueryParams,
+        timeout: 60000,
+      },
     )
-    const data = response.data
+    const data = response.data.data
     if (!data || data.items.length === 0)
       break
 
     if (offset === 0 && data.total_count > 0)
       total = data.total_count
 
-    urls.push(...(entity === 'books'
-      ? buildBookUrls(data.items)
-      : buildSharedSlugUrls(data.items, entity === 'authors'
-          ? '/authors/'
-          : '/series/')))
+    urls.push(...buildUrls(entity, data.items))
 
     // A books page holds every edition of the works it covers, so it returns
     // more rows than it was asked for. Paging follows the page size requested,
     // never the row count.
-    offset += SLUGS_PAGE_SIZE
+    offset += limit
   }
 
   return urls
 }
 
-// Preferred path: dedicated backend endpoint exposing all public slugs ordered by popularity.
-async function fetchFromSitemapEndpoint(apiBase: string): Promise<SitemapUrlInput[] | null> {
-  try {
-    const [books, authors, series] = await Promise.all([
-      fetchEntitySlugs(apiBase, 'books'),
-      fetchEntitySlugs(apiBase, 'authors'),
-      fetchEntitySlugs(apiBase, 'series'),
-    ])
+export default defineCachedEventHandler(async (event) => {
+  const entity = String(getQuery(event).entity ?? '')
 
-    const urls = [...books, ...authors, ...series]
-
-    return urls.length > 0
-      ? urls
-      : null
+  if (!SITEMAP_ENTITIES.includes(entity as SitemapEntity)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `Unknown sitemap entity: ${entity}`,
+    })
   }
-  catch {
-    return null
-  }
-}
 
-// Fallback: harvest popular content from public endpoints (home sections + top of each category).
-async function harvestPopularContent(apiBase: string): Promise<SitemapUrlInput[]> {
-  const bookSlugs = new Set<string>()
-  const authorSlugs = new Set<string>()
+  const config = useRuntimeConfig()
+  const apiBase = (config.apiBaseInternal || config.public.apiBase) as string
 
   try {
-    const home = await $fetch<APIResponse<{ sections: HomeSection[] }>>(
-      `${apiBase}/api/v1/recommendations/home`,
-      { params: { items_per_category: 10 }, timeout: 15000 },
-    )
-
-    for (const section of home.data?.sections ?? []) {
-      for (const book of section.book_items ?? []) {
-        bookSlugs.add(book.slug)
-        book.author_slugs.forEach(slug => authorSlugs.add(slug))
-      }
-      for (const author of section.author_items ?? []) {
-        authorSlugs.add(author.slug)
-      }
-    }
+    return await fetchEntityUrls(apiBase, entity as SitemapEntity)
   }
-  catch { /* Section unavailable — continue with categories */ }
-
-  try {
-    const categoriesResponse = await $fetch<APIResponse<{ categories: { slug: string }[] }>>(
-      `${apiBase}/api/v1/categories`,
-      { timeout: 15000 },
-    )
-    const categories = categoriesResponse.data?.categories ?? []
-
-    const pages = categories.flatMap(category => Array.from({ length: HARVEST_PAGES_PER_CATEGORY }, (_, page) => ({ category: category.slug, offset: page * PAGE_SIZE })),
-    )
-
-    // Limited concurrency — full parallel fan-out gets rate-limited by the API
-    for (let i = 0; i < pages.length; i += CONCURRENCY) {
-      const batch = pages.slice(i, i + CONCURRENCY)
-      // eslint-disable-next-line no-await-in-loop
-      const results = await Promise.allSettled(
-        batch.map(({ category, offset }) => $fetch<APIResponse<{ books: CategoryBook[] }>>(
-          `${apiBase}/api/v1/categories/${category}/books`,
-          { params: { limit: PAGE_SIZE, offset, sort_by: 'popularity', order: 'desc' }, timeout: 30000 },
-        ),
-        ),
-      )
-
-      for (const result of results) {
-        if (result.status !== 'fulfilled')
-          continue
-        for (const book of result.value.data?.books ?? []) {
-          bookSlugs.add(book.slug)
-          book.authors?.forEach(author => authorSlugs.add(author.slug))
-        }
-      }
-    }
+  catch (error) {
+    // Never degrade quietly: a swallowed failure here publishes a sitemap that
+    // is missing an entire entity, which looks like a working sitemap.
+    console.error(`[sitemap] failed to build ${entity} URLs`, error)
+    throw error
   }
-  catch { /* Categories unavailable — return what we have */ }
-
-  // Harvested endpoints carry no edition language, so books land on the default
-  // locale's path and rely on the backend's fallback; author pages are the same
-  // page in every locale and expand across all of them.
-  return [
-    ...Array.from(bookSlugs, slug => ({ loc: `/books/${slug}` })),
-    ...Array.from(authorSlugs, slug => ({ loc: `/authors/${slug}`, _i18nTransform: true })),
-  ]
-}
-
-// Cached with SWR — the harvest takes seconds, so serve stale data and refresh in the background
-export default defineCachedEventHandler(async () => {
-  const apiBase = useRuntimeConfig().public.apiBase as string
-
-  const fromEndpoint = await fetchFromSitemapEndpoint(apiBase)
-  if (fromEndpoint && fromEndpoint.length > 0)
-    return fromEndpoint
-
-  return await harvestPopularContent(apiBase)
 }, {
   name: 'sitemap-urls',
+  getKey: event => String(getQuery(event).entity ?? ''),
   maxAge: 60 * 60,
   staleMaxAge: 60 * 60 * 24,
 })

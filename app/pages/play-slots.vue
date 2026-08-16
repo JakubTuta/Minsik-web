@@ -160,9 +160,9 @@ onUnmounted(() => {
             :class="{'opacity-0': slotsStore.phase !== 'idle'}"
             style="transition: opacity 0.3s ease;"
           >
-            <div class="text-h6 font-weight-bold text-medium-emphasis">
+            <h1 class="text-h6 font-weight-bold text-medium-emphasis">
               {{ t('slotsPage.playBookSlots') }}
-            </div>
+            </h1>
 
             <div class="text-body-2 text-medium-emphasis mt-1">
               {{ t('slotsPage.pressSpinHint') }}

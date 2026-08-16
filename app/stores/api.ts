@@ -1,6 +1,7 @@
 import type { AxiosError, AxiosInstance } from 'axios'
 import axios from 'axios'
 import { defineStore } from 'pinia'
+import { serializeQueryParams } from '~~/shared/utils/queryParams'
 import { readCookie } from '~/utils/cookie'
 
 const CSRF_COOKIE = 'csrf_token'
@@ -26,19 +27,7 @@ export const useApiStore = defineStore('api', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        paramsSerializer: (params) => {
-          const usp = new URLSearchParams()
-          for (const [key, value] of Object.entries(params)) {
-            if (Array.isArray(value)) {
-              value.forEach(v => usp.append(key, String(v)))
-            }
-            else if (value !== null && value !== undefined) {
-              usp.append(key, String(value))
-            }
-          }
-
-          return usp.toString()
-        },
+        paramsSerializer: serializeQueryParams,
       })
 
       // Request interceptor

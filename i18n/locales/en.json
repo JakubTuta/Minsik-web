@@ -235,6 +235,8 @@
     "clickEachCard": "Click each card to reveal"
   },
   "caseGame": {
+    "seoTitle": "Open a Book Case - Minsik",
+    "seoDescription": "Open a book case and reveal a random book from one of six rarity tiers.",
     "openABookCase": "Open a Book Case",
     "clickToReveal": "Click to reveal a random book",
     "viewBook": "View Book",
@@ -786,6 +788,8 @@
     "firstSentence": "First sentence"
   },
   "discoverPage": {
+    "seoTitle": "Discover a Book - Minsik",
+    "seoDescription": "Set your preferences and let Minsik find a book that matches your mood.",
     "setPreferences": "Set your preferences and find your next favorite book",
     "filtersOptionalHint": "All filters are optional, but the more you set, the better the match!",
     "discoverABook": "Discover a Book",

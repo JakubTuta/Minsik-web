@@ -235,6 +235,8 @@
     "clickEachCard": "Clique sur chaque carte pour la révéler"
   },
   "caseGame": {
+    "seoTitle": "Ouvrir une caisse de livres - Minsik",
+    "seoDescription": "Ouvre une caisse de livres et révèle un livre aléatoire parmi six niveaux de rareté.",
     "openABookCase": "Ouvrir une caisse de livres",
     "clickToReveal": "Clique pour révéler un livre aléatoire",
     "viewBook": "Voir le livre",
@@ -786,6 +788,8 @@
     "firstSentence": "Première phrase"
   },
   "discoverPage": {
+    "seoTitle": "Découvrir un livre - Minsik",
+    "seoDescription": "Définis tes préférences et laisse Minsik trouver un livre adapté à ton humeur.",
     "setPreferences": "Définis tes préférences et trouve ton prochain livre préféré",
     "filtersOptionalHint": "Tous les filtres sont facultatifs, mais plus tu en définis, meilleure sera la correspondance !",
     "discoverABook": "Découvrir un livre",

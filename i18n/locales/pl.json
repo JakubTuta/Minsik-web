@@ -235,6 +235,8 @@
     "clickEachCard": "Kliknij każdą kartę, aby ją odkryć"
   },
   "caseGame": {
+    "seoTitle": "Otwórz skrzynkę z książką - Minsik",
+    "seoDescription": "Otwórz skrzynkę i odkryj losową książkę z jednego z sześciu poziomów rzadkości.",
     "openABookCase": "Otwórz skrzynkę z książką",
     "clickToReveal": "Kliknij, aby odkryć losową książkę",
     "viewBook": "Zobacz książkę",
@@ -786,6 +788,8 @@
     "firstSentence": "Pierwsze zdanie"
   },
   "discoverPage": {
+    "seoTitle": "Odkryj książkę - Minsik",
+    "seoDescription": "Ustaw swoje preferencje, a Minsik znajdzie książkę dopasowaną do Twojego nastroju.",
     "setPreferences": "Ustaw swoje preferencje i znajdź swoją następną ulubioną książkę",
     "filtersOptionalHint": "Wszystkie filtry są opcjonalne, ale im więcej ustawisz, tym lepsze dopasowanie!",
     "discoverABook": "Odkryj książkę",

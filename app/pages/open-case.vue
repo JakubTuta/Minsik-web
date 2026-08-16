@@ -3,6 +3,12 @@ import type { Rarity } from '~/types/case'
 import { RARITY_COLORS } from '~/types/case'
 
 const { t } = useI18n()
+
+useSeoMeta({
+  title: t('caseGame.seoTitle'),
+  description: t('caseGame.seoDescription'),
+})
+
 const caseStore = useCaseStore()
 const { preloadImages } = useImagePreloader()
 const { rarityLabels } = useRarityLabels()

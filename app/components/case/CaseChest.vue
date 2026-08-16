@@ -41,9 +41,9 @@ const { t } = useI18n()
       :class="{'click-label': !opening && !disabled,
                'opacity-0': opening}"
     >
-      <div class="text-h6 font-weight-bold text-medium-emphasis">
+      <h1 class="text-h6 font-weight-bold text-medium-emphasis">
         {{ t('caseGame.openABookCase') }}
-      </div>
+      </h1>
 
       <div class="text-body-2 text-medium-emphasis mt-1">
         {{ t('caseGame.clickToReveal') }}

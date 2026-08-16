@@ -213,9 +213,9 @@ onUnmounted(() => {
       class="mt-6 text-center"
       :class="{'opacity-0': opening}"
     >
-      <div class="text-h6 font-weight-bold text-medium-emphasis">
+      <h1 class="text-h6 font-weight-bold text-medium-emphasis">
         {{ t('pack.openABookPack') }}
-      </div>
+      </h1>
 
       <div class="text-body-2 text-medium-emphasis mt-1">
         {{ t('pack.clickToReveal') }}

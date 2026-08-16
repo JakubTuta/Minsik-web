@@ -2,6 +2,12 @@
 import { useDebounceFn } from '@vueuse/core'
 
 const { t } = useI18n()
+
+useSeoMeta({
+  title: t('discoverPage.seoTitle'),
+  description: t('discoverPage.seoDescription'),
+})
+
 const discoverStore = useDiscoverStore()
 
 const showError = computed({

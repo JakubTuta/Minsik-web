@@ -235,6 +235,8 @@
     "clickEachCard": "Haz clic en cada carta para revelarla"
   },
   "caseGame": {
+    "seoTitle": "Abrir un caso de libros - Minsik",
+    "seoDescription": "Abre un caso de libros y revela un libro al azar de uno de los seis niveles de rareza.",
     "openABookCase": "Abrir un caso de libros",
     "clickToReveal": "Haz clic para revelar un libro al azar",
     "viewBook": "Ver libro",
@@ -786,6 +788,8 @@
     "firstSentence": "Primera frase"
   },
   "discoverPage": {
+    "seoTitle": "Descubrir un libro - Minsik",
+    "seoDescription": "Configura tus preferencias y deja que Minsik encuentre un libro que encaje con tu estado de ánimo.",
     "setPreferences": "Configura tus preferencias y encuentra tu próximo libro favorito",
     "filtersOptionalHint": "Todos los filtros son opcionales, pero cuantos más configures, mejor será la coincidencia.",
     "discoverABook": "Descubrir un libro",
