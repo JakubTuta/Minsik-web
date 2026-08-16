@@ -580,7 +580,8 @@
     "seoDescription": "Découvre ton prochain livre préféré grâce à des recommandations personnalisées, des profils de lecture émotionnels et une communauté de lecteurs passionnés.",
     "trendingNow": "Tendances du moment",
     "trendingNowSubtitle": "Découvre ce que la communauté explore cette semaine.",
-    "recommendationsUnavailable": "Les recommandations ne sont pas disponibles pour le moment. Merci de réessayer plus tard."
+    "recommendationsUnavailable": "Les recommandations ne sont pas disponibles pour le moment. Merci de réessayer plus tard.",
+    "recommendedForYou": "Recommandé pour vous"
   },
   "yearReview": {
     "highlights": "Temps forts",

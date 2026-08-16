@@ -78,12 +78,10 @@ const authorsList = computed(() => props.winner.authors)
             </v-img>
           </div>
 
-          <!-- Title -->
           <h2 class="text-h5 font-weight-bold mb-2">
             {{ winner.title }}
           </h2>
 
-          <!-- Authors -->
           <div class="mb-4">
             <NuxtLinkLocale
               v-for="author in authorsList"
@@ -115,7 +113,6 @@ const authorsList = computed(() => props.winner.authors)
             </div>
           </div>
 
-          <!-- Description snippet -->
           <p
             v-if="descriptionSnippet"
             class="text-body-2 text-medium-emphasis mb-5 text-left"
@@ -124,7 +121,6 @@ const authorsList = computed(() => props.winner.authors)
             {{ descriptionSnippet }}
           </p>
 
-          <!-- Action buttons -->
           <div class="d-flex flex-wrap justify-center gap-3">
             <NuxtLinkLocale
               :to="`/books/${winner.slug}`"

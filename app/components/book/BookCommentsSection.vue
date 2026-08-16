@@ -251,7 +251,6 @@ async function handleDeleteComment() {
     </div>
   </Transition>
 
-  <!-- Confirm Delete Dialog -->
   <v-dialog
     v-model="confirmDelete"
     max-width="400"
@@ -286,7 +285,6 @@ async function handleDeleteComment() {
     </v-card>
   </v-dialog>
 
-  <!-- Snackbar -->
   <v-snackbar
     v-model="snackbar"
     :color="snackbarColor"

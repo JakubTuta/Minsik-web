@@ -32,12 +32,10 @@ export const useAuthorsStore = defineStore('authors', () => {
     : []),
   )
 
-  // Check if author exists in cache
   const hasAuthor = (slug: string) => {
     return authors.value.has(cacheKey(slug))
   }
 
-  // Check if cached data is fresh
   const isCacheFresh = (key: string) => {
     const timestamp = lastFetchTime.value.get(key)
     if (!timestamp)
@@ -46,7 +44,6 @@ export const useAuthorsStore = defineStore('authors', () => {
     return Date.now() - timestamp < CACHE_TTL
   }
 
-  // Compute display dates
   const computeDisplayDates = (author: Author) => {
     if (author.birth_date || author.death_date) {
       const birth = author.birth_date
@@ -59,7 +56,6 @@ export const useAuthorsStore = defineStore('authors', () => {
     }
   }
 
-  // Fetch author details
   const fetchAuthor = async (slug: string, force = false) => {
     const key = cacheKey(slug)
 
@@ -77,10 +73,8 @@ export const useAuthorsStore = defineStore('authors', () => {
       })
       const author = response.data.data!
 
-      // Compute display dates
       computeDisplayDates(author)
 
-      // Cache the author
       authors.value.set(key, author)
       lastFetchTime.value.set(key, Date.now())
       currentAuthor.value = author
@@ -138,7 +132,6 @@ export const useAuthorsStore = defineStore('authors', () => {
     isLoadingBooks.value = true
 
     try {
-      // Fetch with max allowed limit
       const response = await apiStore.client.get<APIResponse<AuthorBooksResponse>>(`/api/v1/authors/${slug}/books`, {
         params: {
           limit: 100, // API maximum limit
@@ -151,7 +144,6 @@ export const useAuthorsStore = defineStore('authors', () => {
 
       const books = response.data.data?.books || []
 
-      // Cache the books
       authorBooks.value.set(key, books)
       lastFetchTime.value.set(key, Date.now())
 
@@ -208,19 +200,16 @@ export const useAuthorsStore = defineStore('authors', () => {
     }
   }
 
-  // Cache an author
   const cacheAuthor = (author: Author) => {
     computeDisplayDates(author)
     authors.value.set(cacheKey(author.slug), author)
     lastFetchTime.value.set(cacheKey(author.slug), Date.now())
   }
 
-  // Get author from cache
   const getAuthor = (slug: string) => {
     return authors.value.get(cacheKey(slug)) || null
   }
 
-  // Refresh current author
   const refresh = async () => {
     if (!currentAuthor.value)
       return
@@ -228,7 +217,6 @@ export const useAuthorsStore = defineStore('authors', () => {
     await fetchAuthorBooks(currentAuthor.value.slug, 'combined_rating', 'desc', true)
   }
 
-  // Clear cache
   const clearCache = () => {
     authors.value.clear()
     authorBooks.value.clear()

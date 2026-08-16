@@ -34,7 +34,6 @@ const searchFieldRef = ref()
 const resultsCardRef = ref()
 const dropdownStyle = ref({ top: '0px', left: '0px', width: '0px' })
 
-// Update dropdown position when it shows (centered below search field)
 let positionRaf = 0
 function updateDropdownPosition() {
   if (props.variant !== 'appbar' || !searchFieldRef.value)
@@ -52,7 +51,6 @@ function updateDropdownPosition() {
   })
 }
 
-// Hide results when clicking outside both search field and results card
 function handleClickOutside(event: MouseEvent) {
   if (props.variant !== 'appbar' || !showResults.value)
     return
@@ -100,19 +98,15 @@ if (import.meta.client) {
   })
 }
 
-// Sync with prop
 watch(() => props.modelValue, (newVal) => {
   localQuery.value = newVal
 })
 
-// Auto-search with debounce
 const debouncedSearch = useDebounceFn(async (query: string) => {
   if (props.variant === 'appbar') {
-    // AppBar: use quick search store
     await quickSearchStore.search(query)
   }
   else {
-    // Full mode: use the search store (for search page)
     searchStore.setQuery(query)
   }
 }, 200)
@@ -120,7 +114,6 @@ const debouncedSearch = useDebounceFn(async (query: string) => {
 watch(localQuery, (newQuery) => {
   emit('update:modelValue', newQuery)
 
-  // Show results dropdown in appbar mode when there's a query
   if (props.variant === 'appbar' && newQuery.trim()) {
     showResults.value = true
     debouncedSearch(newQuery)
@@ -130,12 +123,10 @@ watch(localQuery, (newQuery) => {
     quickSearchStore.clear()
   }
   else {
-    // Full mode
     debouncedSearch(newQuery)
   }
 })
 
-// Handle Enter key in appbar mode
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter' && props.variant === 'appbar' && localQuery.value.trim()) {
     showResults.value = false
@@ -181,7 +172,6 @@ const groupedResults = computed(() => {
   return { books, series, authors }
 })
 
-// Calculate column width based on number of active categories
 const columnWidth = computed(() => {
   if (props.variant !== 'appbar' || !groupedResults.value)
     return 12
@@ -201,7 +191,6 @@ const columnWidth = computed(() => {
   return 4
 })
 
-// Calculate dropdown width based on number of active categories
 const dropdownWidth = computed(() => {
   if (props.variant !== 'appbar' || !groupedResults.value)
     return '400px'

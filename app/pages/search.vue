@@ -132,7 +132,6 @@ function resultRatingCount(result: SearchResult) {
         md="4"
         lg="3"
       >
-        <!-- Author card -->
         <AuthorPreviewCard
           v-if="result.type === 'author'"
           :name="result.title"
@@ -146,7 +145,6 @@ function resultRatingCount(result: SearchResult) {
           :badge-color="resultBadgeColor(result.type)"
         />
 
-        <!-- Book / Series card -->
         <BookPreviewCard
           v-else
           :title="result.title"

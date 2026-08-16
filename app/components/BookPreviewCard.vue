@@ -29,8 +29,6 @@ const props = withDefaults(defineProps<Props>(), {
   linkTo: undefined,
 })
 
-const cardLink = computed(() => props.linkTo ?? `/books/${props.slug}`)
-
 const { optimized } = useOptimizedImage()
 const optimizedCoverUrl = computed(() => optimized(props.coverUrl, 360))
 
@@ -51,120 +49,142 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
 </script>
 
 <template>
-  <div
-    class="book-preview-card-link"
+  <article
+    class="book-preview-card"
     :class="compact
       ? 'compact'
       : 'full'"
   >
-    <v-card class="book-preview-card d-flex flex-column h-100">
-      <!-- Badge -->
-      <v-chip
-        v-if="badge"
-        :color="badgeColor"
-        size="x-small"
-        class="card-badge position-absolute"
-        variant="elevated"
-        style="z-index: 2; top: 8px; right: 8px;"
-      >
-        {{ badge }}
-      </v-chip>
+    <span
+      v-if="badge"
+      class="card-badge"
+      :class="`bg-${badgeColor}`"
+    >
+      {{ badge }}
+    </span>
 
-      <!-- Cover zone -->
+    <NuxtLinkLocale
+      :to="linkTo ?? `/books/${slug}`"
+      class="card-link"
+      :aria-label="title"
+    />
+
+    <div
+      class="cover-zone"
+      :style="{'backgroundColor': coverBg}"
+    >
+      <img
+        v-if="coverUrl"
+        :src="optimizedCoverUrl"
+        :alt="title"
+        width="240"
+        height="360"
+        loading="lazy"
+        decoding="async"
+        class="cover-img"
+      >
+    </div>
+
+    <div class="info-zone">
       <div
-        class="cover-zone d-flex align-center justify-center"
+        class="card-title title-link"
+        :class="compact
+          ? 'line-clamp-1'
+          : 'line-clamp-2'"
       >
-        <v-img
-          v-if="coverUrl"
-          :src="optimizedCoverUrl"
-          :alt="title"
-          contain
-          class="cover-img"
-        >
-          <template #placeholder>
-            <HashedFill :color="coverBg" />
-          </template>
-        </v-img>
+        {{ title }}
       </div>
 
-      <!-- Info zone -->
-      <div class="info-zone d-flex flex-column px-3 pb-2 pt-2">
-        <!-- Title -->
-        <NuxtLinkLocale
-          :to="cardLink"
-          class="card-title font-weight-bold text-body-2 title-link"
-          :class="compact
-            ? 'line-clamp-1'
-            : 'line-clamp-2'"
+      <div
+        v-if="visibleAuthors.length > 0"
+        class="authors-row line-clamp-1"
+      >
+        <template
+          v-for="(name, i) in visibleAuthors"
+          :key="authorSlugs[i] ?? name"
         >
-          {{ title }}
-        </NuxtLinkLocale>
-
-        <!-- Authors -->
-        <div
-          v-if="visibleAuthors.length > 0"
-          class="authors-row text-caption text-medium-emphasis line-clamp-1 mt-1"
-        >
-          <template
-            v-for="(name, i) in visibleAuthors"
-            :key="authorSlugs[i] ?? name"
+          <NuxtLinkLocale
+            :to="`/authors/${authorSlugs[i] ?? ''}`"
+            class="author-link"
           >
-            <NuxtLinkLocale
-              :to="`/authors/${authorSlugs[i] ?? ''}`"
-              class="author-link text-medium-emphasis text-decoration-none"
-            >
-              {{ name }}
-            </NuxtLinkLocale>
+            {{ name }}
+          </NuxtLinkLocale>
 
-            <span v-if="i < visibleAuthors.length - 1">, </span>
-          </template>
-        </div>
-
-        <!-- Spacer -->
-        <div class="flex-grow-1" />
-
-        <!-- Stats -->
-        <div class="stats-row d-flex align-center text-caption text-medium-emphasis mt-1 gap-2">
-          <span class="d-flex align-center gap-1">
-            <v-icon
-              icon="mdi-star"
-              size="x-small"
-              color="warning"
-            />
-            {{ formattedRating }} {{ formattedRatingCount }}
-          </span>
-
-          <span class="d-flex align-center gap-1">
-            <v-icon
-              icon="mdi-account-multiple"
-              size="x-small"
-              color="info"
-            />
-            {{ formattedReaders }}
-          </span>
-        </div>
+          <span v-if="i < visibleAuthors.length - 1">, </span>
+        </template>
       </div>
-    </v-card>
-  </div>
+
+      <div class="flex-grow" />
+
+      <div class="stats-row">
+        <span class="stat">
+          <svg
+            class="stat-icon"
+            aria-hidden="true"
+          ><use
+            href="#icon-star"
+            fill="rgb(var(--v-theme-warning))"
+          /></svg>
+          {{ formattedRating }} {{ formattedRatingCount }}
+        </span>
+
+        <span class="stat">
+          <svg
+            class="stat-icon"
+            aria-hidden="true"
+          ><use
+            href="#icon-account-multiple"
+            fill="rgb(var(--v-theme-info))"
+          /></svg>
+          {{ formattedReaders }}
+        </span>
+      </div>
+    </div>
+  </article>
 </template>
 
 <style scoped>
-.book-preview-card-link {
-  display: block;
+.book-preview-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.book-preview-card-link.full {
+.book-preview-card:hover {
+  border-color: rgba(var(--v-border-color), 0.3);
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.18);
+}
+
+.book-preview-card.full {
   height: 360px;
 }
 
-.book-preview-card-link.compact {
+.book-preview-card.compact {
   height: 100%;
 }
 
-.book-preview-card {
-  position: relative;
+.card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.card-badge {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgb(var(--v-theme-on-primary));
 }
 
 /* Full mode: fixed cover + info split */
@@ -187,7 +207,6 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
 
 .compact .info-zone {
   flex-shrink: 0;
-  overflow: hidden;
   padding-top: 6px !important;
   padding-bottom: 6px !important;
 }
@@ -201,49 +220,105 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
   font-size: 0.65rem;
 }
 
-.compact .stats-row .v-icon {
-  font-size: 10px !important;
+.compact .stat-icon {
+  width: 10px;
+  height: 10px;
 }
 
-/* Cover image fills zone */
 .cover-zone {
   position: relative;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cover-img {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-}
-
-.cover-img :deep(img) {
   object-fit: contain;
 }
 
-/* Title hover (card hover drives it) */
+.info-zone {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px 8px 12px;
+}
+
+.card-title {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
 .title-link {
-  color: inherit;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
   transition: color 0.15s;
 }
 
-.book-preview-card-link:hover .title-link {
+.book-preview-card:hover .title-link {
   color: rgb(var(--v-theme-primary));
 }
 
-/* Authors sit above the overlay link */
+/*
+ * `text-secondary`, not `on-surface-variant`. The theme in plugins/vuetify.ts
+ * spells its key `onSurfaceVariant`, and Vuetify emits variable names verbatim
+ * — so `--v-theme-on-surface-variant` is not ours at all, it survives from
+ * Vuetify's default theme as near-white (#EEE) in light and black in dark.
+ * Either way it is invisible against our card surface.
+ */
 .authors-row {
   position: relative;
   z-index: 2;
+  font-size: 0.75rem;
+  color: rgb(var(--v-theme-text-secondary));
+  margin-top: 4px;
+}
+
+.author-link {
+  position: relative;
+  z-index: 2;
+  color: inherit;
+  text-decoration: none;
 }
 
 .author-link:hover {
-  color: rgb(var(--v-theme-primary)) !important;
+  color: rgb(var(--v-theme-primary));
 }
 
-/* Clamp helpers */
+.flex-grow {
+  flex-grow: 1;
+}
+
+.stats-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: rgb(var(--v-theme-text-secondary));
+  margin-top: 4px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -257,12 +332,6 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
   -webkit-line-clamp: 1;
   line-clamp: 1;
   -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.stats-row {
-  flex-wrap: nowrap;
-  white-space: nowrap;
   overflow: hidden;
 }
 </style>

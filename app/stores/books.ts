@@ -105,13 +105,11 @@ export const useBooksStore = defineStore('books', () => {
     }
   }
 
-  // Cache a book (useful when receiving from search results)
   const cacheBook = (book: Book, lang: string = 'en') => {
     books.value.set(cacheKey(book.slug, lang), book)
     lastFetchTime.value.set(cacheKey(book.slug, lang), Date.now())
   }
 
-  // Cache multiple books
   const cacheBooks = (bookList: Book[], lang: string = 'en') => {
     const timestamp = Date.now()
     bookList.forEach((book) => {
@@ -120,19 +118,16 @@ export const useBooksStore = defineStore('books', () => {
     })
   }
 
-  // Get book from cache
   const getBook = (slug: string, lang: string = 'en') => {
     return books.value.get(cacheKey(slug, lang)) || null
   }
 
-  // Refresh current book
   const refresh = async () => {
     if (!currentBook.value)
       return
     await fetchBook(currentBook.value.slug, currentBook.value.language, true)
   }
 
-  // Clear cache
   const clearCache = () => {
     books.value.clear()
     lastFetchTime.value.clear()

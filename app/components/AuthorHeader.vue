@@ -268,13 +268,11 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
         {{ t('author.alsoKnownAs', {"names": author.alternate_names.slice(0, 2).join(', ')}) }}
       </p>
 
-      <!-- Stats row -->
       <StatsRow
         :stats="authorStats"
         class="mb-4"
       />
 
-      <!-- Bio -->
       <DescriptionCard
         :description="author.bio"
         :collapsible="true"

@@ -31,12 +31,10 @@ export const useSeriesStore = defineStore('series', () => {
     : []),
   )
 
-  // Check if series exists in cache
   const hasSeries = (slug: string) => {
     return series.value.has(cacheKey(slug))
   }
 
-  // Check if cached data is fresh
   const isCacheFresh = (key: string) => {
     const timestamp = lastFetchTime.value.get(key)
     if (!timestamp)
@@ -45,7 +43,6 @@ export const useSeriesStore = defineStore('series', () => {
     return Date.now() - timestamp < CACHE_TTL
   }
 
-  // Fetch series details
   const fetchSeries = async (slug: string, force = false) => {
     const key = cacheKey(slug)
 
@@ -63,7 +60,6 @@ export const useSeriesStore = defineStore('series', () => {
       })
       const seriesData = response.data.data!
 
-      // Cache the series
       series.value.set(key, seriesData)
       lastFetchTime.value.set(key, Date.now())
       currentSeries.value = seriesData
@@ -90,7 +86,6 @@ export const useSeriesStore = defineStore('series', () => {
     isLoadingBooks.value = true
 
     try {
-      // Fetch with max allowed limit
       const response = await apiStore.client.get<APIResponse<SeriesBooksResponse>>(`/api/v1/series/${slug}/books`, {
         params: {
           limit: 100, // API maximum limit
@@ -101,7 +96,6 @@ export const useSeriesStore = defineStore('series', () => {
 
       const books = response.data.data?.books || []
 
-      // Cache the books
       seriesBooks.value.set(key, books)
       lastFetchTime.value.set(key, Date.now())
 
@@ -115,18 +109,15 @@ export const useSeriesStore = defineStore('series', () => {
     }
   }
 
-  // Cache a series
   const cacheSeries = (seriesData: Series) => {
     series.value.set(cacheKey(seriesData.slug), seriesData)
     lastFetchTime.value.set(cacheKey(seriesData.slug), Date.now())
   }
 
-  // Get series from cache
   const getSeries = (slug: string) => {
     return series.value.get(cacheKey(slug)) || null
   }
 
-  // Refresh current series
   const refresh = async () => {
     if (!currentSeries.value)
       return
@@ -134,7 +125,6 @@ export const useSeriesStore = defineStore('series', () => {
     await fetchSeriesBooks(currentSeries.value.slug, true)
   }
 
-  // Clear cache
   const clearCache = () => {
     series.value.clear()
     seriesBooks.value.clear()

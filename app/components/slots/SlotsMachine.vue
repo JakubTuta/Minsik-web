@@ -30,7 +30,6 @@ const machineHeight = computed(() => (expanded.value
   ? TOTAL_ITEM_SIZE.value * 3 - GAP.value + MACHINE_EXTRA_HEIGHT
   : ITEM_SIZE.value + MACHINE_EXTRA_HEIGHT))
 
-// 3 columns
 const reelsContent = ref<Rarity[][]>([[], [], []])
 
 function initializeReels() {
@@ -96,7 +95,6 @@ watch(() => props.spinning, async (isSpinning) => {
 
     await nextTick()
 
-    // Spin reels
     spinTweens = reelsRef.value.map((reel, i) => {
       // We want index 27 to end up in the middle.
       // Since height is 3 items, the middle item is offset by 1.
@@ -129,7 +127,6 @@ onUnmounted(() => {
       class="slots-machine"
       :style="{'height': `${machineHeight}px`}"
     >
-      <!-- Gradient overlays for top and bottom -->
       <div
         class="fade-top"
         :style="{'opacity': spinning

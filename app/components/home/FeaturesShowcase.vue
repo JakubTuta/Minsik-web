@@ -8,7 +8,7 @@ useScrollReveal(containerRef, { stagger: 0.15, y: 40 })
 </script>
 
 <template>
-  <section class="mb-16 mt-8">
+  <section>
     <div class="mb-10 text-center">
       <h2 class="text-h3 font-weight-bold mb-4">
         {{ t('home.gamifiedDiscovery') }}

@@ -231,7 +231,6 @@ const appBarSearchQuery = ref('')
   transition: filter 0.3s ease;
 }
 
-/* Brand wordmark — solid primary */
 .logo-text {
   font-size: 1.35rem;
   font-weight: 800;

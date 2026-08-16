@@ -89,7 +89,6 @@ onUnmounted(() => {
           max-width="580"
         >
           <div class="d-flex flex-column align-center text-center">
-            <!-- Book cover -->
             <div class="cover-wrapper mb-4">
               <v-img
                 :src="book.primary_cover_url || undefined"
@@ -105,12 +104,10 @@ onUnmounted(() => {
               </v-img>
             </div>
 
-            <!-- Title -->
             <h2 class="text-h5 font-weight-bold mb-2">
               {{ book.title }}
             </h2>
 
-            <!-- Authors -->
             <div class="mb-3">
               <NuxtLinkLocale
                 v-for="author in book.authors"
@@ -140,7 +137,6 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- Description -->
             <p
               v-if="descriptionSnippet"
               class="text-body-2 text-medium-emphasis mb-4 text-left"
@@ -149,7 +145,6 @@ onUnmounted(() => {
               {{ descriptionSnippet }}
             </p>
 
-            <!-- Matching count -->
             <v-chip
               v-if="matchingCount !== null && matchingCount > 0"
               :variant="themeStore.isDark
@@ -163,7 +158,6 @@ onUnmounted(() => {
               {{ t('discover.matchingCount', {"count": matchingCount}, matchingCount ?? 0) }}
             </v-chip>
 
-            <!-- Action buttons -->
             <div class="d-flex flex-wrap justify-center gap-3">
               <NuxtLinkLocale
                 :to="`/books/${book.slug}`"

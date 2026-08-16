@@ -58,7 +58,6 @@ async function handleDelete() {
     </template>
 
     <template #meta>
-      <!-- Your Rating -->
       <div
         class="flex-shrink-0 d-flex flex-column align-start gap-1"
         style="width: 140px;"
@@ -80,7 +79,6 @@ async function handleDelete() {
         </div>
       </div>
 
-      <!-- Community avg -->
       <div
         class="flex-shrink-0 d-flex flex-column align-start gap-1"
         style="width: 140px;"

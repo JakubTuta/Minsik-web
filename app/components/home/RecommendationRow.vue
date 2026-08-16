@@ -97,7 +97,6 @@ onUnmounted(() => {
       v-else
       class="carousel-outer"
     >
-      <!-- Left scroll button -->
       <v-btn
         v-show="canScrollLeft"
         icon="mdi-chevron-left"
@@ -107,7 +106,6 @@ onUnmounted(() => {
         @click="scroll('left')"
       />
 
-      <!-- Scrollable track -->
       <div
         ref="scrollContainer"
         class="carousel-wrapper"
@@ -144,7 +142,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Right scroll button -->
       <v-btn
         v-show="canScrollRight && itemCount > 5"
         icon="mdi-chevron-right"

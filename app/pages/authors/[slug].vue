@@ -13,7 +13,6 @@ const { language } = useUserLanguage()
 
 const slug = route.params.slug as string
 
-// Sorting
 type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc' | 'readers-desc' | 'readers-asc'
 const sortBy = ref<SortOption>('date-desc')
 
@@ -32,19 +31,16 @@ function getSortParams() {
   }
 }
 
-// Fetch author data
 const { data: author, error: authorError } = await useCachedAsyncData(
   `author-${slug}`,
   () => authorsStore.fetchAuthor(slug),
   { watch: [language] },
 )
 
-// Handle 404 early
 if (authorError.value || !author.value) {
   throw createError({ statusCode: 404, message: t('authorPage.notFound'), fatal: true })
 }
 
-// Pagination state
 const allBooks = ref<BookSummary[]>([])
 const booksOffset = ref(0)
 const booksTotalCount = ref(0)
@@ -76,10 +72,8 @@ const { data: topBooks } = useCachedAsyncData(
   { lazy: true, watch: [language] },
 )
 
-// View mode: list or timeline
 const viewMode = ref<'list' | 'timeline'>('list')
 
-// Reset and refetch when sort changes
 watch(sortBy, async () => {
   if (viewMode.value !== 'list')
     return
@@ -94,7 +88,6 @@ watch(sortBy, async () => {
   booksOffset.value = result.books.length
 })
 
-// Reset and refetch when view mode changes
 watch(viewMode, async (mode) => {
   allBooks.value = []
   booksTotalCount.value = 0

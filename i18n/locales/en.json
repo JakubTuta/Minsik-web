@@ -580,7 +580,8 @@
     "seoDescription": "Discover your next favorite book through curated recommendations, emotional reading profiles, and a passionate reading community.",
     "trendingNow": "Trending Now",
     "trendingNowSubtitle": "See what the community is discovering this week.",
-    "recommendationsUnavailable": "Recommendations are not available right now. Please try again later."
+    "recommendationsUnavailable": "Recommendations are not available right now. Please try again later.",
+    "recommendedForYou": "Recommended for You"
   },
   "yearReview": {
     "highlights": "Highlights",

@@ -580,7 +580,8 @@
     "seoDescription": "Descubre tu próximo libro favorito a través de recomendaciones seleccionadas, perfiles de lectura emocionales y una comunidad lectora apasionada.",
     "trendingNow": "Tendencias ahora",
     "trendingNowSubtitle": "Descubre lo que la comunidad está explorando esta semana.",
-    "recommendationsUnavailable": "Las recomendaciones no están disponibles ahora mismo. Inténtalo de nuevo más tarde."
+    "recommendationsUnavailable": "Las recomendaciones no están disponibles ahora mismo. Inténtalo de nuevo más tarde.",
+    "recommendedForYou": "Recomendado para ti"
   },
   "yearReview": {
     "highlights": "Momentos destacados",

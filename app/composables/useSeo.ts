@@ -78,7 +78,6 @@ export function useSeo(options: SeoOptions = {}) {
   })
 }
 
-// Helper for structured data (JSON-LD)
 // Unhead v2 removed `children` — use `innerHTML` so the JSON renders as script content
 // Accepts a getter so a page whose content changes in place (a book switching
 // edition with the interface language) does not leave stale JSON-LD behind.
@@ -109,7 +108,6 @@ interface BookStructuredData {
   ratingCount?: number
 }
 
-// Book structured data helper
 export function useBookStructuredData(source: MaybeRefOrGetter<BookStructuredData>) {
   useStructuredData(() => {
     const book = toValue(source)
@@ -175,7 +173,6 @@ export function useBookStructuredData(source: MaybeRefOrGetter<BookStructuredDat
   })
 }
 
-// Breadcrumb structured data helper
 export function useBreadcrumbStructuredData(
   items: MaybeRefOrGetter<{ name: string, url?: string }[]>,
 ) {
@@ -193,7 +190,6 @@ export function useBreadcrumbStructuredData(
   }))
 }
 
-// Author structured data helper
 export function useAuthorStructuredData(author: {
   name: string
   description?: string
@@ -228,7 +224,6 @@ export function useAuthorStructuredData(author: {
   useStructuredData(structuredData)
 }
 
-// Series structured data helper
 export function useSeriesStructuredData(series: {
   name: string
   description?: string

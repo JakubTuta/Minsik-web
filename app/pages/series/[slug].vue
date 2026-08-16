@@ -45,7 +45,6 @@ const { data: primaryAuthor } = await useCachedAsyncData(
   },
 )
 
-// Handle 404
 if (seriesError.value || !series.value) {
   throw createError({
     statusCode: 404,

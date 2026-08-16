@@ -12,7 +12,6 @@ const props = withDefaults(defineProps<Props>(), { size: 'default' })
 const { t, n } = useI18n()
 const { mobile } = useDisplay()
 
-// Round rating down to nearest 0.5
 const roundedRating = computed(() => Math.floor(props.rating * 2) / 2)
 
 const isSmall = computed(() => props.size === 'small')

@@ -5,6 +5,19 @@ body {
   line-height: 1.67;
 }
 
+/*
+ * Paint the page canvas with the theme background. Vuetify only backgrounds
+ * .v-application, which covers its own box and nothing else, so any area the
+ * app box does not reach falls through to the bare UA canvas. That reads as a
+ * near-black band in dark mode (the dark color-scheme drags the UA default
+ * down with it) and goes unnoticed in light mode only because white sits close
+ * to the cream surface. Vuetify rewrites --v-theme-background on :root every
+ * time the theme changes, so this tracks the active theme on its own.
+ */
+html {
+  background-color: rgb(var(--v-theme-background));
+}
+
 .v-application {
   font-family: 'Montserrat', sans-serif !important;
   line-height: 1.67 !important;

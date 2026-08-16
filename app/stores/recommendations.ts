@@ -55,7 +55,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     return Date.now() - timestamp < CACHE_TTL
   }
 
-  // Fetch all home page recommendations
   async function fetchHomeRecommendations(force = false) {
     if (!force && hasHomeData.value && isCacheFresh(languageKey('home')))
       return homeCategories.value
@@ -64,7 +63,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     try {
       const response = await apiStore.client.get<HomePageResponse>(
         '/api/v1/recommendations/home',
-        { params: { items_per_category: 10, language: language.value } },
+        { params: { items_per_category: 8, language: language.value } },
       )
       homeCategories.value = response.data.data!.sections
       lastFetchTime.value.set(languageKey('home'), Date.now())
@@ -83,7 +82,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
-  // Fetch recommendations for a specific category (with pagination)
   async function fetchCategoryRecommendations(
     category: string,
     limit = 20,
@@ -116,7 +114,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
-  // Fetch available categories list
   async function fetchAvailableCategories(force = false) {
     if (!force && availableCategories.value.length > 0 && isCacheFresh('categories'))
       return availableCategories.value
@@ -136,7 +133,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
-  // Fetch recommendations for a specific book
   async function fetchBookRecommendations(bookId: number, force = false) {
     const cacheKey = `book-${bookId}`
 
@@ -165,7 +161,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
-  // Fetch recommendations for a specific author
   async function fetchAuthorRecommendations(authorId: number, force = false) {
     const cacheKey = `author-${authorId}`
 
@@ -194,7 +189,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
-  // Fetch personalized home recommendations (authenticated)
   async function fetchPersonalizedHomeRecommendations(force = false) {
     const cacheKey = languageKey('personal-home')
     if (!force && personalizedHomeCategories.value.length > 0 && isCacheFresh(cacheKey))
@@ -220,7 +214,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
-  // Fetch personalized book recommendations (authenticated)
   async function fetchPersonalizedBookRecommendations(bookId: number, force = false) {
     const cacheKey = `personal-book-${bookId}`
     if (!force && personalizedBookRecommendations.value.has(bookId) && isCacheFresh(cacheKey))
@@ -247,7 +240,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
-  // Fetch personalized author recommendations (authenticated)
   async function fetchPersonalizedAuthorRecommendations(authorId: number, force = false) {
     const cacheKey = `personal-author-${authorId}`
     if (!force && personalizedAuthorRecommendations.value.has(authorId) && isCacheFresh(cacheKey))
@@ -274,7 +266,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     }
   }
 
-  // Fetch recommendations for a specific series
   async function fetchSeriesRecommendations(seriesId: number, force = false) {
     const cacheKey = `series-${seriesId}`
 
@@ -336,7 +327,6 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     return fromAvailable?.display_name ?? category
   }
 
-  // Clear cache
   function clearCache() {
     homeCategories.value = []
     categoryData.value.clear()

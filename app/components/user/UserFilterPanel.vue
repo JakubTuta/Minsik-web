@@ -47,7 +47,6 @@ const showContent = computed(() => !mobile.value || expanded.value)
     class="pa-4"
     style="position: sticky; top: 80px; align-self: flex-start;"
   >
-    <!-- Mobile toggle header -->
     <div
       v-if="mobile"
       class="d-flex align-center justify-space-between mb-2 cursor-pointer"
@@ -63,7 +62,6 @@ const showContent = computed(() => !mobile.value || expanded.value)
     </div>
 
     <template v-if="showContent">
-      <!-- Title Search -->
       <v-text-field
         :model-value="titleFilter"
         :label="t('filter.searchByTitle')"
@@ -76,7 +74,6 @@ const showContent = computed(() => !mobile.value || expanded.value)
         @update:model-value="emit('update:titleFilter', $event ?? '')"
       />
 
-      <!-- Sort By -->
       <div class="text-medium-emphasis font-weight-bold text-uppercase mb-2">
         {{ t('filter.sortBy') }}
       </div>
@@ -120,7 +117,6 @@ const showContent = computed(() => !mobile.value || expanded.value)
         </v-btn>
       </v-btn-toggle>
 
-      <!-- Status Filter -->
       <template v-if="showStatusFilter">
         <v-divider class="my-4" />
 

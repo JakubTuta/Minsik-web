@@ -1,28 +1,15 @@
 <script setup lang="ts">
 import type { BookOfTheWeek } from '~/types/recommendations'
 
-const localePath = useLocalePath()
+interface Props {
+  book: BookOfTheWeek | null
+}
 
+defineProps<Props>()
+
+const localePath = useLocalePath()
 const { t } = useI18n()
 const themeStore = useThemeStore()
-const recommendationsStore = useRecommendationsStore()
-const { language } = useUserLanguage()
-
-// `server: false` keeps book-of-the-week off the SSR critical path — `lazy` alone does not, it only
-// stops the fetch blocking client-side navigation, while SSR still waits for every async data call.
-// The card is decoration, not indexable content, so the hero (LCP) is worth more than having it in
-// the server HTML.
-// `watch: [language]` re-runs the fetch on locale switch — without it the static key means the UI
-// locale switches instantly but the card keeps showing whichever language it first loaded in.
-const { data: botw, status } = useCachedAsyncData<BookOfTheWeek | null>(
-  'hero-book-of-the-week',
-  () => recommendationsStore.fetchBookOfTheWeek(),
-  { lazy: true, default: () => null, server: false, watch: [language] },
-)
-
-// The store answers null when the API has no book to give. Without this the skeleton below would
-// stand in for a card that is never coming and the hero would look permanently stuck loading.
-const hasNoBook = computed(() => status.value === 'error' || (status.value === 'success' && !botw.value))
 </script>
 
 <template>
@@ -34,7 +21,6 @@ const hasNoBook = computed(() => status.value === 'error' || (status.value === '
         align="center"
         justify="space-between"
       >
-        <!-- Text Content -->
         <v-col
           cols="12"
           md="5"
@@ -96,9 +82,8 @@ const hasNoBook = computed(() => status.value === 'error' || (status.value === '
           </div>
         </v-col>
 
-        <!-- Book of the Week -->
         <v-col
-          v-if="!hasNoBook"
+          v-if="book"
           cols="12"
           md="6"
           offset-md="1"
@@ -108,58 +93,7 @@ const hasNoBook = computed(() => status.value === 'error' || (status.value === '
             <div class="hero-visual-glow" />
 
             <div class="position-relative z-1 w-100">
-              <BookOfTheWeekCard
-                v-if="botw"
-                :book="botw"
-              />
-
-              <v-card
-                v-else
-                class="bg-surface-variant overflow-hidden"
-                elevation="4"
-                style="border-radius: 20px;"
-              >
-                <v-card-text class="pa-6">
-                  <v-skeleton-loader
-                    type="chip"
-                    class="mb-4"
-                    width="160"
-                  />
-
-                  <div class="d-flex ga-5">
-                    <v-skeleton-loader
-                      type="image"
-                      width="120"
-                      height="180"
-                      class="flex-shrink-0"
-                      style="border-radius: 8px;"
-                    />
-
-                    <div class="flex-grow-1">
-                      <v-skeleton-loader
-                        type="heading"
-                        class="mb-2"
-                      />
-
-                      <v-skeleton-loader
-                        type="text"
-                        class="mb-3"
-                        width="60%"
-                      />
-
-                      <v-skeleton-loader
-                        type="text"
-                        class="mb-3"
-                        width="80%"
-                      />
-
-                      <v-skeleton-loader
-                        type="sentences"
-                      />
-                    </div>
-                  </div>
-                </v-card-text>
-              </v-card>
+              <BookOfTheWeekCard :book="book" />
             </div>
           </div>
         </v-col>
@@ -177,7 +111,7 @@ const hasNoBook = computed(() => status.value === 'error' || (status.value === '
     rgba(var(--v-theme-surface), 1) 100%
   );
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  min-height: 100vh;
+  min-height: calc(100vh - var(--app-bar-height));
   display: flex;
   align-items: center;
 }
@@ -211,7 +145,6 @@ const hasNoBook = computed(() => status.value === 'error' || (status.value === '
   line-height: 1.6;
 }
 
-/* Visual Section */
 .hero-visual-container {
   position: relative;
   width: 100%;

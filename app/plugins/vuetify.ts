@@ -3,10 +3,17 @@ import type { IconProps, IconSet } from 'vuetify'
 import { useI18n } from 'vue-i18n'
 import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
-import * as vuetifyLocales from 'vuetify/locale'
+import { de, en, es, fr, pl } from 'vuetify/locale'
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n'
-import { APP_LOCALES } from '~~/locales.config'
 import { mdiIconMap } from '~/utils/mdiIcons'
+
+// Named imports, one per app locale — `import * as` from 'vuetify/locale'
+// pulls in all 43 shipped language packs (~115KB) because Rollup can't tell
+// which keys a dynamic index will touch. These re-exports are static, so
+// only the five actually referenced below survive tree-shaking. Keep this
+// list in sync with locales.config.ts's APP_LOCALES by hand — it can't
+// import that list and stay statically analyzable.
+const VUETIFY_LOCALE_PACKS: Record<string, Record<string, unknown>> = { en, pl, de, es, fr }
 
 // Resolves "mdi-*" name strings to @mdi/js SVG paths so the 400KB+ icon font is not needed
 const mdiSvg: IconSet = {
@@ -19,24 +26,20 @@ const mdiSvg: IconSet = {
 export default defineNuxtPlugin((app) => {
   const colorMode = useColorMode()
 
-  // Derived from `preference`, never from `value`. @nuxtjs/color-mode's SSR
-  // plugin seeds `preference` from the persisted cookie (which is why
-  // `colorMode.storage` is set to 'cookie'), but leaves `value` at the
-  // literal unresolved string "system" — only a browser can resolve that.
-  // So this expression evaluates identically on the server and on the client,
-  // which is the point: Vuetify hydrates against exactly the theme stylesheet
-  // the server inlined, instead of silently constructing a second instance on
-  // a different theme.
-  //
-  // For an explicit 'dark'/'light' choice that's already the final answer.
-  // For 'system' the server can only guess (light), and the client watcher
-  // below then performs a *real* theme change — which matters, because
-  // Vuetify only rewrites its <style> element when `styles` actually changes.
-  // Constructing the client instance directly on the resolved theme would
-  // leave that stylesheet permanently stale at whatever the server sent.
-  const initialTheme = colorMode.preference === 'dark'
-    ? 'dark'
-    : 'light'
+  // Always 'light', regardless of the reader's cookie. SSR HTML must be
+  // visitor-independent so `/` and friends can be swr-cached (see
+  // nuxt.config.ts routeRules) — deriving this from colorMode.preference
+  // would stamp a per-visitor theme into the cached snapshot and serve
+  // whoever rendered it first to everyone after them. Vuetify compiles both
+  // `.v-theme--light` and `.v-theme--dark` rule blocks into the one
+  // stylesheet either way; @nuxtjs/color-mode's pre-paint inline script sets
+  // the class on <html> before first paint, so a dark-mode reader still gets
+  // correct dark chrome with no flash — this only fixes which theme's colors
+  // Vuetify computes for `rgb(var(--v-theme-*))` usages during SSR. The
+  // client watcher below then performs a real theme.change() on boot for
+  // 'system'/'dark' readers, which is what keeps the runtime stylesheet
+  // correct for them.
+  const initialTheme = 'light'
 
   // Vuetify ships its own translations for internal component strings ("No
   // data available", pagination, etc.) — separate from our en.json. Merge
@@ -44,11 +47,8 @@ export default defineNuxtPlugin((app) => {
   // shared i18n instance so adding a language here needs no Vuetify-specific
   // code, only a locales.config.ts entry whose code Vuetify also ships.
   const i18n = app.$i18n as unknown as Composer
-  for (const entry of APP_LOCALES) {
-    const vuetifyMessages = (vuetifyLocales as Record<string, Record<string, unknown>>)[entry.code]
-    if (vuetifyMessages)
-      i18n.mergeLocaleMessage(entry.code, { $vuetify: vuetifyMessages })
-  }
+  for (const [code, vuetifyMessages] of Object.entries(VUETIFY_LOCALE_PACKS))
+    i18n.mergeLocaleMessage(code, { $vuetify: vuetifyMessages })
 
   const vuetify = createVuetify({
     ssr: true,
@@ -232,15 +232,40 @@ export default defineNuxtPlugin((app) => {
   app.vueApp.use(vuetify)
 
   if (import.meta.client) {
-    // `immediate: true` is what resolves 'system' on boot: `initialTheme`
-    // above deliberately guessed light, so this first run is a genuine theme
-    // change that makes Vuetify regenerate and re-inline its stylesheet.
-    // Without it, a system-dark visitor would get dark components sitting on
-    // the server's light page chrome until they toggled the theme by hand.
-    watch(() => colorMode.value, (newTheme) => {
-      vuetify.theme.change(newTheme === 'dark'
+    const themeStore = useThemeStore()
+
+    const syncVuetifyTheme = () => {
+      const next = colorMode.value === 'dark'
         ? 'dark'
-        : 'light')
-    }, { immediate: true })
+        : 'light'
+
+      vuetify.theme.change(next)
+      // Keeps the store's `isDark`/`currentTheme` in lockstep with what
+      // Vuetify actually applied, so components reading them flip in the same
+      // tick as Vuetify's own classes rather than mid-hydration.
+      themeStore.setAppliedTheme(next)
+    }
+
+    // This timing is load-bearing. `initialTheme` is pinned light so the SSR
+    // HTML stays visitor-neutral and cacheable, so the client's first render
+    // has to agree with it: Vue does not patch mismatched classes while
+    // hydrating a production build. Change the theme any earlier and Vuetify
+    // rewrites the :root variables to dark while the `v-theme--light` class it
+    // stamps on every component stays frozen at the server's value — light
+    // components on a dark page canvas, which only rights itself on the next
+    // unrelated re-render.
+    //
+    // `app:mounted` is NOT early enough to be safe here: nuxt-root wraps the
+    // app in <Suspense>, so it fires when the root mounts, while the suspended
+    // page subtree is still hydrating. `app:suspense:resolve` is the hook
+    // deferHydration() calls once `isHydrating` goes false, which is the real
+    // all-clear — after it, a theme change is an ordinary reactive update and
+    // every one of those classes patches.
+    watch(() => colorMode.value, () => {
+      if (!app.isHydrating)
+        syncVuetifyTheme()
+    })
+
+    app.hook('app:suspense:resolve', syncVuetifyTheme)
   }
 })

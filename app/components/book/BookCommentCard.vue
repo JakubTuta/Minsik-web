@@ -261,7 +261,6 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
             </v-tooltip>
           </div>
 
-          <!-- Comment Body -->
           <p class="text-body-2 mb-1">
             {{ comment.body }}
           </p>

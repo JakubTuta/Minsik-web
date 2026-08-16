@@ -58,7 +58,6 @@ onMounted(handleCallback)
     class="d-flex align-center justify-center"
     style="min-height: 80vh;"
   >
-    <!-- Loading -->
     <div
       v-if="state === 'loading'"
       class="d-flex flex-column align-center gap-6"
@@ -74,7 +73,6 @@ onMounted(handleCallback)
       </p>
     </div>
 
-    <!-- Error -->
     <v-card
       v-else-if="state === 'error'"
       max-width="440"

@@ -8,7 +8,6 @@ const authDialogStore = useAuthDialogStore()
   <v-footer class="app-footer py-10">
     <v-container>
       <v-row>
-        <!-- Brand column -->
         <v-col
           cols="12"
           sm="3"
@@ -63,7 +62,6 @@ const authDialogStore = useAuthDialogStore()
           </div>
         </v-col>
 
-        <!-- Discover column -->
         <v-col
           cols="12"
           sm="2"
@@ -89,7 +87,6 @@ const authDialogStore = useAuthDialogStore()
           </div>
         </v-col>
 
-        <!-- Casino column -->
         <v-col
           cols="12"
           sm="2"
@@ -122,7 +119,6 @@ const authDialogStore = useAuthDialogStore()
           </div>
         </v-col>
 
-        <!-- Legal column -->
         <v-col
           cols="12"
           sm="2"
@@ -148,7 +144,6 @@ const authDialogStore = useAuthDialogStore()
           </div>
         </v-col>
 
-        <!-- Account column -->
         <v-col
           cols="12"
           sm="3"

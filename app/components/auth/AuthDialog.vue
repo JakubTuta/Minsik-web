@@ -142,7 +142,6 @@ function signInWithGoogle() {
           v-model="isFormValid"
           @submit.prevent="handleSubmit"
         >
-          <!-- Register only: Username -->
           <v-text-field
             v-if="!isLoginMode"
             v-model="username"
@@ -273,7 +272,6 @@ function signInWithGoogle() {
             </template>
           </div>
 
-          <!-- Google Auth Divider -->
           <div class="d-flex align-center my-4 gap-3">
             <v-divider />
 

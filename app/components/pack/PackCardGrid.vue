@@ -132,7 +132,6 @@ onUnmounted(() => {
           <div class="card-face card-front">
             <div class="card-front-glow" />
 
-            <!-- Rarity badge -->
             <div class="card-rarity-badge">
               <span
                 class="rarity-chip text-caption font-weight-bold text-uppercase"
@@ -143,7 +142,6 @@ onUnmounted(() => {
               </span>
             </div>
 
-            <!-- Book card -->
             <BookPreviewCard
               compact
               :title="item.title"
@@ -160,7 +158,6 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Open Another button -->
     <v-btn
       class="mt-16"
       variant="outlined"

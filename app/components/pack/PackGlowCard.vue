@@ -42,14 +42,12 @@ onUnmounted(() => {
 
 <template>
   <div class="glow-stage d-flex align-center justify-center">
-    <!-- Floor glow beam -->
     <div
       ref="glowRef"
       class="floor-beam"
       :style="{'background': `radial-gradient(ellipse 500px 580px at 50% 50%, ${rarityColor}88 0%, ${rarityColor}33 40%, transparent 70%)`}"
     />
 
-    <!-- Mystery card -->
     <div
       ref="cardRef"
       class="mystery-card"

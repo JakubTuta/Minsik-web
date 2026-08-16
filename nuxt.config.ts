@@ -53,6 +53,11 @@ export default defineNuxtConfig({
 
   // Runtime configuration
   runtimeConfig: {
+    // Server-only. In-cluster gateway address for SSR data fetches, so they
+    // stay on the internal Docker network instead of hairpinning out over
+    // public TLS to the public apiBase and back in. Empty default falls back
+    // to public.apiBase for local dev where there is no internal network.
+    apiBaseInternal: '',
     public: {
       // Google requires hreflang and canonical URLs to be fully qualified, and
       // `useLocaleHead()` prefixes its tags with i18n's own baseUrl — left
@@ -99,13 +104,18 @@ export default defineNuxtConfig({
   // Weights match actual usage (font-weight-bold/medium/black classes);
   // Vuetify declares `Roboto` internally but nothing renders it, so it's
   // pinned to `none` rather than silently downloaded.
+  // `styles: ['normal']` drops the italic faces — the default fetches both,
+  // and Nuxt's preload heuristic picked the latin-ext ITALIC face (72KB) over
+  // the normal one. The only italic usage in the app is one decorative quote
+  // line (BookOfTheWeekCard's `.bow-quote`), not worth a dedicated face; the
+  // browser's synthetic-oblique fallback covers it.
   fonts: {
     defaults: {
       subsets: ['latin', 'latin-ext'],
       preload: true,
     },
     families: [
-      { name: 'Montserrat', provider: 'google', weights: [400, 500, 700, 800] },
+      { name: 'Montserrat', provider: 'google', weights: [400, 500, 700, 800], styles: ['normal'] },
       { name: 'Roboto', provider: 'none' },
     ],
   },
@@ -139,14 +149,15 @@ export default defineNuxtConfig({
     // built-in components/directives we never use.
     bundle: { fullInstall: false },
     experimental: {
-      // Inline messages into the SSR HTML instead of a separate dynamic
-      // import — removes a serial ~70KB round trip after the entry chunk
-      // parses on every first load.
-      preload: true,
-      // `preload` defaults this to true, which drops any key not rendered
-      // during SSR (dialogs, menus, client-only branches) — keep it off
-      // until those call sites are audited with useI18nPreloadKeys.
-      stripMessagesPayload: false,
+      // OFF. `preload: true` used to fan out ALL 5 locales into every SSR
+      // response (5 internal fetches + ~265KB parse/merge + 306KB inlined
+      // devalue blob), on every request, regardless of active locale — measured
+      // as the single largest cost in the app's TTFB. With this off, SSR loads
+      // only the active locale via loadMessagesFromServer (one Nitro-cached
+      // fetch); client fetches its own locale from the prerendered static file
+      // below. Net: one cacheable ~50KB fetch instead of 306KB inlined + 5
+      // server round-trips.
+      preload: false,
       // One regex route per page instead of one per (page x locale).
       compactRoutes: true,
       // Static hashed messages.json instead of the Nitro /_i18n route, so a
@@ -200,26 +211,27 @@ export default defineNuxtConfig({
   routeRules: withLocalizedRouteRules({
     // Public content — SSR for SEO and fast first paint.
     //
-    // `/` is NOT swr-cached. Nitro keys that cache on the request path alone,
-    // so a single rendered snapshot gets replayed to every later visitor —
-    // but the HTML is not visitor-independent: Vuetify inlines a theme
-    // stylesheet and stamps `v-theme--light`/`v-theme--dark` on the root
-    // element from the reader's own colour-mode cookie. Caching it served
-    // whoever came first their theme and everyone after that a page whose
-    // chrome disagreed with its components. The same argument applies to the
-    // locale, which is why server/middleware/root-locale-redirect has to
-    // settle that before the render handler either way.
-    '/': { ssr: true },
-    '/books/**': { ssr: true },
-    '/authors/**': { ssr: true },
-    '/series/**': { ssr: true },
+    // `/` and `/categories` are swr-cached. Nitro keys the cache on request
+    // path alone, so this only works because the HTML is now visitor-
+    // independent: theme is pinned to a fixed default in the compiled
+    // stylesheet (app/plugins/vuetify.ts) rather than stamped from the
+    // reader's colour-mode cookie, and locale already has its own path
+    // (server/middleware/root-locale-redirect settles it before the render
+    // handler runs). Any component that still renders theme- or user-
+    // specific markup into SSR HTML breaks this cache — see "Impact on the
+    // rest of the app" in the perf plan for the full audit.
+    '/': { ssr: true, swr: 600 },
+    '/categories': { ssr: true, swr: 600 },
+    '/books/**': { ssr: true, swr: 3600 },
+    '/authors/**': { ssr: true, swr: 3600 },
+    '/series/**': { ssr: true, swr: 3600 },
     '/search': { ssr: true },
-    '/categories': { ssr: true },
     '/recommendations/**': { ssr: true },
     '/bookshelf/**': { ssr: true },
     '/about': { ssr: true },
     '/privacy-policy': { ssr: true },
     '/terms-of-service': { ssr: true },
+    '/_i18n/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
 
     // Interactive pages — no SEO content, no data fetching
     '/open-case': { ssr: false },
@@ -259,5 +271,6 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: 'bun',
+    compressPublicAssets: { gzip: true, brotli: true },
   },
 })

@@ -12,7 +12,6 @@ const localePath = useLocalePath()
 
 const { t } = useI18n()
 const genreLabel = useGenreLabel()
-const themeStore = useThemeStore()
 
 const authorNames = computed(() => props.book.authors.map(a => a.name).join(', '),
 )
@@ -24,7 +23,6 @@ const { optimized } = useOptimizedImage()
 <template>
   <v-card
     class="bow-card bg-surface-variant overflow-hidden"
-    :theme="themeStore.currentTheme"
     elevation="4"
   >
     <div class="bow-glow" />
@@ -41,21 +39,21 @@ const { optimized } = useOptimizedImage()
       </v-chip>
 
       <div class="d-flex ga-5">
-        <v-img
-          :src="optimized(book.primary_cover_url, 240)"
-          :alt="book.title"
-          width="120"
-          min-width="120"
-          height="180"
-          cover
-          eager
-          rounded="lg"
-          class="bow-cover elevation-6"
+        <div
+          class="bow-cover-wrapper elevation-6"
+          :style="{'backgroundColor': coverBg}"
         >
-          <template #placeholder>
-            <HashedFill :color="coverBg" />
-          </template>
-        </v-img>
+          <img
+            v-if="optimized(book.primary_cover_url, 240)"
+            :src="optimized(book.primary_cover_url, 240)"
+            :alt="book.title"
+            width="120"
+            height="180"
+            fetchpriority="high"
+            decoding="async"
+            class="bow-cover"
+          >
+        </div>
 
         <div class="d-flex flex-column overflow-hidden">
           <NuxtLinkLocale
@@ -125,9 +123,20 @@ const { optimized } = useOptimizedImage()
   z-index: 0;
 }
 
-.bow-cover {
+.bow-cover-wrapper {
+  width: 120px;
+  min-width: 120px;
+  height: 180px;
   border-radius: 8px;
+  overflow: hidden;
   flex-shrink: 0;
+}
+
+.bow-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .bow-quote {

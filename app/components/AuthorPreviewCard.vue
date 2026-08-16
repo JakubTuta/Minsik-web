@@ -24,10 +24,10 @@ const props = withDefaults(defineProps<Props>(), {
   badgeColor: 'success',
 })
 
+const { t, n, locale } = useI18n()
 const { optimized } = useOptimizedImage()
 const optimizedPhotoUrl = computed(() => optimized(props.photoUrl, 280))
 
-const { locale } = useI18n()
 const compactFmt = computed(() => compactNumberFormat(locale.value))
 
 const formattedRating = computed(() => (props.rating
@@ -44,118 +44,206 @@ const photoBg = computed(() => hashColor(props.name))
 </script>
 
 <template>
-  <div
-    class="author-preview-card-link d-block"
-    style="height: 360px;"
-  >
-    <v-card class="author-preview-card d-flex flex-column h-100">
-      <!-- Badge -->
-      <v-chip
-        v-if="badge"
-        :color="badgeColor"
-        size="x-small"
-        class="position-absolute"
-        variant="elevated"
-        style="z-index: 2; top: 8px; right: 8px;"
-      >
-        {{ badge }}
-      </v-chip>
+  <article class="author-preview-card">
+    <span
+      v-if="badge"
+      class="card-badge"
+      :class="`bg-${badgeColor}`"
+    >
+      {{ badge }}
+    </span>
 
-      <!-- Avatar zone -->
+    <NuxtLinkLocale
+      :to="`/authors/${slug}`"
+      class="card-link"
+      :aria-label="name"
+    />
+
+    <div class="avatar-zone">
       <div
-        class="avatar-zone d-flex align-center justify-center"
+        class="author-avatar"
+        :style="{'backgroundColor': photoBg}"
       >
-        <v-avatar
-          size="140"
-          class="author-avatar"
+        <img
+          v-if="photoUrl"
+          :src="optimizedPhotoUrl"
+          :alt="name"
+          width="140"
+          height="140"
+          loading="lazy"
+          decoding="async"
+          class="avatar-img"
         >
-          <v-img
-            :src="optimizedPhotoUrl"
-            :alt="name"
-            cover
-          >
-            <template #placeholder>
-              <HashedFill :color="photoBg" />
-            </template>
-          </v-img>
-        </v-avatar>
+      </div>
+    </div>
+
+    <div class="info-zone">
+      <div class="card-name name-link line-clamp-2">
+        {{ name }}
       </div>
 
-      <!-- Info zone -->
-      <div class="info-zone d-flex flex-column align-center px-3 pb-2 pt-2 text-center">
-        <!-- Name -->
-        <NuxtLinkLocale
-          :to="`/authors/${slug}`"
-          class="card-name font-weight-bold text-body-2 name-link line-clamp-2"
-        >
-          {{ name }}
-        </NuxtLinkLocale>
+      <div class="flex-grow" />
 
-        <!-- Spacer -->
-        <div class="flex-grow-1" />
+      <div class="stats-row">
+        <span class="stat">
+          <svg
+            class="stat-icon"
+            aria-hidden="true"
+          ><use
+            href="#icon-star"
+            fill="rgb(var(--v-theme-warning))"
+          /></svg>
+          {{ formattedRating }} {{ formattedRatingCount }}
+        </span>
 
-        <!-- Stats -->
-        <div class="stats-row d-flex align-center text-caption text-medium-emphasis mt-1 justify-center gap-2">
-          <span class="d-flex align-center gap-1">
-            <v-icon
-              icon="mdi-star"
-              size="x-small"
-              color="warning"
-            />
-            {{ formattedRating }} {{ formattedRatingCount }}
-          </span>
-
-          <span class="d-flex align-center gap-1">
-            <v-icon
-              icon="mdi-account-multiple"
-              size="x-small"
-              color="info"
-            />
-            {{ formattedReaders }}
-          </span>
-        </div>
-
-        <!-- Book count -->
-        <div class="text-caption text-medium-emphasis mt-1">
-          {{ bookCount }} {{ bookCount === 1
-            ? 'book'
-            : 'books' }}
-        </div>
+        <span class="stat">
+          <svg
+            class="stat-icon"
+            aria-hidden="true"
+          ><use
+            href="#icon-account-multiple"
+            fill="rgb(var(--v-theme-info))"
+          /></svg>
+          {{ formattedReaders }}
+        </span>
       </div>
-    </v-card>
-  </div>
+
+      <div class="book-count">
+        {{ t('common.bookCount', {"count": n(bookCount)}, bookCount) }}
+      </div>
+    </div>
+  </article>
 </template>
 
 <style scoped>
-.author-preview-card-link {
-  position: relative;
-}
-
 .author-preview-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 360px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.author-preview-card:hover {
+  border-color: rgba(var(--v-border-color), 0.3);
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.18);
+}
+
+.card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.card-badge {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgb(var(--v-theme-on-primary));
 }
 
 .avatar-zone {
   height: 60%;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.author-avatar {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(var(--v-theme-primary), 0.2);
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .info-zone {
   height: 40%;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 12px 8px 12px;
 }
 
-.author-avatar {
-  border: 2px solid rgba(var(--v-theme-primary), 0.2);
+.card-name {
+  font-weight: 700;
+  font-size: 0.875rem;
 }
 
 .name-link {
-  color: inherit;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
   transition: color 0.15s;
 }
 
-.author-preview-card-link:hover .name-link {
+.author-preview-card:hover .name-link {
   color: rgb(var(--v-theme-primary));
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+/*
+ * `text-secondary`, not `on-surface-variant` — see the note in
+ * BookPreviewCard.vue. The kebab-case name resolves to Vuetify's default
+ * theme, which is invisible against our surface in both light and dark.
+ */
+.stats-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: rgb(var(--v-theme-text-secondary));
+  margin-top: 4px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.book-count {
+  position: relative;
+  z-index: 2;
+  font-size: 0.75rem;
+  color: rgb(var(--v-theme-text-secondary));
+  margin-top: 4px;
 }
 
 .line-clamp-2 {
@@ -163,12 +251,6 @@ const photoBg = computed(() => hashColor(props.name))
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.stats-row {
-  flex-wrap: nowrap;
-  white-space: nowrap;
   overflow: hidden;
 }
 </style>

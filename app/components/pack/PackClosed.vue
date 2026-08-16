@@ -259,7 +259,6 @@ onUnmounted(() => {
   }
 }
 
-/* Ambient glow behind the whole pack */
 .pack-ambient-glow {
   position: absolute;
   inset: -40px;

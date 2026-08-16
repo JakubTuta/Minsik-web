@@ -10,7 +10,6 @@ const recommendationTitle = useRecommendationTitle()
 
 const category = route.params.category as string
 
-// SSR fetch — first page (20 items)
 const { data: categoryData, error } = await useAsyncData(
   `recommendation-${category}`,
   () => recommendationsStore.fetchCategoryRecommendations(category, 20, 0),
@@ -21,7 +20,6 @@ const pageTitle = computed(() => (categoryData.value
   ? recommendationTitle(categoryData.value)
   : t('recommendationsPage.title')))
 
-// SEO
 useSeo({
   title: pageTitle,
   description: computed(() => t('recommendationsPage.description', { name: pageTitle.value })),
@@ -37,7 +35,6 @@ const itemLabel = computed(() => (isAuthorCategory.value
   ? t('recommendationsPage.authorsLabel')
   : t('recommendationsPage.booksLabel')))
 
-// Pagination
 const items = ref<(RecommendationBookItem | RecommendationAuthorItem)[]>(
   categoryData.value?.item_type === 'author'
     ? [...(categoryData.value?.author_items ?? [])]
@@ -76,7 +73,6 @@ async function loadMore() {
 
 <template>
   <v-container class="py-6">
-    <!-- Back navigation -->
     <div class="mb-6">
       <NuxtLinkLocale
         to="/"
@@ -93,7 +89,6 @@ async function loadMore() {
       </NuxtLinkLocale>
     </div>
 
-    <!-- Page header -->
     <div class="mb-6">
       <h1 class="text-h4 text-sm-h3 font-weight-bold mb-1">
         {{ pageTitle }}
@@ -105,7 +100,6 @@ async function loadMore() {
       </p>
     </div>
 
-    <!-- Grid of items -->
     <v-row>
       <template v-if="isAuthorCategory">
         <v-col
@@ -149,7 +143,6 @@ async function loadMore() {
       </template>
     </v-row>
 
-    <!-- Load more -->
     <div
       v-if="hasMore"
       class="d-flex mt-8 justify-center"
@@ -166,7 +159,6 @@ async function loadMore() {
       </v-btn>
     </div>
 
-    <!-- End of list -->
     <div
       v-else-if="items.length > 0"
       class="text-medium-emphasis py-6 text-center"

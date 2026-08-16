@@ -30,7 +30,6 @@ const meta = computed(() => {
 
 <template>
   <template v-if="meta">
-    <!-- Favourite heart -->
     <v-icon
       v-if="meta.isFavorite"
       icon="mdi-heart"
@@ -39,7 +38,6 @@ const meta = computed(() => {
       class="shelf-fav position-absolute"
     />
 
-    <!-- On-shelf status ribbon -->
     <div class="shelf-ribbon">
       <v-chip
         :color="meta.color"

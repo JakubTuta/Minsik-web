@@ -24,7 +24,6 @@ export const useSearchStore = defineStore('search', () => {
   const hasMore = computed(() => results.value.length < total.value)
   const isEmpty = computed(() => !isLoading.value && !hasData.value && query.value.length > 0)
 
-  // Clear search
   const clear = () => {
     query.value = ''
     results.value = []
@@ -33,12 +32,10 @@ export const useSearchStore = defineStore('search', () => {
     isLoading.value = false
   }
 
-  // Generate cache key
   const getCacheKey = (q: string, t: SearchType, off: number) => {
     return `${q}_${t}_${off}`
   }
 
-  // Check if cache is fresh
   const isCacheFresh = (key: string) => {
     const cached = cache.get(key)
     if (!cached)
@@ -60,7 +57,6 @@ export const useSearchStore = defineStore('search', () => {
 
     const cacheKey = getCacheKey(query.value, type.value, offset.value)
 
-    // Check cache
     if (!force && isCacheFresh(cacheKey)) {
       const cached = cache.get(cacheKey)!
       if (offset.value === 0)
@@ -90,14 +86,12 @@ export const useSearchStore = defineStore('search', () => {
       const searchData = response.data.data
       const newResults = searchData.results || []
 
-      // Update cache
       cache.set(cacheKey, {
         data: newResults,
         timestamp: Date.now(),
         total: searchData.total_count || 0,
       })
 
-      // Append or replace results
       if (offset.value === 0)
         results.value = newResults
       else
@@ -130,14 +124,12 @@ export const useSearchStore = defineStore('search', () => {
       await searchDebounced(force)
   }
 
-  // Refresh (force reload)
   const refresh = async () => {
     offset.value = 0
     results.value = []
     await search(true)
   }
 
-  // Load more for infinite scroll
   const loadMore = async () => {
     if (isLoading.value || !hasMore.value)
       return
@@ -146,19 +138,16 @@ export const useSearchStore = defineStore('search', () => {
     await search()
   }
 
-  // Change search type
   const setType = (newType: SearchType) => {
     type.value = newType
     offset.value = 0
     results.value = []
 
-    // Only search if there's a query
     if (query.value.trim()) {
-      search(true) // Force new search with the new type
+      search(true)
     }
   }
 
-  // Set query and trigger search
   const setQuery = (newQuery: string) => {
     query.value = newQuery
     offset.value = 0
@@ -166,7 +155,7 @@ export const useSearchStore = defineStore('search', () => {
     total.value = 0
 
     if (newQuery.trim()) {
-      isLoading.value = true // Set loading immediately only if there's a query
+      isLoading.value = true
       search()
     }
     else {

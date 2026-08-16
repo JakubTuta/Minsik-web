@@ -167,7 +167,6 @@ function getGlowStyle(rarity: string | null | undefined) {
   overflow: hidden;
   position: relative;
   border-radius: 8px;
-  /* background matching slots */
   background: #111;
   border: 4px solid #333;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.8);

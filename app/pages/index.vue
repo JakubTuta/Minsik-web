@@ -1,115 +1,199 @@
 <script setup lang="ts">
-import type { RecommendationSection } from '~/types/recommendations'
+import type { PopularCategory } from '~/types/categories'
+import type { BookOfTheWeek, RecommendationSection } from '~/types/recommendations'
+import { readCookie } from '~/utils/cookie'
 
 const recommendationsStore = useRecommendationsStore()
+const categoriesStore = useCategoriesStore()
 const authStore = useAuthStore()
 const { t } = useI18n()
-// Home rows are built per language server-side.
 const { language } = useUserLanguage()
 
-// SEO
 useSeo({
   description: t('home.seoDescription'),
 })
 
-// Lazy: a blocking fetch here would stall the whole route transition (and the
-// URL/history update with it) until it resolves, on every navigation to this
-// page — including a locale switch. The skeleton below already covers the
-// loading state.
 const { data: categories, error } = useCachedAsyncData(
   'home-recommendations',
   () => recommendationsStore.fetchHomeRecommendations(),
   { lazy: true, watch: [language] },
 )
 
+const { data: popularCategories } = useCachedAsyncData<PopularCategory[]>(
+  'home-popular-categories',
+  () => categoriesStore.fetchPopularCategories(12),
+  { lazy: true },
+)
+
+const { data: botw } = useCachedAsyncData<BookOfTheWeek | null>(
+  'hero-book-of-the-week',
+  () => recommendationsStore.fetchBookOfTheWeek(),
+  { lazy: true, default: () => null, watch: [language] },
+)
+
+const siteUrl = useRuntimeConfig().public.siteUrl as string
+
+useHead(() => {
+  if (!botw.value)
+    return {}
+
+  return {
+    script: [{
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Book',
+        'name': botw.value.title,
+        'author': botw.value.authors.map(a => ({ '@type': 'Person', 'name': a.name })),
+        'url': `${siteUrl}/books/${botw.value.slug}`,
+        'image': botw.value.primary_cover_url,
+        'inLanguage': botw.value.language,
+        'genre': botw.value.categories.map(c => c.name),
+        'aggregateRating': botw.value.rating_count > 0
+          ? {
+              '@type': 'AggregateRating',
+              'ratingValue': botw.value.weighted_avg_rating,
+              'ratingCount': botw.value.rating_count,
+              'bestRating': 5,
+              'worstRating': 1,
+            }
+          : undefined,
+      }),
+    }],
+  }
+})
+
 const filteredCategories = computed<RecommendationSection[]>(() => (categories.value ?? []).filter(
   c => (c.book_items?.length ?? 0) > 0 || (c.author_items?.length ?? 0) > 0,
 ),
 )
 
-// Personalized recommendations — rendered inside <ClientOnly> so no SSR involvement
+const SSR_ROW_COUNT = 3
+const eagerCategories = computed(() => filteredCategories.value.slice(0, SSR_ROW_COUNT))
+const remainingCategories = computed(() => filteredCategories.value.slice(SSR_ROW_COUNT))
+
 const personalizedCategories = ref<RecommendationSection[]>([])
-const isLoadingPersonalized = ref(false)
+const isLoadingPersonalized = ref(import.meta.client && Boolean(readCookie('csrf_token')))
 
 if (import.meta.client) {
-  watch(() => authStore.isAuthenticated, async (isAuth) => {
-    if (isAuth) {
-      isLoadingPersonalized.value = true
-      try {
-        personalizedCategories.value = await recommendationsStore.fetchPersonalizedHomeRecommendations() ?? []
-      }
-      finally {
-        isLoadingPersonalized.value = false
-      }
+  authStore.waitForAuth().then(async () => {
+    if (!authStore.isAuthenticated) {
+      isLoadingPersonalized.value = false
+
+      return
     }
-    else {
-      personalizedCategories.value = []
+
+    isLoadingPersonalized.value = true
+    try {
+      personalizedCategories.value = await recommendationsStore.fetchPersonalizedHomeRecommendations() ?? []
     }
-  }, { immediate: true })
+    finally {
+      isLoadingPersonalized.value = false
+    }
+  })
 }
+
+const PERSONALIZED_EAGER_COUNT = 2
+const eagerPersonalized = computed(() => personalizedCategories.value.slice(0, PERSONALIZED_EAGER_COUNT))
+const remainingPersonalized = computed(() => personalizedCategories.value.slice(PERSONALIZED_EAGER_COUNT))
 </script>
 
 <template>
   <div>
-    <HeroBanner />
+    <HeroBanner :book="botw" />
 
     <v-container class="py-8">
-      <FeaturesShowcase />
+      <FeaturesShowcase class="home-section" />
 
-      <PopularCategoriesGrid />
-
-      <div class="mb-10 mt-16 text-center">
-        <h2 class="text-h3 font-weight-bold mb-4">
-          {{ t('home.trendingNow') }}
-        </h2>
-
-        <p
-          class="text-h6 text-medium-emphasis mx-auto"
-          style="max-width: 600px;"
-        >
-          {{ t('home.trendingNowSubtitle') }}
-        </p>
-      </div>
+      <PopularCategoriesGrid
+        class="home-section"
+        :categories="popularCategories"
+      />
 
       <ClientOnly>
-        <div v-if="isLoadingPersonalized || personalizedCategories.length > 0">
-          <RecommendationRowSkeleton v-if="isLoadingPersonalized" />
+        <section
+          v-if="isLoadingPersonalized || personalizedCategories.length > 0"
+          class="home-section"
+        >
+          <div class="mb-10 text-center">
+            <h2 class="text-h3 font-weight-bold mb-4">
+              {{ t('home.recommendedForYou') }}
+            </h2>
+          </div>
+
+          <RecommendationRowSkeleton
+            v-if="isLoadingPersonalized"
+            :count="2"
+          />
 
           <div v-else>
             <RecommendationRow
-              v-for="category in personalizedCategories"
+              v-for="category in eagerPersonalized"
               :key="category.key"
               :category="category"
               hide-show-more
             />
+
+            <DeferredRecommendationRows
+              :sections="remainingPersonalized"
+              hide-show-more
+            />
           </div>
-        </div>
+        </section>
       </ClientOnly>
 
-      <v-alert
-        v-if="error && !filteredCategories.length"
-        type="warning"
-        variant="tonal"
-        icon="mdi-alert-circle-outline"
-        class="mb-6"
-      >
-        {{ t('home.recommendationsUnavailable') }}
-      </v-alert>
+      <section class="home-section">
+        <div class="mb-10 text-center">
+          <h2 class="text-h3 font-weight-bold mb-4">
+            {{ t('home.trendingNow') }}
+          </h2>
 
-      <RecommendationRowSkeleton
-        v-else-if="recommendationsStore.isLoading && !filteredCategories.length"
-        :count="4"
-      />
+          <p
+            class="text-h6 text-medium-emphasis mx-auto"
+            style="max-width: 600px;"
+          >
+            {{ t('home.trendingNowSubtitle') }}
+          </p>
+        </div>
 
-      <div v-else>
-        <RecommendationRow
-          v-for="category in filteredCategories"
-          :key="category.key"
-          :category="category"
+        <v-alert
+          v-if="error && !filteredCategories.length"
+          type="warning"
+          variant="tonal"
+          icon="mdi-alert-circle-outline"
+          class="mb-6"
+        >
+          {{ t('home.recommendationsUnavailable') }}
+        </v-alert>
+
+        <RecommendationRowSkeleton
+          v-else-if="recommendationsStore.isLoading && !filteredCategories.length"
+          :count="3"
         />
-      </div>
+
+        <div v-else>
+          <RecommendationRow
+            v-for="category in eagerCategories"
+            :key="category.key"
+            :category="category"
+          />
+
+          <DeferredRecommendationRows :sections="remainingCategories" />
+        </div>
+      </section>
     </v-container>
 
     <LandingCta />
   </div>
 </template>
+
+<style scoped>
+.home-section {
+  display: block;
+  margin-block: clamp(10rem, 20vw, 20rem);
+}
+
+.home-section:first-child {
+  margin-block-start: clamp(6rem, 12vw, 12rem);
+}
+</style>

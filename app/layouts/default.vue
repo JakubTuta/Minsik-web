@@ -1,9 +1,10 @@
 <script setup lang="ts">
-// Layout setup
 </script>
 
 <template>
   <v-app>
+    <IconSprite />
+
     <AppBar />
 
     <AuthDialog />

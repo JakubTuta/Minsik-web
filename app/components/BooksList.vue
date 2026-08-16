@@ -36,7 +36,6 @@ const rows = computed(() => props.books.map(book => ({
 
 <template>
   <div>
-    <!-- Books List -->
     <div
       v-if="books && books.length > 0"
       class="books-list"
@@ -179,7 +178,6 @@ const rows = computed(() => props.books.map(book => ({
       </NuxtLinkLocale>
     </div>
 
-    <!-- No Books State -->
     <v-alert
       v-else-if="!loading"
       type="info"
@@ -188,7 +186,6 @@ const rows = computed(() => props.books.map(book => ({
       {{ emptyMessage ?? t('books.emptyList') }}
     </v-alert>
 
-    <!-- Loading -->
     <Transition name="fade">
       <div
         v-if="loading"
@@ -201,7 +198,6 @@ const rows = computed(() => props.books.map(book => ({
       </div>
     </Transition>
 
-    <!-- Infinite scroll sentinel -->
     <div ref="sentinel" />
   </div>
 </template>

@@ -32,7 +32,6 @@ const features = computed<Feature[]>(() => [
   >
     <v-row justify="center">
       <v-col cols="12">
-        <!-- Hero -->
         <div class="mb-10 text-center">
           <v-icon
             size="72"
@@ -54,7 +53,6 @@ const features = computed<Feature[]>(() => [
           </p>
         </div>
 
-        <!-- What is Minsik -->
         <v-card
           variant="outlined"
           class="mb-6 pa-6"
@@ -72,7 +70,6 @@ const features = computed<Feature[]>(() => [
           </p>
         </v-card>
 
-        <!-- Features -->
         <h2 class="text-h5 font-weight-bold mb-4">
           {{ t('aboutPage.keyFeatures') }}
         </h2>
@@ -103,7 +100,6 @@ const features = computed<Feature[]>(() => [
           </v-col>
         </v-row>
 
-        <!-- Ratings -->
         <v-card
           variant="outlined"
           class="mb-6 pa-6"
@@ -171,7 +167,6 @@ const features = computed<Feature[]>(() => [
           </p>
         </v-card>
 
-        <!-- Data sources -->
         <v-card
           variant="outlined"
           class="mb-6 pa-6"
@@ -185,7 +180,6 @@ const features = computed<Feature[]>(() => [
           </p>
         </v-card>
 
-        <!-- CTA -->
         <v-card
           color="primary"
           variant="tonal"

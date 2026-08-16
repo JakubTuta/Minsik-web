@@ -8,12 +8,15 @@ const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete'])
 
 export const useApiStore = defineStore('api', () => {
   const config = useRuntimeConfig()
-  const baseURL = config.public.apiBase as string
+  // SSR uses the in-cluster gateway address (stays on the internal Docker
+  // network) when set; client always uses the public base since the browser
+  // has no route to the internal network.
+  const baseURL = import.meta.server && config.apiBaseInternal
+    ? config.apiBaseInternal as string
+    : config.public.apiBase as string
 
-  // Create axios instance
   let client: AxiosInstance
 
-  // Initialize client
   const initClient = () => {
     if (!client) {
       client = axios.create({
@@ -104,7 +107,6 @@ export const useApiStore = defineStore('api', () => {
     return client
   }
 
-  // Initialize on store creation
   initClient()
 
   return {

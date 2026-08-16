@@ -53,7 +53,6 @@ export const useBookPageStore = defineStore('bookPage', () => {
       : null)
   }
 
-  // Fetch all user data for a book in a single call
   const fetchBookUserData = async (slug: string) => {
     if (!authStore.isAuthenticated) {
       bookshelfStatus.value = null
@@ -74,7 +73,6 @@ export const useBookPageStore = defineStore('bookPage', () => {
 
       const data = response.data.data!
 
-      // Bookshelf
       if (data.bookshelf) {
         bookshelfStatus.value = data.bookshelf.status
         isFavourite.value = data.bookshelf.is_favorite
@@ -84,7 +82,6 @@ export const useBookPageStore = defineStore('bookPage', () => {
         isFavourite.value = false
       }
 
-      // Rating
       if (data.rating) {
         userRating.value = {
           overall_rating: data.rating.overall_rating,
@@ -209,7 +206,6 @@ export const useBookPageStore = defineStore('bookPage', () => {
       })
   }
 
-  // Fetch comments for a book
   const fetchComments = async (slug: string, params: Record<string, any> = {}, reset = true) => {
     if (commentsLoading.value)
       return
@@ -241,7 +237,6 @@ export const useBookPageStore = defineStore('bookPage', () => {
         myComment.value = null
       }
 
-      // Handle paginated items
       const items: BookComment[] = data.items ?? []
       comments.value = [...comments.value, ...items]
       commentsTotal.value = data.total_count ?? 0

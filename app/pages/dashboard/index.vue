@@ -157,7 +157,6 @@ onMounted(() => {
   <v-container>
     <UserProfileTabs />
 
-    <!-- Profile Card -->
     <UserProfileCard
       :display-name="authStore.user?.display_name || authStore.user?.username || ''"
       :username="authStore.user?.username || ''"
@@ -174,7 +173,6 @@ onMounted(() => {
     />
 
     <template v-else>
-      <!-- Collection & Milestones -->
       <div class="text-overline text-medium-emphasis mb-1">
         {{ t('dashboardPage.yourNumbers') }}
       </div>
@@ -213,7 +211,6 @@ onMounted(() => {
         </v-col>
       </v-row>
 
-      <!-- Your Lists -->
       <div class="text-overline text-medium-emphasis mb-1">
         {{ t('dashboardPage.jumpIn') }}
       </div>
@@ -269,7 +266,6 @@ onMounted(() => {
       </v-row>
     </template>
 
-    <!-- Danger Zone -->
     <v-card
       variant="outlined"
       color="error"
@@ -296,7 +292,6 @@ onMounted(() => {
       </v-card-text>
     </v-card>
 
-    <!-- Delete Confirmation Dialog -->
     <v-dialog
       v-model="confirmDialog"
       max-width="400"

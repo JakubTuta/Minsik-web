@@ -116,7 +116,6 @@ const podiumOrder = computed(() => {
               </p>
             </NuxtLinkLocale>
 
-            <!-- Year -->
             <p
               v-if="entry.book.original_publication_year"
               class="text-body-2 text-medium-emphasis mb-2"
@@ -124,7 +123,6 @@ const podiumOrder = computed(() => {
               {{ entry.book.original_publication_year }}
             </p>
 
-            <!-- Rating -->
             <RatingDisplay
               :rating="bookWeightedRating(entry.book)"
               :rating-count="bookTotalRatings(entry.book)"
@@ -132,7 +130,6 @@ const podiumOrder = computed(() => {
               class="mb-3"
             />
 
-            <!-- Description -->
             <p
               v-if="entry.book.description"
               class="text-body-2 text-medium-emphasis"

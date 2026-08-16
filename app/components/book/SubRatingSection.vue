@@ -129,7 +129,6 @@ const chartColors = computed(() => {
 
 const dimensionLabelColors = computed(() => dimensions.value.map(d => `rgb(${d.rgbColor})`))
 
-// Radar chart data
 const chartData = computed(() => ({
   labels: dimensions.value.map(d => d.label),
   datasets: [{

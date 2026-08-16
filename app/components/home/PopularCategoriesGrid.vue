@@ -2,8 +2,13 @@
 import type { PopularCategory } from '~/types/categories'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
+interface Props {
+  categories: PopularCategory[] | null
+}
+
+defineProps<Props>()
+
 const { t, n } = useI18n()
-const categoriesStore = useCategoriesStore()
 const genreLabel = useGenreLabel()
 
 const containerRef = ref<HTMLElement | null>(null)
@@ -31,22 +36,10 @@ const DEFAULT_VISUAL = { icon: 'mdi-bookshelf', color: 'grey' }
 function getVisual(slug: string) {
   return CATEGORY_VISUALS[slug] ?? DEFAULT_VISUAL
 }
-
-// Lazy: language-independent, so nothing here should block route transitions
-// (a locale switch stalls the whole page swap until every blocking fetch on
-// it resolves).
-const { data: categories } = useCachedAsyncData<PopularCategory[]>(
-  'home-popular-categories',
-  () => categoriesStore.fetchPopularCategories(12),
-  { lazy: true },
-)
 </script>
 
 <template>
-  <section
-    v-if="categories && categories.length > 0"
-    class="mb-16 mt-8"
-  >
+  <section v-if="categories && categories.length > 0">
     <div class="mb-10 text-center">
       <h2 class="text-h3 font-weight-bold mb-4">
         {{ t('home.browseByGenre') }}

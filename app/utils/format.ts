@@ -57,11 +57,6 @@ export function formatRelativeTime(dateStr: string, t: (key: string, named?: Rec
   return formatDisplayDate(dateStr, locale)
 }
 
-/**
- * Converts text to title case (first letter of each word uppercase, rest lowercase)
- * @param text - The text to convert
- * @returns The text in title case
- */
 export function toTitleCase(text: string): string {
   return text
     .toLowerCase()

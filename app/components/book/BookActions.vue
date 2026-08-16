@@ -84,7 +84,6 @@ function handleRatingSaved() {
 
 <template>
   <div class="d-flex align-center flex-wrap gap-3">
-    <!-- Bookshelf Button -->
     <v-btn
       variant="elevated"
       :color="bookPageStore.bookshelfStatus
@@ -101,7 +100,6 @@ function handleRatingSaved() {
         : t('bookshelf.addToBookshelf') }}
     </v-btn>
 
-    <!-- Favourite Button -->
     <v-btn
       :icon="bookPageStore.isFavourite
         ? 'mdi-heart'
@@ -115,7 +113,6 @@ function handleRatingSaved() {
       @click="handleFavouriteClick(slug)"
     />
 
-    <!-- Rate This Book -->
     <v-btn
       variant="elevated"
       color="primary"
@@ -127,7 +124,6 @@ function handleRatingSaved() {
         : t('rating.rateThisBook') }}
     </v-btn>
 
-    <!-- Bookshelf Dialog -->
     <BookshelfStatusDialog
       v-model="showBookshelfDialog"
       :current-status="bookPageStore.bookshelfStatus"
@@ -135,14 +131,12 @@ function handleRatingSaved() {
       @saved="handleBookshelfSaved"
     />
 
-    <!-- Rating Dialog -->
     <RatingDialog
       v-model="showRatingDialog"
       :slug="slug"
       @saved="handleRatingSaved"
     />
 
-    <!-- Snackbar -->
     <v-snackbar
       v-model="snackbar"
       :color="snackbarColor"

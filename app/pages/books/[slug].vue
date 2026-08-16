@@ -122,7 +122,6 @@ useSeo({
   author: computed(() => book.value?.authors[0]?.name),
 })
 
-// Structured data
 useBookStructuredData(() => ({
   name: book.value?.title ?? '',
   author: (book.value?.authors ?? []).map(a => a.name),
