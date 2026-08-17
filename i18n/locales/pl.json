@@ -583,7 +583,8 @@
     "trendingNow": "Popularne teraz",
     "trendingNowSubtitle": "Zobacz, co odkrywa społeczność w tym tygodniu.",
     "recommendationsUnavailable": "Rekomendacje są obecnie niedostępne. Spróbuj ponownie później.",
-    "recommendedForYou": "Polecane dla Ciebie"
+    "recommendedForYou": "Polecane dla Ciebie",
+    "recommendedForYouSubtitle": "Propozycje dopasowane do Twoich preferencji i historii czytania."
   },
   "yearReview": {
     "highlights": "Najważniejsze momenty",

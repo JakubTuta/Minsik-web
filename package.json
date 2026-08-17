@@ -2,6 +2,7 @@
   "name": "minsik",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build": "bun --bun run nuxt build",
     "dev": "bun --bun run nuxt dev",

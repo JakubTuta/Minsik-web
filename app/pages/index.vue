@@ -119,6 +119,13 @@ const remainingPersonalized = computed(() => personalizedCategories.value.slice(
             <h2 class="text-h3 font-weight-bold mb-4">
               {{ t('home.recommendedForYou') }}
             </h2>
+
+            <p
+              class="text-h6 text-medium-emphasis mx-auto"
+              style="max-width: 600px;"
+            >
+              {{ t('home.recommendedForYouSubtitle') }}
+            </p>
           </div>
 
           <RecommendationRowSkeleton

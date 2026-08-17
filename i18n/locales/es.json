@@ -583,7 +583,8 @@
     "trendingNow": "Tendencias ahora",
     "trendingNowSubtitle": "Descubre lo que la comunidad está explorando esta semana.",
     "recommendationsUnavailable": "Las recomendaciones no están disponibles ahora mismo. Inténtalo de nuevo más tarde.",
-    "recommendedForYou": "Recomendado para ti"
+    "recommendedForYou": "Recomendado para ti",
+    "recommendedForYouSubtitle": "Selecciones adaptadas a tus gustos e historial de lectura."
   },
   "yearReview": {
     "highlights": "Momentos destacados",

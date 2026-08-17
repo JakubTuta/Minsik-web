@@ -583,7 +583,8 @@
     "trendingNow": "Trending Now",
     "trendingNowSubtitle": "See what the community is discovering this week.",
     "recommendationsUnavailable": "Recommendations are not available right now. Please try again later.",
-    "recommendedForYou": "Recommended for You"
+    "recommendedForYou": "Recommended for You",
+    "recommendedForYouSubtitle": "Picks tailored to your reading taste and history."
   },
   "yearReview": {
     "highlights": "Highlights",
