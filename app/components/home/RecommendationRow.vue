@@ -5,9 +5,14 @@ interface Props {
   category: RecommendationSection
   loading?: boolean
   hideShowMore?: boolean
+  priority?: boolean
 }
 
 const props = defineProps<Props>()
+
+// One screenful of the first row is what the visitor is waiting on; everything
+// past it stays lazy so the eager fetches are not queued behind offscreen ones.
+const PRIORITY_ITEM_COUNT = 5
 
 const { t } = useI18n()
 const recommendationTitle = useRecommendationTitle()
@@ -113,7 +118,7 @@ onUnmounted(() => {
         <div class="carousel-track">
           <template v-if="category.item_type === 'author'">
             <AuthorPreviewCard
-              v-for="author in (category.author_items ?? [])"
+              v-for="(author, index) in (category.author_items ?? [])"
               :key="author.author_id"
               :name="author.name"
               :slug="author.slug"
@@ -122,12 +127,13 @@ onUnmounted(() => {
               :rating="author.avg_rating"
               :rating-count="author.rating_count"
               :readers="author.readers"
+              :priority="priority && index < PRIORITY_ITEM_COUNT"
             />
           </template>
 
           <template v-else>
             <BookPreviewCard
-              v-for="book in (category.book_items ?? [])"
+              v-for="(book, index) in (category.book_items ?? [])"
               :key="book.book_id"
               :title="book.title"
               :slug="book.slug"
@@ -137,6 +143,7 @@ onUnmounted(() => {
               :rating="book.avg_rating"
               :rating-count="book.rating_count"
               :readers="book.readers"
+              :priority="priority && index < PRIORITY_ITEM_COUNT"
             />
           </template>
         </div>

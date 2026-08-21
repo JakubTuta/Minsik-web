@@ -27,14 +27,13 @@ const { t } = useI18n()
           class="flex-shrink-0"
           style="width: 80px; height: 120px; display: block;"
         >
-          <v-img
-            :src="book.book_cover_url || undefined"
-            :alt="book.book_title"
-            width="80"
-            height="120"
-            cover
-            rounded="sm"
-            lazy-src="/placeholder-book-lazy.jpg"
+          <BookCover
+            :title="book.book_title"
+            :src="book.book_cover_url"
+            :width="80"
+            :height="120"
+            fit="cover"
+            rounded
           />
         </NuxtLinkLocale>
 
@@ -56,7 +55,11 @@ const { t } = useI18n()
               <NuxtLinkLocale
                 :to="`/authors/${book.book_author_slugs[i]}`"
                 class="text-decoration-none text-medium-emphasis"
-              >{{ name }}</NuxtLinkLocale><span v-if="i < book.book_author_names.length - 1">, </span>
+              >
+                {{ name }}
+              </NuxtLinkLocale>
+
+              <span v-if="i < book.book_author_names.length - 1">, </span>
             </template>
           </div>
         </div>

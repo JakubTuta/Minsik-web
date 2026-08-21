@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { SuggestItem } from '~/types/api'
-import { hashColor } from '~/utils/coverColor'
 import { totalRatingCount, weightedRating } from '~/utils/format'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -349,20 +348,13 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
                         size="40"
                         rounded="lg"
                       >
-                        <v-img
-                          v-if="result.cover_url"
+                        <BookCover
+                          :title="result.title"
                           :src="result.cover_url"
-                          :alt="result.title"
-                          eager
-                        >
-                          <template #placeholder>
-                            <HashedFill :color="hashColor(result.title)" />
-                          </template>
-                        </v-img>
-
-                        <v-icon
-                          v-else
-                          icon="mdi-book"
+                          :width="40"
+                          :height="60"
+                          fit="cover"
+                          priority
                         />
                       </v-avatar>
                     </template>
@@ -517,20 +509,11 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
                       <v-avatar
                         size="40"
                       >
-                        <v-img
-                          v-if="result.cover_url"
+                        <AuthorPhoto
+                          :name="result.title"
                           :src="result.cover_url"
-                          :alt="result.title"
-                          eager
-                        >
-                          <template #placeholder>
-                            <HashedFill :color="hashColor(result.title)" />
-                          </template>
-                        </v-img>
-
-                        <v-icon
-                          v-else
-                          icon="mdi-account"
+                          :size="40"
+                          priority
                         />
                       </v-avatar>
                     </template>

@@ -35,22 +35,23 @@ const initials = computed(() => (props.displayName || props.username).charAt(0).
     class="mb-6"
   >
     <div class="pa-6">
-      <div class="d-flex align-center gap-4 flex-wrap">
+      <div class="d-flex align-center flex-wrap gap-4">
         <v-avatar
           size="90"
           color="secondary"
         >
-          <v-img
-            v-if="avatarUrl"
+          <AppImage
             :src="avatarUrl"
-            lazy-src="/placeholder-avatar.jpg"
             :alt="displayName || username"
-            cover
-          />
-          <span
-            v-else
-            class="text-h4 font-weight-bold"
-          >{{ initials }}</span>
+            :width="90"
+            :height="90"
+            fit="cover"
+            circle
+          >
+            <template #fallback>
+              <span class="text-h4 font-weight-bold">{{ initials }}</span>
+            </template>
+          </AppImage>
         </v-avatar>
 
         <div class="flex-1-1">
@@ -74,12 +75,18 @@ const initials = computed(() => (props.displayName || props.username).charAt(0).
           v-if="copyUrl && copyDisplay"
           variant="tonal"
           size="small"
-          :color="copyFeedback ? 'success' : 'default'"
-          :prepend-icon="copyFeedback ? 'mdi-check' : 'mdi-link-variant'"
+          :color="copyFeedback
+            ? 'success'
+            : 'default'"
+          :prepend-icon="copyFeedback
+            ? 'mdi-check'
+            : 'mdi-link-variant'"
           class="text-none"
           @click="copyProfileUrl"
         >
-          {{ copyFeedback ? t('common.copied') : copyDisplay }}
+          {{ copyFeedback
+            ? t('common.copied')
+            : copyDisplay }}
         </v-btn>
       </div>
     </div>

@@ -1,6 +1,17 @@
+// Warms the same URLs the cards will request. Preloading the raw OpenLibrary
+// address instead would leave the proxied one the components actually use cold.
 export function useImagePreloader() {
-  function preloadImages(urls: (string | null | undefined)[], timeoutMs = 5000): Promise<void> {
-    const validUrls = urls.filter(Boolean) as string[]
+  const { coverUrl } = useCoverUrl()
+
+  function preloadImages(
+    urls: (string | null | undefined)[],
+    renderedWidth = 240,
+    timeoutMs = 5000,
+  ): Promise<void> {
+    const validUrls = urls
+      .map(url => coverUrl(url, renderedWidth))
+      .filter(Boolean) as string[]
+
     if (validUrls.length === 0)
       return Promise.resolve()
 

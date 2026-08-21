@@ -32,20 +32,14 @@ const { t } = useI18n()
             color="secondary"
             class="flex-shrink-0"
           >
-            <v-img
-              v-if="author.photo_url"
+            <AuthorPhoto
+              :name="author.name"
               :src="author.photo_url"
-              :alt="author.name"
-              lazy-src="/placeholder-avatar.jpg"
-              cover
+              :size="44"
             />
-            <span
-              v-else
-              class="text-body-2 font-weight-bold"
-            >{{ author.name.charAt(0).toUpperCase() }}</span>
           </v-avatar>
 
-          <div class="flex-grow-1 min-w-0">
+          <div class="min-w-0 flex-grow-1">
             <NuxtLinkLocale
               :to="`/authors/${author.slug}`"
               class="text-decoration-none text-body-1 font-weight-medium text-primary"

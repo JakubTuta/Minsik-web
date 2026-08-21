@@ -11,6 +11,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const { t } = useI18n()
+const { coverUrl } = useCoverUrl()
 const themeStore = useThemeStore()
 const { monthName: monthNameOf } = useMonthName()
 
@@ -145,15 +146,15 @@ onUnmounted(() => {
               class="deck-card"
               :style="cardStyle(index, deckCovers.length)"
             >
-              <v-img
-                :src="cover"
-                lazy-src="/placeholder-book-lazy.jpg"
-                :alt="t('yearReview.bookCoverAlt')"
-                width="150"
-                height="225"
-                cover
-                class="deck-img rounded-lg"
-              />
+              <div class="deck-img rounded-lg">
+                <AppImage
+                  :src="coverUrl(cover, 150)"
+                  :alt="t('yearReview.bookCoverAlt')"
+                  :width="150"
+                  :height="225"
+                  fit="cover"
+                />
+              </div>
             </div>
           </div>
         </v-col>
@@ -217,6 +218,10 @@ onUnmounted(() => {
 }
 
 .deck-img {
+  position: relative;
+  width: 150px;
+  height: 225px;
+  overflow: hidden;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
   border: 3px solid rgba(var(--v-theme-surface), 1);
 }

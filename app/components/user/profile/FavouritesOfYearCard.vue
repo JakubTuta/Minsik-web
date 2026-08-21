@@ -15,7 +15,7 @@ const { t } = useI18n()
     class="mb-6"
   >
     <v-card-title class="text-h6 font-weight-bold">
-      {{ t('profile.favouritesOfYear', { year }) }}
+      {{ t('profile.favouritesOfYear', {year}) }}
     </v-card-title>
 
     <v-card-text class="pt-2">
@@ -29,21 +29,23 @@ const { t } = useI18n()
           :to="`/books/${book.book_slug}`"
           style="width: calc(25% - 9px); min-width: 64px;"
         >
-          <v-img
-            :src="book.book_cover_url || undefined"
-            :alt="book.book_title"
-            :aspect-ratio="2/3"
-            cover
-            rounded="sm"
-            lazy-src="/placeholder-book-lazy.jpg"
-          >
+          <div class="favourite-cover">
+            <BookCover
+              :title="book.book_title"
+              :src="book.book_cover_url"
+              :width="96"
+              :height="144"
+              fit="cover"
+              rounded
+            />
+
             <v-tooltip
               activator="parent"
               location="top"
             >
               {{ book.book_title }}
             </v-tooltip>
-          </v-img>
+          </div>
         </NuxtLinkLocale>
       </div>
 
@@ -56,3 +58,11 @@ const { t } = useI18n()
     </v-card-text>
   </v-card>
 </template>
+
+<style scoped>
+.favourite-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 0.67;
+}
+</style>

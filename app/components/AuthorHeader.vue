@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { EditFieldConfig } from '~/types/admin'
 import type { Author } from '~/types/api'
-import { hashColor } from '~/utils/coverColor'
 import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,10 +26,6 @@ interface Props {
 
 const adminStore = useAdminStore()
 const authorsStore = useAuthorsStore()
-
-const { optimized } = useOptimizedImage()
-const photoUrl = computed(() => optimized(props.author.photo_url, 440))
-const photoBg = computed(() => hashColor(props.author.name))
 
 const age = computed(() => {
   if (!props.author.birth_date)
@@ -213,18 +208,12 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
         size="220"
         class="mb-4"
       >
-        <v-img
-          :src="photoUrl"
-          :alt="author.name"
-          :lazy-src="photoUrl
-            ? '/placeholder-author-lazy.jpg'
-            : undefined"
-          eager
-        >
-          <template #placeholder>
-            <HashedFill :color="photoBg" />
-          </template>
-        </v-img>
+        <AuthorPhoto
+          :name="author.name"
+          :src="author.photo_url"
+          :size="220"
+          priority
+        />
       </v-avatar>
 
       <div

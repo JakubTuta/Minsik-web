@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { BookOfTheWeek } from '~/types/recommendations'
-import { hashColor } from '~/utils/coverColor'
 
 interface Props {
   book: BookOfTheWeek
@@ -13,11 +12,7 @@ const localePath = useLocalePath()
 const { t } = useI18n()
 const genreLabel = useGenreLabel()
 
-const authorNames = computed(() => props.book.authors.map(a => a.name).join(', '),
-)
-
-const coverBg = computed(() => hashColor(props.book.title, authorNames.value))
-const { optimized } = useOptimizedImage()
+const authorNameList = computed(() => props.book.authors.map(a => a.name))
 </script>
 
 <template>
@@ -39,20 +34,16 @@ const { optimized } = useOptimizedImage()
       </v-chip>
 
       <div class="d-flex ga-5">
-        <div
-          class="bow-cover-wrapper elevation-6"
-          :style="{'backgroundColor': coverBg}"
-        >
-          <img
-            v-if="optimized(book.primary_cover_url, 240)"
-            :src="optimized(book.primary_cover_url, 240)"
-            :alt="book.title"
-            width="120"
-            height="180"
-            fetchpriority="high"
-            decoding="async"
-            class="bow-cover"
-          >
+        <div class="bow-cover-wrapper elevation-6">
+          <BookCover
+            :title="book.title"
+            :src="book.primary_cover_url"
+            :author-names="authorNameList"
+            :width="120"
+            :height="180"
+            fit="cover"
+            priority
+          />
         </div>
 
         <div class="d-flex flex-column overflow-hidden">
@@ -130,13 +121,6 @@ const { optimized } = useOptimizedImage()
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
-}
-
-.bow-cover {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
 }
 
 .bow-quote {

@@ -10,7 +10,6 @@ interface Props {
 const props = defineProps<Props>()
 
 const { t } = useI18n()
-const { optimized } = useOptimizedImage()
 
 useShelfStatuses(() => props.books)
 
@@ -85,14 +84,12 @@ const podiumOrder = computed(() => {
                 class="position-relative overflow-hidden rounded"
                 style="position: absolute; left: 0; top: 0; width: 120px; height: 180px;"
               >
-                <v-img
-                  :src="optimized(entry.book.primary_cover_url, 320)"
-                  lazy-src="/placeholder-book-lazy.jpg"
-                  :alt="entry.book.title"
-                  width="120"
-                  height="180"
-                  contain
-                  position="left center"
+                <BookCover
+                  :title="entry.book.title"
+                  :src="entry.book.primary_cover_url"
+                  :author-names="(entry.book.authors ?? []).map(a => a.name)"
+                  :width="120"
+                  :height="180"
                 />
 
                 <BookShelfBadge :book-id="entry.book.book_id" />

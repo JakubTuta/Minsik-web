@@ -83,18 +83,13 @@ useShelfStatuses(() => props.books)
                          'minWidth': '80px',
                          'height': '120px'}"
               >
-                <v-img
-                  v-if="entry.book.primary_cover_url"
+                <BookCover
+                  :title="entry.book.title"
                   :src="entry.book.primary_cover_url"
-                  :alt="entry.book.title"
-                  max-width="80"
-                  max-height="120"
-                  contain
-                >
-                  <template #placeholder>
-                    <HashedFill :color="coverColor(entry.book)" />
-                  </template>
-                </v-img>
+                  :width="80"
+                  :height="120"
+                  :fallback-color="coverColor(entry.book)"
+                />
 
                 <BookShelfBadge
                   :book-id="entry.book.book_id"

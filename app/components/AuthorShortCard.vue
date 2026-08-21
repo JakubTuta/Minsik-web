@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import type { Author } from '~/types/api'
-import { hashColor } from '~/utils/coverColor'
 
 interface Props {
   author: Author
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const { t } = useI18n()
-
-const photoBg = computed(() => hashColor(props.author.name))
-const { optimized } = useOptimizedImage()
 </script>
 
 <template>
@@ -33,14 +29,11 @@ const { optimized } = useOptimizedImage()
           size="120"
           class="author-avatar-shadow mb-3 flex-shrink-0"
         >
-          <v-img
-            :src="optimized(author.photo_url, 240)"
-            :alt="author.name"
-          >
-            <template #placeholder>
-              <HashedFill :color="photoBg" />
-            </template>
-          </v-img>
+          <AuthorPhoto
+            :name="author.name"
+            :src="author.photo_url"
+            :size="120"
+          />
         </v-avatar>
 
         <NuxtLinkLocale

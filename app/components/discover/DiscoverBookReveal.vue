@@ -90,18 +90,16 @@ onUnmounted(() => {
         >
           <div class="d-flex flex-column align-center text-center">
             <div class="cover-wrapper mb-4">
-              <v-img
-                :src="book.primary_cover_url || undefined"
-                :alt="book.title"
-                width="160"
-                height="234"
-                cover
-                class="rounded"
-              >
-                <template #placeholder>
-                  <HashedFill :color="coverColor(book)" />
-                </template>
-              </v-img>
+              <BookCover
+                :title="book.title"
+                :src="book.primary_cover_url"
+                :width="160"
+                :height="234"
+                fit="cover"
+                :fallback-color="coverColor(book)"
+                priority
+                rounded
+              />
             </div>
 
             <h2 class="text-h5 font-weight-bold mb-2">
@@ -235,6 +233,9 @@ onUnmounted(() => {
 }
 
 .cover-wrapper {
+  position: relative;
+  width: 160px;
+  height: 234px;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);

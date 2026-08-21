@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { hashColor } from '~/utils/coverColor'
 import { compactNumberFormat } from '~/utils/format'
 
 interface Props {
@@ -12,6 +11,7 @@ interface Props {
   readers?: number
   badge?: string
   badgeColor?: string
+  priority?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -25,8 +25,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { t, n, locale } = useI18n()
-const { optimized } = useOptimizedImage()
-const optimizedPhotoUrl = computed(() => optimized(props.photoUrl, 280))
 
 const compactFmt = computed(() => compactNumberFormat(locale.value))
 
@@ -39,8 +37,6 @@ const formattedRatingCount = computed(() => (props.ratingCount
 const formattedReaders = computed(() => (props.readers
   ? compactFmt.value.format(props.readers)
   : '0'))
-
-const photoBg = computed(() => hashColor(props.name))
 </script>
 
 <template>
@@ -60,20 +56,13 @@ const photoBg = computed(() => hashColor(props.name))
     />
 
     <div class="avatar-zone">
-      <div
-        class="author-avatar"
-        :style="{'backgroundColor': photoBg}"
-      >
-        <img
-          v-if="photoUrl"
-          :src="optimizedPhotoUrl"
-          :alt="name"
-          width="140"
-          height="140"
-          loading="lazy"
-          decoding="async"
-          class="avatar-img"
-        >
+      <div class="author-avatar">
+        <AuthorPhoto
+          :name="name"
+          :src="photoUrl"
+          :size="140"
+          :priority="priority"
+        />
       </div>
     </div>
 
@@ -167,13 +156,6 @@ const photoBg = computed(() => hashColor(props.name))
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid rgba(var(--v-theme-primary), 0.2);
-}
-
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
 }
 
 .info-zone {

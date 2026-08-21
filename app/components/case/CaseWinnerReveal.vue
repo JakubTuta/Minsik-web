@@ -64,18 +64,16 @@ const authorsList = computed(() => props.winner.authors)
             class="cover-wrapper mb-4"
             :style="{'boxShadow': `0 8px 40px ${rarityColor}55`}"
           >
-            <v-img
-              :src="winner.primary_cover_url || undefined"
-              :alt="winner.title"
-              width="160"
-              height="234"
-              cover
-              class="rounded"
-            >
-              <template #placeholder>
-                <HashedFill :color="coverColor(winner)" />
-              </template>
-            </v-img>
+            <BookCover
+              :title="winner.title"
+              :src="winner.primary_cover_url"
+              :width="160"
+              :height="234"
+              fit="cover"
+              :fallback-color="coverColor(winner)"
+              priority
+              rounded
+            />
           </div>
 
           <h2 class="text-h5 font-weight-bold mb-2">
@@ -177,6 +175,9 @@ const authorsList = computed(() => props.winner.authors)
 }
 
 .cover-wrapper {
+  position: relative;
+  width: 160px;
+  height: 234px;
   border-radius: 8px;
   overflow: hidden;
 }

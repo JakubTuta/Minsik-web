@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { hashColor } from '~/utils/coverColor'
 import { compactNumberFormat } from '~/utils/format'
 
 interface Props {
@@ -15,6 +14,7 @@ interface Props {
   badge?: string
   badgeColor?: string
   linkTo?: string
+  priority?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,9 +29,6 @@ const props = withDefaults(defineProps<Props>(), {
   linkTo: undefined,
 })
 
-const { optimized } = useOptimizedImage()
-const optimizedCoverUrl = computed(() => optimized(props.coverUrl, 360))
-
 const { locale } = useI18n()
 const compactFmt = computed(() => compactNumberFormat(locale.value))
 
@@ -45,7 +42,6 @@ const formattedReaders = computed(() => (props.readers
   ? compactFmt.value.format(props.readers)
   : '0'))
 const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
-const coverBg = computed(() => hashColor(props.title, props.authorNames.join(',')))
 </script>
 
 <template>
@@ -69,20 +65,15 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
       :aria-label="title"
     />
 
-    <div
-      class="cover-zone"
-      :style="{'backgroundColor': coverBg}"
-    >
-      <img
-        v-if="coverUrl"
-        :src="optimizedCoverUrl"
-        :alt="title"
-        width="240"
-        height="360"
-        loading="lazy"
-        decoding="async"
-        class="cover-img"
-      >
+    <div class="cover-zone">
+      <BookCover
+        :title="title"
+        :src="coverUrl"
+        :author-names="authorNames"
+        :width="240"
+        :height="360"
+        :priority="priority"
+      />
     </div>
 
     <div class="info-zone">
@@ -228,17 +219,6 @@ const coverBg = computed(() => hashColor(props.title, props.authorNames.join(','
 .cover-zone {
   position: relative;
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cover-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .info-zone {

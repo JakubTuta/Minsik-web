@@ -23,25 +23,18 @@ const height = computed(() => Math.round(props.width * 1.5))
       class="cover-frame"
       :style="{'width': `${width}px`}"
     >
-      <v-img
-        :src="book.book_cover_url"
-        lazy-src="/placeholder-book-lazy.jpg"
-        :alt="book.book_title"
-        :width="width"
-        :height="height"
-        cover
+      <div
         class="cover-img rounded-lg"
+        :style="{'height': `${height}px`}"
       >
-        <template #placeholder>
-          <div class="cover-placeholder d-flex align-center justify-center">
-            <v-icon
-              icon="mdi-book"
-              size="28"
-              class="text-medium-emphasis"
-            />
-          </div>
-        </template>
-      </v-img>
+        <BookCover
+          :title="book.book_title"
+          :src="book.book_cover_url"
+          :width="width"
+          :height="height"
+          fit="cover"
+        />
+      </div>
 
       <div
         v-if="showRating && book.my_rating !== null"
@@ -70,13 +63,10 @@ const height = computed(() => Math.round(props.width * 1.5))
 }
 
 .cover-img {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
-}
-
-.cover-placeholder {
+  position: relative;
   width: 100%;
-  height: 100%;
-  background: rgba(var(--v-theme-surface-variant), 0.6);
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
 }
 
 .rating-badge {

@@ -180,9 +180,10 @@ const remainingPersonalized = computed(() => personalizedCategories.value.slice(
 
         <div v-else>
           <RecommendationRow
-            v-for="category in eagerCategories"
+            v-for="(category, index) in eagerCategories"
             :key="category.key"
             :category="category"
+            :priority="index === 0"
           />
 
           <DeferredRecommendationRows :sections="remainingCategories" />

@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { t } = useI18n()
+const { coverUrl } = useCoverUrl()
 
 const containerStyle = computed(() => {
   if (props.height) {
@@ -32,26 +33,20 @@ const containerStyle = computed(() => {
       class="cover-item"
       :class="`cover-${index + 1}`"
     >
-      <v-img
-        :src="cover.startsWith('#')
-          ? undefined
-          : cover"
+      <AppImage
+        :src="coverUrl(cover.startsWith('#')
+          ? null
+          : cover, 240)"
         :alt="t('book.coverAltIndexed', {'index': index + 1})"
-        aspect-ratio="0.67"
-        cover
-        class="cover-image rounded"
-        :style="cover.startsWith('#')
-          ? {'backgroundColor': cover}
-          : undefined"
-      >
-        <template #placeholder>
-          <HashedFill
-            :color="cover.startsWith('#')
-              ? cover
-              : '#e0e0e0'"
-          />
-        </template>
-      </v-img>
+        :width="240"
+        :height="360"
+        fit="cover"
+        rounded
+        :fallback-color="cover.startsWith('#')
+          ? cover
+          : '#e0e0e0'"
+        class="cover-image"
+      />
     </div>
   </div>
 </template>

@@ -90,12 +90,12 @@ useScrollReveal(gridRef, { stagger: 0.1 })
         class="text-decoration-none"
       >
         <div class="tile award-tile">
-          <v-img
+          <BookCover
+            :title="award.book.book_title"
             :src="award.book.book_cover_url"
-            lazy-src="/placeholder-book-lazy.jpg"
-            :alt="award.book.book_title"
-            cover
-            class="tile-img"
+            :width="300"
+            :height="416"
+            fit="cover"
           />
 
           <div class="award-overlay" />
@@ -181,11 +181,6 @@ useScrollReveal(gridRef, { stagger: 0.1 })
 
 .tile:hover {
   transform: translateY(-6px);
-}
-
-.tile-img {
-  width: 100%;
-  height: 100%;
 }
 
 .award-overlay {

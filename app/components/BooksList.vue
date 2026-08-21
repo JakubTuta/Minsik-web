@@ -16,7 +16,6 @@ const { t, n } = useI18n()
 
 const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
 const { sentinel } = useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
-const { optimized } = useOptimizedImage()
 
 useShelfStatuses(() => props.books)
 
@@ -54,17 +53,14 @@ const rows = computed(() => props.books.map(book => ({
             class="position-relative flex-shrink-0"
             style="width: 120px; height: 180px;"
           >
-            <v-img
-              :src="optimized(book.primary_cover_url, 240)"
-              :alt="book.title"
-              width="120"
-              height="180"
-              cover
-            >
-              <template #placeholder>
-                <HashedFill :color="coverBg" />
-              </template>
-            </v-img>
+            <BookCover
+              :title="book.title"
+              :src="book.primary_cover_url"
+              :width="120"
+              :height="180"
+              fit="cover"
+              :fallback-color="coverBg"
+            />
 
             <v-badge
               v-if="book.series_position"

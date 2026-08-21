@@ -57,19 +57,15 @@ const fullDate = computed(() => formatDisplayDate(props.updatedAt, locale.value)
         class="flex-shrink-0"
         style="width: 90px; height: 120px; display: block;"
       >
-        <v-img
-          :src="coverUrl || undefined"
-          :alt="title"
-          width="90"
-          height="120"
-          cover
-          rounded="sm"
-          lazy-src="/placeholder-book-lazy.jpg"
-        >
-          <template #placeholder>
-            <HashedFill :color="coverBg" />
-          </template>
-        </v-img>
+        <BookCover
+          :title="title"
+          :src="coverUrl"
+          :width="90"
+          :height="120"
+          fit="cover"
+          rounded
+          :fallback-color="coverBg"
+        />
       </NuxtLinkLocale>
 
       <div class="flex-grow-1 pl-3">
@@ -149,19 +145,15 @@ const fullDate = computed(() => formatDisplayDate(props.updatedAt, locale.value)
         class="flex-shrink-0"
         style="width: 72px; height: 108px; display: block;"
       >
-        <v-img
-          :src="coverUrl || undefined"
-          :alt="title"
-          width="72"
-          height="108"
-          cover
-          rounded="sm"
-          lazy-src="/placeholder-book-lazy.jpg"
-        >
-          <template #placeholder>
-            <HashedFill :color="coverBg" />
-          </template>
-        </v-img>
+        <BookCover
+          :title="title"
+          :src="coverUrl"
+          :width="72"
+          :height="108"
+          fit="cover"
+          rounded
+          :fallback-color="coverBg"
+        />
       </NuxtLinkLocale>
 
       <div class="d-flex flex-column min-w-0 flex-grow-1 gap-1">

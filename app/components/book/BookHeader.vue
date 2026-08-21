@@ -35,9 +35,8 @@ function variantTo(variant: BookLanguageVariant) {
   }
 }
 
-const { optimized } = useOptimizedImage()
-const coverUrl = computed(() => optimized(props.book.primary_cover_url, 640))
 const coverBg = computed(() => coverColor(props.book))
+const authorNames = computed(() => (props.book.authors ?? []).map(a => a.name))
 
 const coverRef = ref<HTMLElement | null>(null)
 useParallax(coverRef)
@@ -252,36 +251,36 @@ const bookStats = computed(() => {
           class="cursor-pointer"
           @click="lightboxOpen = true"
         >
-          <v-img
-            :src="coverUrl"
-            :alt="book.title"
-            aspect-ratio="0.67"
-            cover
-            eager
-            class="book-cover-shadow rounded"
-          >
-            <template #placeholder>
-              <HashedFill :color="coverBg" />
-            </template>
-          </v-img>
+          <div class="book-cover-shadow book-cover-frame rounded">
+            <BookCover
+              :title="book.title"
+              :src="book.primary_cover_url"
+              :width="400"
+              :height="600"
+              fit="cover"
+              :fallback-color="coverBg"
+              priority
+            />
+          </div>
         </div>
 
         <v-dialog
           v-model="lightboxOpen"
           max-width="600"
         >
-          <v-img
-            :src="coverUrl"
-            :alt="book.title"
-            contain
-            max-height="90vh"
-            class="rounded"
+          <div
+            class="lightbox-frame rounded"
             @click="lightboxOpen = false"
           >
-            <template #placeholder>
-              <HashedFill :color="coverBg" />
-            </template>
-          </v-img>
+            <BookCover
+              :title="book.title"
+              :src="book.primary_cover_url"
+              :author-names="authorNames"
+              :width="600"
+              :height="900"
+              :fallback-color="coverBg"
+            />
+          </div>
         </v-dialog>
       </v-col>
 
@@ -319,7 +318,7 @@ const bookStats = computed(() => {
                 <span class="text-body-1">{{ t('series.moreFrom') }} </span>
 
                 <NuxtLinkLocale
-                  class="font-weight-bold text-body-1 ml-2 text-primary text-decoration-none"
+                  class="font-weight-bold text-body-1 text-primary text-decoration-none ml-2"
                   :to="`/series/${book.series.slug}`"
                 >
                   {{ book.series.name }}
@@ -339,19 +338,19 @@ const bookStats = computed(() => {
                   style="width: 80px;"
                 >
                   <div class="position-relative">
-                    <v-img
-                      :src="seriesBook.primary_cover_url || undefined"
-                      :alt="seriesBook.title"
-                      aspect-ratio="0.67"
-                      width="80"
-                      cover
-                      class="rounded"
+                    <div
+                      class="series-cover-frame rounded"
                       :class="{'opacity-75': seriesBook.book_id === book.book_id}"
                     >
-                      <template #placeholder>
-                        <HashedFill :color="hashColor(seriesBook.title, book.series?.name)" />
-                      </template>
-                    </v-img>
+                      <BookCover
+                        :title="seriesBook.title"
+                        :src="seriesBook.primary_cover_url"
+                        :width="80"
+                        :height="120"
+                        fit="cover"
+                        :fallback-color="hashColor(seriesBook.title, book.series?.name)"
+                      />
+                    </div>
 
                     <!-- Series Position Badge -->
                     <v-badge
@@ -616,16 +615,19 @@ const bookStats = computed(() => {
                       class="d-flex flex-column align-center gap-1"
                       style="width: 80px;"
                     >
-                      <v-img
-                        :src="variant.primary_cover_url || undefined"
-                        lazy-src="/placeholder-book-lazy.jpg"
-                        :alt="variant.title"
-                        width="80"
-                        height="116"
-                        cover
-                        class="rounded"
+                      <div
+                        class="variant-cover-frame rounded"
                         :class="{'border-primary border-2': variant.language === currentLang}"
-                      />
+                      >
+                        <BookCover
+                          :title="variant.title"
+                          :src="variant.primary_cover_url"
+                          :width="80"
+                          :height="116"
+                          fit="cover"
+                          :fallback-color="hashColor(variant.title)"
+                        />
+                      </div>
 
                       <span class="text-caption text-medium-emphasis text-center">
                         {{ langLabel(variant.language) }}
@@ -711,6 +713,37 @@ const bookStats = computed(() => {
 <style scoped>
 .book-cover-shadow {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* AppImage fills its parent, so every cover slot needs an explicit box. */
+.book-cover-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 0.67;
+  overflow: hidden;
+}
+
+.series-cover-frame {
+  position: relative;
+  width: 80px;
+  aspect-ratio: 0.67;
+  overflow: hidden;
+}
+
+.variant-cover-frame {
+  position: relative;
+  width: 80px;
+  height: 116px;
+  overflow: hidden;
+}
+
+.lightbox-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 0.67;
+  max-height: 90vh;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .series-scroll {
