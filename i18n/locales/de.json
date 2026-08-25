@@ -1061,6 +1061,7 @@
     "CSRF_FAILED": "Deine Sitzung ist abgelaufen. Lade die Seite neu und versuche es erneut",
     "GOOGLE_AUTH_FAILED": "Google-Anmeldung fehlgeschlagen. Versuche es erneut oder nutze deine E-Mail-Adresse und dein Passwort",
     "NO_MATCHING_BOOKS": "Keine Bücher entsprechen diesen Filtern",
+    "NO_ELIGIBLE_BOOKS": "In dieser Sprache sind noch keine Bücher verfügbar",
     "UNAVAILABLE": "Dieser Dienst ist vorübergehend nicht verfügbar. Bitte versuche es in Kürze erneut"
   },
   "storeErrors": {

@@ -1060,6 +1060,7 @@
     "CSRF_FAILED": "Ta session a expiré. Recharge la page et réessaie",
     "GOOGLE_AUTH_FAILED": "La connexion Google a échoué. Réessaie ou utilise ton e-mail et ton mot de passe",
     "NO_MATCHING_BOOKS": "Aucun livre ne correspond à ces filtres",
+    "NO_ELIGIBLE_BOOKS": "Aucun livre n'est encore disponible dans cette langue",
     "UNAVAILABLE": "Ce service est temporairement indisponible. Merci de réessayer sous peu"
   },
   "storeErrors": {

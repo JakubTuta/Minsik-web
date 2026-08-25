@@ -23,15 +23,14 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
         :aria-label="t('language.change')"
         :title="currentLocale?.name ?? language"
       >
-        <v-img
+        <img
           v-if="currentLocale && localeFlagUrl(currentLocale)"
           :src="localeFlagUrl(currentLocale)"
           width="22"
           height="16"
-          cover
-          rounded="sm"
           alt=""
-        />
+          class="locale-flag"
+        >
 
         <v-icon
           v-else
@@ -46,16 +45,14 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
         :subtitle="currentLocale?.name ?? language"
       >
         <template #prepend>
-          <v-img
+          <img
             v-if="currentLocale && localeFlagUrl(currentLocale)"
             :src="localeFlagUrl(currentLocale)"
             width="22"
             height="16"
-            cover
-            rounded="sm"
-            class="me-2"
             alt=""
-          />
+            class="locale-flag me-2"
+          >
 
           <v-icon
             v-else
@@ -78,16 +75,14 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
         @click="setLanguage(entry.code)"
       >
         <template #prepend>
-          <v-img
+          <img
             v-if="localeFlagUrl(entry)"
             :src="localeFlagUrl(entry)"
             width="20"
             height="15"
-            cover
-            rounded="sm"
-            class="mr-2"
             alt=""
-          />
+            class="locale-flag mr-2"
+          >
         </template>
 
         <template #append>
@@ -101,3 +96,13 @@ const { language, availableLocales, currentLocale, setLanguage } = useUserLangua
     </v-list>
   </v-menu>
 </template>
+
+<style scoped>
+/* A bare <img>, not v-img: these are local static SVGs at a fixed size, so
+   there is nothing to lazy-load, retry or measure. */
+.locale-flag {
+  object-fit: cover;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+</style>

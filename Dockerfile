@@ -3,9 +3,11 @@ FROM oven/bun:1-alpine AS deps
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files. `patches/` is part of the dependency definition — bun
+# applies it during install, so a missing patch is a broken install, not a
+# missing extra.
 COPY package.json bun.lock ./
-COPY scripts/ ./scripts/
+COPY patches/ ./patches/
 
 # Install dependencies (frozen = fail loud on lockfile drift, reproducible prod)
 RUN bun install --frozen-lockfile

@@ -3,7 +3,7 @@ import type { BookLength, DiscoverBookData, DiscoverBookFilters, DiscoverPhase, 
 import { defineStore } from 'pinia'
 
 export const useDiscoverStore = defineStore('discover', () => {
-  const { t } = useNuxtApp().$i18n
+  const { t, te } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language } = useUserLanguage()
@@ -65,21 +65,24 @@ export const useDiscoverStore = defineStore('discover', () => {
         '/api/v1/discover',
         filtersPayload.value,
       )
+      const data = response.data.data!
 
-      if (!response.data.data) {
-        phase.value = 'empty'
+      discoveredBook.value = data.book
+      matchingCount.value = data.matching_count
+      excludeIds.value = [...excludeIds.value, data.book.book_id].slice(-500)
+      phase.value = 'revealing'
+    }
+    catch (err: any) {
+      // Filters that match nothing are an answer, not a failure — the empty
+      // state names the filters to relax, an error toast does not.
+      if (err.response?.data?.error?.code === 'NO_MATCHING_BOOKS') {
         matchingCount.value = 0
+        phase.value = 'empty'
 
         return
       }
 
-      discoveredBook.value = response.data.data.book
-      matchingCount.value = response.data.data.matching_count
-      excludeIds.value = [...excludeIds.value, response.data.data.book.book_id].slice(-500)
-      phase.value = 'revealing'
-    }
-    catch (err: any) {
-      error.value = err.response?.data?.message || err.response?.data?.detail || t('storeErrors.discoverFailed')
+      error.value = apiErrorMessage(err, t, te, 'storeErrors.discoverFailed')
       phase.value = 'filtering'
     }
     finally {

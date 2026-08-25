@@ -1,0 +1,34 @@
+diff --git a/dist/vite-node-runner.mjs b/dist/vite-node-runner.mjs
+index a2233f2..0a32ab3 100644
+--- a/dist/vite-node-runner.mjs
++++ b/dist/vite-node-runner.mjs
+@@ -3,9 +3,28 @@ import { consola } from "consola";
+ import { viteNodeFetch, viteNodeOptions } from "#vite-node";
+ import { ViteNodeRunner } from "vite-node/client";
+ //#region src/vite-node-runner.ts
++
++// [patched: fix-bun-windows-pathToFileURL]
++function fixWindowsFsPath(fsPath) {
++	if (process.platform !== "win32") return fsPath;
++	if (typeof fsPath === "string" && fsPath.startsWith("/") && !/^\/[a-zA-Z]:\//.test(fsPath)) {
++		const drive = process.cwd()[0];
++		return drive + ":/" + fsPath.slice(1);
++	}
++	return fsPath;
++}
++class NuxtViteNodeRunner extends ViteNodeRunner {
++	async resolveUrl(id, importer) {
++		const result = await super.resolveUrl(id, importer);
++		if (Array.isArray(result)) {
++			return [result[0], fixWindowsFsPath(result[1])];
++		}
++		return result;
++	}
++}
+ const runner = createRunner();
+ function createRunner() {
+-	return new ViteNodeRunner({
++	return new NuxtViteNodeRunner({
+ 		root: viteNodeOptions.root,
+ 		base: viteNodeOptions.base,
+ 		resolveId(id, importer) {

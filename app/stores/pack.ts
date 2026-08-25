@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import { RARITY_ORDER } from '~/types/case'
 
 export const usePackStore = defineStore('pack', () => {
-  const { t } = useNuxtApp().$i18n
+  const { t, te } = useNuxtApp().$i18n
   const apiStore = useApiStore()
   const { client } = storeToRefs(apiStore)
   const { language: userLanguage } = useUserLanguage()
@@ -45,7 +45,7 @@ export const usePackStore = defineStore('pack', () => {
       packData.value = response.data.data!
     }
     catch (err: any) {
-      error.value = err.response?.data?.message || err.response?.data?.detail || t('storeErrors.packOpenFailed')
+      error.value = apiErrorMessage(err, t, te, 'storeErrors.packOpenFailed')
       console.error('Pack open error:', err)
     }
     finally {

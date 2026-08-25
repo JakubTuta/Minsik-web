@@ -24,8 +24,6 @@ async function copyProfileUrl() {
   copyFeedback.value = true
   setTimeout(() => { copyFeedback.value = false }, 2000)
 }
-
-const initials = computed(() => (props.displayName || props.username).charAt(0).toUpperCase())
 </script>
 
 <template>
@@ -36,23 +34,11 @@ const initials = computed(() => (props.displayName || props.username).charAt(0).
   >
     <div class="pa-6">
       <div class="d-flex align-center flex-wrap gap-4">
-        <v-avatar
-          size="90"
-          color="secondary"
-        >
-          <AppImage
-            :src="avatarUrl"
-            :alt="displayName || username"
-            :width="90"
-            :height="90"
-            fit="cover"
-            circle
-          >
-            <template #fallback>
-              <span class="text-h4 font-weight-bold">{{ initials }}</span>
-            </template>
-          </AppImage>
-        </v-avatar>
+        <UserAvatar
+          :name="displayName || username"
+          :src="avatarUrl"
+          :size="90"
+        />
 
         <div class="flex-1-1">
           <div class="text-h4 font-weight-bold">

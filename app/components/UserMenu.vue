@@ -15,7 +15,6 @@ const { categories } = useCategories()
 const { isAuthenticated, user } = storeToRefs(authStore)
 
 const userDisplayName = computed(() => user.value?.display_name || user.value?.username || t('user.fallbackName'))
-const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase())
 </script>
 
 <template>
@@ -29,21 +28,12 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         class="py-3"
       >
         <template #prepend>
-          <v-avatar
-            v-if="user?.avatar_url"
-            :image="user.avatar_url"
-            size="40"
+          <UserAvatar
+            :name="userDisplayName"
+            :src="user?.avatar_url"
+            :size="40"
             class="me-2"
           />
-
-          <v-avatar
-            v-else
-            color="secondary"
-            size="40"
-            class="me-2"
-          >
-            <span class="text-body-2 font-weight-bold">{{ userInitials }}</span>
-          </v-avatar>
         </template>
       </v-list-item>
 
@@ -218,19 +208,12 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
         variant="text"
         v-bind="props"
       >
-        <v-avatar
-          v-if="isAuthenticated && user?.avatar_url"
-          :image="user.avatar_url"
-          size="32"
+        <UserAvatar
+          v-if="isAuthenticated"
+          :name="userDisplayName"
+          :src="user?.avatar_url"
+          :size="32"
         />
-
-        <v-avatar
-          v-else-if="isAuthenticated"
-          color="secondary"
-          size="32"
-        >
-          <span class="font-weight-bold">{{ userInitials }}</span>
-        </v-avatar>
 
         <v-icon
           v-else
@@ -247,21 +230,12 @@ const userInitials = computed(() => userDisplayName.value.charAt(0).toUpperCase(
           class="py-3"
         >
           <template #prepend>
-            <v-avatar
-              v-if="user?.avatar_url"
-              :image="user.avatar_url"
-              size="36"
+            <UserAvatar
+              :name="userDisplayName"
+              :src="user?.avatar_url"
+              :size="36"
               class="me-2"
             />
-
-            <v-avatar
-              v-else
-              color="secondary"
-              size="36"
-              class="me-2"
-            >
-              <span class="font-weight-bold">{{ userInitials }}</span>
-            </v-avatar>
           </template>
         </v-list-item>
 

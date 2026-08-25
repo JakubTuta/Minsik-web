@@ -1060,6 +1060,7 @@
     "CSRF_FAILED": "Your session expired. Reload the page and try again",
     "GOOGLE_AUTH_FAILED": "Google sign-in failed. Try again or use your email and password",
     "NO_MATCHING_BOOKS": "No books match those filters",
+    "NO_ELIGIBLE_BOOKS": "There are no books available in that language yet",
     "UNAVAILABLE": "That service is temporarily unavailable. Please try again shortly"
   },
   "storeErrors": {

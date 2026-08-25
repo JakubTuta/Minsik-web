@@ -1060,6 +1060,7 @@
     "CSRF_FAILED": "Tu sesión ha caducado. Recarga la página e inténtalo de nuevo",
     "GOOGLE_AUTH_FAILED": "El inicio de sesión con Google falló. Inténtalo de nuevo o usa tu correo electrónico y contraseña",
     "NO_MATCHING_BOOKS": "Ningún libro coincide con esos filtros",
+    "NO_ELIGIBLE_BOOKS": "Todavía no hay libros disponibles en ese idioma",
     "UNAVAILABLE": "Ese servicio no está disponible temporalmente. Inténtalo de nuevo en breve"
   },
   "storeErrors": {

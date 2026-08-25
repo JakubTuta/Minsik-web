@@ -9,9 +9,12 @@
     "generate": "bun --bun run nuxt generate",
     "preview": "bun --bun run nuxt preview",
     "start": "bun run ./.output/server/index.mjs",
-    "postinstall": "bun --bun run nuxt prepare && node scripts/patch-vite-node-runner.mjs && node scripts/patch-vuetify-vimg.mjs",
+    "postinstall": "bun --bun run nuxt prepare",
     "lint": "bun --bun run eslint --ext .ts,.js,.vue .",
     "lint:fix": "bun --bun run eslint --ext .ts,.js,.vue . --fix"
+  },
+  "patchedDependencies": {
+    "@nuxt/vite-builder@4.4.2": "patches/@nuxt%2Fvite-builder@4.4.2.patch"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
