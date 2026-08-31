@@ -188,11 +188,7 @@ const formattedReaders = computed(() => (props.readers
   flex-grow: 1;
 }
 
-/*
- * `text-secondary`, not `on-surface-variant` — see the note in
- * BookPreviewCard.vue. The kebab-case name resolves to Vuetify's default
- * theme, which is invisible against our surface in both light and dark.
- */
+/* `text-secondary`, not `on-surface-variant`: these rows want the muted tone. */
 .stats-row {
   position: relative;
   z-index: 2;

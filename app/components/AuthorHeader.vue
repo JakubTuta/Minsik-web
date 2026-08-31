@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import type { EditFieldConfig } from '~/types/admin'
-import type { Author } from '~/types/api'
+import type { Author, AuthorStats } from '~/types/api'
 import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
-const props = withDefaults(defineProps<Props>(), {
-  isAdmin: false,
-})
+interface Props {
+  author: Author
+  stats?: AuthorStats | null
+}
 
-const emit = defineEmits<{
-  edit: []
-  delete: []
-}>()
+const props = withDefaults(defineProps<Props>(), {
+  stats: null,
+})
 
 const { t, locale, n } = useI18n()
 const localePath = useLocalePath()
@@ -18,14 +17,6 @@ const localePath = useLocalePath()
 function formatShortDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString(locale.value, { year: 'numeric', month: 'short', day: 'numeric' })
 }
-
-interface Props {
-  author: Author
-  isAdmin?: boolean
-}
-
-const adminStore = useAdminStore()
-const authorsStore = useAuthorsStore()
 
 const age = computed(() => {
   if (!props.author.birth_date)
@@ -114,84 +105,32 @@ const authorStats = computed(() => [
   },
 ])
 
+const lifeSpan = computed(() => {
+  const birth = props.author.birth_date
+    ? new Date(props.author.birth_date).getFullYear()
+    : null
+  const death = props.author.death_date
+    ? new Date(props.author.death_date).getFullYear()
+    : null
+
+  if (!birth && !death)
+    return null
+
+  return `${birth ?? '?'}–${death ?? ''}`
+})
+
 const preTitleLine = computed(() => {
   const parts: string[] = []
   if (props.author.nationality)
     parts.push(t('author.nationalityAuthor', { nationality: props.author.nationality }).toUpperCase())
-  if (props.author.book_categories?.length)
-    parts.push(...props.author.book_categories.slice(0, 2).map(c => c.toUpperCase()))
+  if (lifeSpan.value)
+    parts.push(lifeSpan.value)
 
   return parts.join(' · ')
 })
 
-// Edit/delete dialog state
-const editDialogOpen = ref(false)
-const editError = ref('')
-const deleteDialogOpen = ref(false)
-const deleteError = ref('')
-
-const slug = computed(() => props.author.slug)
-
-const authorEditFields = computed<EditFieldConfig[]>(() => [
-  { key: 'name', label: t('author.fieldName'), type: 'text' },
-  { key: 'slug', label: t('common.fieldSlug'), type: 'text' },
-  { key: 'bio', label: t('author.fieldBiography'), type: 'textarea' },
-  { key: 'birth_date', label: t('author.fieldBirthDate'), type: 'text' },
-  { key: 'death_date', label: t('author.fieldDeathDate'), type: 'text' },
-  { key: 'birth_place', label: t('author.fieldBirthPlace'), type: 'text' },
-  { key: 'nationality', label: t('author.fieldNationality'), type: 'text' },
-  { key: 'photo_url', label: t('author.fieldPhotoUrl'), type: 'text' },
-  { key: 'wikipedia_url', label: t('author.fieldWikipediaUrl'), type: 'text' },
-  { key: 'wikidata_id', label: t('author.fieldWikidataId'), type: 'text' },
-  { key: 'open_library_id', label: t('common.fieldOpenLibraryId'), type: 'text' },
-  { key: 'alternate_names', label: t('author.fieldAlternateNames'), type: 'array' },
-  { key: 'remote_ids', label: t('author.fieldRemoteIds'), type: 'json' },
-])
-
-const authorEditOriginalData = computed(() => ({
-  name: props.author.name ?? null,
-  slug: props.author.slug ?? null,
-  bio: props.author.bio ?? null,
-  birth_date: props.author.birth_date ?? null,
-  death_date: props.author.death_date ?? null,
-  birth_place: props.author.birth_place ?? null,
-  nationality: props.author.nationality ?? null,
-  photo_url: props.author.photo_url ?? null,
-  wikipedia_url: props.author.wikipedia_url ?? null,
-  wikidata_id: props.author.wikidata_id ?? null,
-  open_library_id: props.author.open_library_id ?? null,
-  alternate_names: props.author.alternate_names ?? [],
-  remote_ids: props.author.remote_ids ?? {},
-}))
-
-async function handleAuthorDelete() {
-  deleteError.value = ''
-  const result = await adminStore.deleteAuthor(props.author.author_id)
-  if (result.success) {
-    deleteDialogOpen.value = false
-    emit('delete')
-  }
-  else {
-    deleteError.value = (result as any).error || t('admin.deleteFailed')
-  }
-}
-
-async function handleAuthorEditSave(editedData: Record<string, any>) {
-  editError.value = ''
-  const result = await adminStore.updateAuthor(props.author.author_id, authorEditOriginalData.value, editedData)
-  if (result.success) {
-    editDialogOpen.value = false
-    const newSlug = editedData.slug && editedData.slug !== slug.value
-      ? editedData.slug
-      : slug.value
-    await authorsStore.fetchAuthor(newSlug, true)
-    if (newSlug !== slug.value)
-      await navigateTo(localePath({ name: 'authors-slug', params: { slug: newSlug } }))
-  }
-  else {
-    editError.value = (result as any).error || t('admin.updateFailed')
-  }
-}
+// `book_categories` has names but no slug, so these search by name.
+const categoryChips = computed(() => (props.author.book_categories ?? []).slice(0, 6))
 </script>
 
 <template>
@@ -232,6 +171,14 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
           class="ml-1"
         >· {{ t('author.ageYears', {age}) }}</span>
       </div>
+
+      <ClientOnly>
+        <AuthorProgressCard
+          :author-name="author.name"
+          :stats="stats"
+          class="mt-6 w-100"
+        />
+      </ClientOnly>
     </v-col>
 
     <!-- Right: Name, stats, bio, info -->
@@ -241,12 +188,12 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
     >
       <p
         v-if="preTitleLine"
-        class="text-caption text-medium-emphasis font-weight-medium mb-1 tracking-widest"
+        class="text-caption text-medium-emphasis font-weight-medium mb-2 tracking-widest"
       >
         {{ preTitleLine }}
       </p>
 
-      <h1 class="text-h3 font-weight-bold mb-1">
+      <h1 class="font-display text-h3 font-weight-bold mb-2">
         {{ author.name }}
       </h1>
 
@@ -259,16 +206,30 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
 
       <StatsRow
         :stats="authorStats"
-        class="mb-4"
+        class="mb-6"
       />
+
+      <div
+        v-if="categoryChips.length > 0"
+        class="d-flex mb-6 flex-wrap gap-2"
+      >
+        <v-chip
+          v-for="category in categoryChips"
+          :key="category"
+          size="small"
+          variant="tonal"
+          :to="localePath(`/search?q=${encodeURIComponent(category)}&type=categories`)"
+        >
+          {{ category }}
+        </v-chip>
+      </div>
 
       <DescriptionCard
         :description="author.bio"
-        :collapsible="true"
-        :max-lines="5"
         hide-card
+        hide-heading
         empty-message=""
-        class="mb-4"
+        class="mb-6"
       />
 
       <!-- Info row -->
@@ -302,86 +263,6 @@ async function handleAuthorEditSave(editedData: Record<string, any>) {
           />
         </a>
       </div>
-
-      <!-- Admin actions -->
-      <ClientOnly>
-        <div
-          v-if="isAdmin"
-          class="d-flex gap-2"
-        >
-          <v-btn
-            prepend-icon="mdi-pencil"
-            variant="text"
-            size="small"
-            color="secondary"
-            @click="editDialogOpen = true"
-          >
-            {{ t('author.edit') }}
-          </v-btn>
-
-          <v-btn
-            prepend-icon="mdi-delete"
-            variant="text"
-            size="small"
-            color="error"
-            @click="deleteDialogOpen = true"
-          >
-            {{ t('author.delete') }}
-          </v-btn>
-        </div>
-
-        <AdminEditDialog
-          v-if="isAdmin"
-          v-model="editDialogOpen"
-          :title="t('author.edit')"
-          :fields="authorEditFields"
-          :original-data="authorEditOriginalData"
-          :loading="adminStore.isUpdateLoading"
-          :error="editError"
-          @save="handleAuthorEditSave"
-        />
-
-        <v-dialog
-          v-if="isAdmin"
-          v-model="deleteDialogOpen"
-          max-width="400"
-        >
-          <v-card>
-            <v-card-title>{{ t('author.deleteConfirmTitle') }}</v-card-title>
-
-            <v-card-text>
-              {{ t('author.deleteConfirmBody', {'name': author.name}) }}
-              <v-alert
-                v-if="deleteError"
-                type="error"
-                class="mt-3"
-              >
-                {{ deleteError }}
-              </v-alert>
-            </v-card-text>
-
-            <v-card-actions>
-              <v-spacer />
-
-              <v-btn
-                variant="text"
-                @click="deleteDialogOpen = false"
-              >
-                {{ t('common.cancel') }}
-              </v-btn>
-
-              <v-btn
-                color="error"
-                variant="flat"
-                :loading="adminStore.isDeleteLoading"
-                @click="handleAuthorDelete"
-              >
-                {{ t('common.delete') }}
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </ClientOnly>
     </v-col>
   </v-row>
 </template>

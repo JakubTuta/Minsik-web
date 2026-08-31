@@ -36,9 +36,8 @@ export const useBooksStore = defineStore('books', () => {
     return Date.now() - timestamp < CACHE_TTL
   }
 
-  // The backend resolves the edition itself (requested language -> English ->
-  // most-rated) and reports what it served in `book.language`, so a missing
-  // translation arrives as a different edition rather than a 404.
+  // The backend resolves the edition (requested -> English -> most-rated) and
+  // reports what it served in `book.language`; a missing translation is not a 404.
   const fetchBook = async (slug: string, lang: string = 'en', force = false) => {
     const key = cacheKey(slug, lang)
 
@@ -88,11 +87,8 @@ export const useBooksStore = defineStore('books', () => {
         `/api/v1/books/${slug}/language-variants`,
         { params: { exclude_language: excludeLang } },
       )
-      // The dump carries editions in far more languages than the app ships, and
-      // the endpoint returns every one of them. An edition the app has no locale
-      // for has no URL that can render it — advertising it would mean a hreflang
-      // pointing at a page served in a different language, and a switcher entry
-      // that silently drops the reader back to the default locale.
+      // An edition the app has no locale for has no URL that can render it —
+      // advertising it would point a hreflang or switcher entry elsewhere.
       const items = response.data.data!.items.filter(variant => supportedLocales.has(variant.language))
 
       langVariantsCache.value.set(key, items)

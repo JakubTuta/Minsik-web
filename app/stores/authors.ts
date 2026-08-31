@@ -1,4 +1,4 @@
-import type { APIResponse, Author, AuthorBooksResponse, AuthorQuote, AuthorTopBooksResponse, Book, BookSummary } from '~/types/api'
+import type { APIResponse, Author, AuthorBooksResponse, AuthorQuote, AuthorStats, AuthorTopBooksResponse, BookSummary } from '~/types/api'
 import { defineStore } from 'pinia'
 
 export const useAuthorsStore = defineStore('authors', () => {
@@ -7,30 +7,21 @@ export const useAuthorsStore = defineStore('authors', () => {
 
   // State
   const authors = ref(new Map<string, Author>())
-  const authorBooks = ref(new Map<string, Book[]>())
+  const authorBooks = ref(new Map<string, BookSummary[]>())
+  const authorBooksPages = ref(new Map<string, AuthorBooksResponse>())
   const isLoading = ref(false)
-  const isLoadingBooks = ref(false)
   const lastFetchTime = ref(new Map<string, number>())
   const currentAuthor = ref<Author | null>(null)
 
   // Cache TTL
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
-  /**
-   * The reader's language is part of every cache key. An author's stats and the
-   * editions of their books both change with it, so a language switch has to
-   * miss the cache — otherwise the interface changes language and the data
-   * silently does not until the entry expires.
-   */
+  // Language is part of every cache key: stats and editions both change with it.
   const cacheKey = (...parts: (string | number)[]) => [language.value, ...parts].join(':')
 
   // Computed
   const hasData = computed(() => authors.value.size > 0)
   const currentAuthorSlug = computed(() => currentAuthor.value?.slug || null)
-  const currentAuthorBooks = computed(() => (currentAuthor.value
-    ? authorBooks.value.get(cacheKey(currentAuthor.value.slug)) || []
-    : []),
-  )
 
   const hasAuthor = (slug: string) => {
     return authors.value.has(cacheKey(slug))
@@ -99,20 +90,25 @@ export const useAuthorsStore = defineStore('authors', () => {
     offset = 0,
     limit = 10,
   ): Promise<AuthorBooksResponse> => {
-    isLoadingBooks.value = true
+    const key = cacheKey(slug, 'books-page', sortBy, order, offset, limit)
+
+    if (authorBooksPages.value.has(key) && isCacheFresh(key)) {
+      return authorBooksPages.value.get(key)!
+    }
 
     try {
       const response = await apiStore.client.get<APIResponse<AuthorBooksResponse>>(`/api/v1/authors/${slug}/books`, {
         params: { limit, offset, sort_by: sortBy, order, language: language.value },
       })
+      const page = response.data.data!
 
-      return response.data.data!
+      authorBooksPages.value.set(key, page)
+      lastFetchTime.value.set(key, Date.now())
+
+      return page
     }
     catch {
       return { books: [], total_count: 0, limit, offset }
-    }
-    finally {
-      isLoadingBooks.value = false
     }
   }
 
@@ -128,8 +124,6 @@ export const useAuthorsStore = defineStore('authors', () => {
     if (!force && authorBooks.value.has(key) && isCacheFresh(key)) {
       return authorBooks.value.get(key)!
     }
-
-    isLoadingBooks.value = true
 
     try {
       const response = await apiStore.client.get<APIResponse<AuthorBooksResponse>>(`/api/v1/authors/${slug}/books`, {
@@ -151,9 +145,6 @@ export const useAuthorsStore = defineStore('authors', () => {
     }
     catch {
       return []
-    }
-    finally {
-      isLoadingBooks.value = false
     }
   }
 
@@ -200,6 +191,22 @@ export const useAuthorsStore = defineStore('authors', () => {
     }
   }
 
+  // Never cached in the store: the progress half of the payload is the
+  // viewer's own, so a cached copy would follow a sign-out into the next
+  // session's page.
+  const fetchAuthorStats = async (slug: string): Promise<AuthorStats | null> => {
+    try {
+      const response = await apiStore.client.get<APIResponse<AuthorStats>>(`/api/v1/authors/${slug}/stats`, {
+        params: { language: language.value },
+      })
+
+      return response.data.data ?? null
+    }
+    catch {
+      return null
+    }
+  }
+
   const cacheAuthor = (author: Author) => {
     computeDisplayDates(author)
     authors.value.set(cacheKey(author.slug), author)
@@ -220,6 +227,9 @@ export const useAuthorsStore = defineStore('authors', () => {
   const clearCache = () => {
     authors.value.clear()
     authorBooks.value.clear()
+    authorBooksPages.value.clear()
+    authorQuoteCache.value.clear()
+    authorTopBooksCache.value.clear()
     lastFetchTime.value.clear()
     currentAuthor.value = null
   }
@@ -229,14 +239,12 @@ export const useAuthorsStore = defineStore('authors', () => {
     authors,
     authorBooks,
     isLoading,
-    isLoadingBooks,
     lastFetchTime,
     currentAuthor,
 
     // Computed
     hasData,
     currentAuthorSlug,
-    currentAuthorBooks,
 
     // Actions
     fetchAuthor,
@@ -244,6 +252,7 @@ export const useAuthorsStore = defineStore('authors', () => {
     fetchAuthorBooksPage,
     fetchAuthorQuote,
     fetchAuthorTopBooks,
+    fetchAuthorStats,
     cacheAuthor,
     getAuthor,
     hasAuthor,

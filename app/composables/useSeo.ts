@@ -1,8 +1,7 @@
 import type { MaybeRef, MaybeRefOrGetter } from 'vue'
 
-// Everything here is a MaybeRef: a page whose content language can change
-// without the component being re-created (see app/pages/books/[slug].vue) has
-// to be able to hand over a canonical URL and an image that change with it.
+// MaybeRef throughout: a page whose content changes in place has to be able to
+// hand over a canonical URL and an image that change with it.
 interface SeoOptions {
   title?: MaybeRef<string>
   description?: MaybeRef<string>
@@ -78,9 +77,8 @@ export function useSeo(options: SeoOptions = {}) {
   })
 }
 
-// Unhead v2 removed `children` — use `innerHTML` so the JSON renders as script content
-// Accepts a getter so a page whose content changes in place (a book switching
-// edition with the interface language) does not leave stale JSON-LD behind.
+// Unhead v2 removed `children`; `innerHTML` is what renders as script content.
+// Takes a getter so content changing in place cannot leave stale JSON-LD.
 export function useStructuredData(data: MaybeRefOrGetter<Record<string, any>>) {
   useHead(() => ({
     script: [
@@ -190,55 +188,80 @@ export function useBreadcrumbStructuredData(
   }))
 }
 
-export function useAuthorStructuredData(author: {
+interface AuthorStructuredData {
   name: string
-  description?: string
+  description?: string | null
   image?: string
   url: string
-  birthDate?: string
-  deathDate?: string
-}) {
-  const structuredData: Record<string, any> = {
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    'name': author.name,
-    'url': author.url,
-  }
-
-  if (author.description) {
-    structuredData.description = author.description
-  }
-
-  if (author.image) {
-    structuredData.image = author.image
-  }
-
-  if (author.birthDate) {
-    structuredData.birthDate = author.birthDate
-  }
-
-  if (author.deathDate) {
-    structuredData.deathDate = author.deathDate
-  }
-
-  useStructuredData(structuredData)
+  birthDate?: string | null
+  deathDate?: string | null
+  sameAs?: string[]
 }
 
-export function useSeriesStructuredData(series: {
+export function useAuthorStructuredData(source: MaybeRefOrGetter<AuthorStructuredData>) {
+  useStructuredData(() => {
+    const author = toValue(source)
+    const structuredData: Record<string, any> = {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      'name': author.name,
+      'url': author.url,
+    }
+
+    if (author.description) {
+      structuredData.description = author.description
+    }
+
+    if (author.image) {
+      structuredData.image = author.image
+    }
+
+    if (author.birthDate) {
+      structuredData.birthDate = author.birthDate
+    }
+
+    if (author.deathDate) {
+      structuredData.deathDate = author.deathDate
+    }
+
+    if (author.sameAs && author.sameAs.length > 0) {
+      structuredData.sameAs = author.sameAs
+    }
+
+    return structuredData
+  })
+}
+
+interface SeriesStructuredData {
   name: string
-  description?: string
+  description?: string | null
   url: string
-}) {
-  const structuredData: Record<string, any> = {
-    '@context': 'https://schema.org',
-    '@type': 'BookSeries',
-    'name': series.name,
-    'url': series.url,
-  }
+  author?: string | null
+  numberOfItems?: number | null
+}
 
-  if (series.description) {
-    structuredData.description = series.description
-  }
+export function useSeriesStructuredData(source: MaybeRefOrGetter<SeriesStructuredData>) {
+  useStructuredData(() => {
+    const series = toValue(source)
+    const structuredData: Record<string, any> = {
+      '@context': 'https://schema.org',
+      '@type': 'BookSeries',
+      'name': series.name,
+      'url': series.url,
+    }
 
-  useStructuredData(structuredData)
+    if (series.description) {
+      structuredData.description = series.description
+    }
+
+    if (series.author) {
+      structuredData.author = { '@type': 'Person', 'name': series.author }
+    }
+
+    if (series.numberOfItems) {
+      structuredData.numberOfItems = series.numberOfItems
+    }
+
+    return structuredData
+  })
 }

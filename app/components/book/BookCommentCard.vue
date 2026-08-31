@@ -105,13 +105,9 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
 
 <template>
   <v-card
-    :variant="isOwn
-      ? 'elevated'
-      : 'outlined'"
-    :elevation="isOwn
-      ? 3
-      : 0"
-    class="pa-4"
+    variant="outlined"
+    :class="{'own-comment': isOwn}"
+    class="pa-6"
   >
     <div class="d-flex gap-3">
       <!-- User Avatar -->
@@ -160,25 +156,46 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
             </v-chip>
           </div>
 
-          <!-- Edit / Delete (own comment) -->
-          <div
-            v-if="isOwn"
-            class="d-flex gap-1"
-          >
-            <v-btn
-              icon="mdi-pencil"
-              size="small"
-              variant="text"
-              @click="emit('edit')"
-            />
+          <div class="d-flex align-center gap-3">
+            <div
+              v-if="comment.rating && !isSpoilerHidden"
+              class="d-flex align-center comment-rating gap-2"
+            >
+              <v-rating
+                :model-value="Math.floor(comment.rating.overall_rating * 2) / 2"
+                readonly
+                half-increments
+                color="warning"
+                active-color="warning"
+                size="x-small"
+                density="compact"
+              />
 
-            <v-btn
-              icon="mdi-delete"
-              size="small"
-              variant="text"
-              color="error"
-              @click="emit('delete')"
-            />
+              <span class="tabular text-body-2 font-weight-bold comment-rating-value">
+                {{ comment.rating.overall_rating.toFixed(1) }}
+              </span>
+            </div>
+
+            <!-- Edit / Delete (own comment) -->
+            <div
+              v-if="isOwn"
+              class="d-flex gap-1"
+            >
+              <v-btn
+                icon="mdi-pencil"
+                size="small"
+                variant="text"
+                @click="emit('edit')"
+              />
+
+              <v-btn
+                icon="mdi-delete"
+                size="small"
+                variant="text"
+                color="error"
+                @click="emit('delete')"
+              />
+            </div>
           </div>
         </div>
 
@@ -209,61 +226,28 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
         </template>
 
         <template v-else>
-          <!-- Overall Rating with Detailed Tooltip -->
-          <div
-            v-if="comment.rating"
-            class="d-flex align-center mb-2 gap-2"
-          >
-            <v-icon
-              size="x-small"
-              color="amber"
-              icon="mdi-star"
-            />
-
-            <span class="text-body-2 font-weight-bold text-amber">
-              {{ comment.rating.overall_rating.toFixed(1) }}
-            </span>
-
-            <v-tooltip
-              v-if="detailedRatings.length > 0"
-              location="bottom"
-            >
-              <template #activator="{'props': tooltipProps}">
-                <span
-                  v-bind="tooltipProps"
-                  class="text-secondary cursor-pointer"
-                  style="text-decoration: underline dotted;"
-                >
-                  {{ t('comment.detailedRating') }}
-                </span>
-              </template>
-
-              <div class="d-flex flex-column gap-1 pa-1">
-                <div
-                  v-for="s in detailedRatings"
-                  :key="s.key"
-                  class="d-flex align-center gap-2"
-                >
-                  <span
-                    class="font-weight-bold"
-                    :style="`color: rgb(${s.rgb}); min-width: 28px; text-align: right;`"
-                  >
-                    {{ s.value.toFixed(1) }}
-                  </span>
-
-                  <span
-                    :style="`color: rgb(${s.rgb})`"
-                  >
-                    {{ s.label }}
-                  </span>
-                </div>
-              </div>
-            </v-tooltip>
-          </div>
-
-          <p class="text-body-2 mb-1">
+          <p class="font-reading comment-body mb-4 mt-3">
             {{ comment.body }}
           </p>
+
+          <div
+            v-if="detailedRatings.length > 0"
+            class="d-flex mb-3 flex-wrap gap-2"
+          >
+            <v-chip
+              v-for="s in detailedRatings"
+              :key="s.key"
+              size="small"
+              variant="outlined"
+            >
+              <b
+                class="tabular mr-1"
+                :style="`color: rgb(${s.rgb})`"
+              >{{ s.value.toFixed(1) }}</b>
+
+              {{ s.label }}
+            </v-chip>
+          </div>
 
           <!-- Date with Tooltip -->
           <v-tooltip location="bottom">
@@ -283,3 +267,33 @@ const detailedRatings = computed(() => getSubRatings(props.comment))
     </div>
   </v-card>
 </template>
+
+<style scoped>
+/*
+ * A readonly v-rating is still a row of buttons, and their button padding and
+ * line-height push the stars off the baseline of the number beside them.
+ */
+.comment-rating :deep(.v-rating__item .v-btn) {
+  width: auto;
+  height: auto;
+  padding: 0;
+}
+
+.comment-rating :deep(.v-rating__wrapper) {
+  align-items: center;
+}
+
+.comment-rating-value {
+  line-height: 1;
+}
+
+.comment-body {
+  font-size: 1.0625rem;
+  max-width: 68ch;
+}
+
+.own-comment {
+  border-color: rgba(var(--v-theme-primary), 0.5);
+  background: rgba(var(--v-theme-primary), 0.06);
+}
+</style>

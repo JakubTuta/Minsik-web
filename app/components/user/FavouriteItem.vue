@@ -50,7 +50,6 @@ async function remove() {
         size="small"
         variant="text"
         :to="localePath(`/books/${entry.book_slug}`)"
-        :as="NuxtLink"
       />
     </template>
   </BookUserRow>

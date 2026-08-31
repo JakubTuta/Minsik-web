@@ -9,27 +9,19 @@ export const useSeriesStore = defineStore('series', () => {
   const series = ref(new Map<string, Series>())
   const seriesBooks = ref(new Map<string, BookSummary[]>())
   const isLoading = ref(false)
-  const isLoadingBooks = ref(false)
   const lastFetchTime = ref(new Map<string, number>())
   const currentSeries = ref<Series | null>(null)
 
   // Cache TTL
   const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
-  /**
-   * The reader's language is part of every cache key: a series resolves to a
-   * different per-language record with its own book list, so a language switch
-   * has to miss the cache rather than keep serving the previous language.
-   */
+  // Language is part of every cache key: a series is a different per-language
+  // record with its own book list.
   const cacheKey = (...parts: string[]) => [language.value, ...parts].join(':')
 
   // Computed
   const hasData = computed(() => series.value.size > 0)
   const currentSeriesSlug = computed(() => currentSeries.value?.slug || null)
-  const currentSeriesBooks = computed(() => (currentSeries.value
-    ? seriesBooks.value.get(cacheKey(currentSeries.value.slug)) || []
-    : []),
-  )
 
   const hasSeries = (slug: string) => {
     return series.value.has(cacheKey(slug))
@@ -83,8 +75,6 @@ export const useSeriesStore = defineStore('series', () => {
       return seriesBooks.value.get(key)!
     }
 
-    isLoadingBooks.value = true
-
     try {
       const response = await apiStore.client.get<APIResponse<SeriesBooksResponse>>(`/api/v1/series/${slug}/books`, {
         params: {
@@ -103,9 +93,6 @@ export const useSeriesStore = defineStore('series', () => {
     }
     catch {
       return []
-    }
-    finally {
-      isLoadingBooks.value = false
     }
   }
 
@@ -137,14 +124,12 @@ export const useSeriesStore = defineStore('series', () => {
     series,
     seriesBooks,
     isLoading,
-    isLoadingBooks,
     lastFetchTime,
     currentSeries,
 
     // Computed
     hasData,
     currentSeriesSlug,
-    currentSeriesBooks,
 
     // Actions
     fetchSeries,

@@ -98,7 +98,8 @@ export default defineNuxtConfig({
       preload: true,
     },
     families: [
-      { name: 'Montserrat', provider: 'google', weights: [400, 500, 700, 800], styles: ['normal'] },
+      { name: 'Figtree', provider: 'google', weights: [400, 500, 600, 700, 800, 900], styles: ['normal'] },
+      { name: 'Petrona', provider: 'google', weights: [300, 400, 700, 800], styles: ['normal', 'italic'] },
       { name: 'Roboto', provider: 'none' },
     ],
   },

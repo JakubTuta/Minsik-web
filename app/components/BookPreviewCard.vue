@@ -10,7 +10,6 @@ interface Props {
   rating?: number
   ratingCount?: number
   readers?: number
-  compact?: boolean
   badge?: string
   badgeColor?: string
   linkTo?: string
@@ -32,6 +31,14 @@ const props = withDefaults(defineProps<Props>(), {
 const { locale } = useI18n()
 const compactFmt = computed(() => compactNumberFormat(locale.value))
 
+const badgeIsRawColor = computed(() => props.badgeColor.startsWith('#'))
+const badgeClass = computed(() => (badgeIsRawColor.value
+  ? null
+  : `bg-${props.badgeColor}`))
+const badgeStyle = computed(() => (badgeIsRawColor.value
+  ? { backgroundColor: props.badgeColor, color: '#fff' }
+  : null))
+
 const formattedRating = computed(() => (props.rating
   ? props.rating.toFixed(1)
   : '0.0'))
@@ -45,16 +52,12 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 </script>
 
 <template>
-  <article
-    class="book-preview-card"
-    :class="compact
-      ? 'compact'
-      : 'full'"
-  >
+  <article class="book-preview-card">
     <span
       v-if="badge"
       class="card-badge"
-      :class="`bg-${badgeColor}`"
+      :class="badgeClass"
+      :style="badgeStyle"
     >
       {{ badge }}
     </span>
@@ -77,12 +80,7 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
     </div>
 
     <div class="info-zone">
-      <div
-        class="card-title title-link"
-        :class="compact
-          ? 'line-clamp-1'
-          : 'line-clamp-2'"
-      >
+      <div class="card-title title-link line-clamp-2">
         {{ title }}
       </div>
 
@@ -142,6 +140,7 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
   width: 100%;
   border-radius: 16px;
   overflow: hidden;
+  height: 360px;
   background: rgb(var(--v-theme-surface));
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -150,14 +149,6 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
 .book-preview-card:hover {
   border-color: rgba(var(--v-border-color), 0.3);
   box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.18);
-}
-
-.book-preview-card.full {
-  height: 360px;
-}
-
-.book-preview-card.compact {
-  height: 100%;
 }
 
 .card-link {
@@ -178,52 +169,18 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
   color: rgb(var(--v-theme-on-primary));
 }
 
-/* Full mode: fixed cover + info split */
-.full .cover-zone {
-  height: 65%;
-  overflow: hidden;
-}
-
-.full .info-zone {
-  height: 35%;
-  overflow: hidden;
-}
-
-/* Compact mode: cover grows, thin info strip */
-.compact .cover-zone {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.compact .info-zone {
-  flex-shrink: 0;
-  padding-top: 6px !important;
-  padding-bottom: 6px !important;
-}
-
-.compact .card-title {
-  font-size: 0.72rem;
-}
-
-.compact .authors-row,
-.compact .stats-row {
-  font-size: 0.65rem;
-}
-
-.compact .stat-icon {
-  width: 10px;
-  height: 10px;
-}
-
 .cover-zone {
   position: relative;
   width: 100%;
+  height: 65%;
+  overflow: hidden;
 }
 
 .info-zone {
   display: flex;
   flex-direction: column;
+  height: 35%;
+  overflow: hidden;
   padding: 8px 12px 8px 12px;
 }
 
@@ -243,13 +200,7 @@ const visibleAuthors = computed(() => props.authorNames.slice(0, 2))
   color: rgb(var(--v-theme-primary));
 }
 
-/*
- * `text-secondary`, not `on-surface-variant`. The theme in plugins/vuetify.ts
- * spells its key `onSurfaceVariant`, and Vuetify emits variable names verbatim
- * — so `--v-theme-on-surface-variant` is not ours at all, it survives from
- * Vuetify's default theme as near-white (#EEE) in light and black in dark.
- * Either way it is invisible against our card surface.
- */
+/* `text-secondary`, not `on-surface-variant`: these rows want the muted tone. */
 .authors-row {
   position: relative;
   z-index: 2;

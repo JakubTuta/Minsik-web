@@ -1,61 +1,44 @@
 <script setup lang="ts">
-import type { EditFieldConfig } from '~/types/admin'
 import type { Author, AuthorMinimal, BookSummary, Series } from '~/types/api'
+import { totalReaders } from '~/utils/format'
 import { formatReadingTime } from '~/utils/readingTime'
 
 interface Props {
   series: Series
   books: BookSummary[]
+  authors: AuthorMinimal[]
   primaryAuthor?: Author | null
-  isAdmin?: boolean
-  editFields: EditFieldConfig[]
-  editOriginalData: Record<string, any>
-  editLoading?: boolean
-  editError?: string
-  deleteLoading?: boolean
-  deleteError?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   primaryAuthor: null,
-  isAdmin: false,
-  editLoading: false,
-  editError: '',
-  deleteLoading: false,
-  deleteError: '',
 })
-
-const emit = defineEmits<{
-  editSave: [data: Record<string, any>]
-  deleteConfirm: []
-  removeSeriesAuthors: [authorIds: number[]]
-}>()
 
 const { t, n } = useI18n()
 
-const editDialogOpen = defineModel<boolean>('editDialogOpen', { default: false })
-const deleteDialogOpen = defineModel<boolean>('deleteDialogOpen', { default: false })
+const combinedReaders = computed(() => totalReaders(
+  props.series.app_want_to_read_count,
+  props.series.app_reading_count,
+  props.series.app_read_count,
+  props.series.ol_want_to_read_count,
+  props.series.ol_currently_reading_count,
+  props.series.ol_already_read_count,
+))
 
-const collageCovers = computed(() => {
-  if (!props.books || props.books.length === 0)
-    return []
+const publicationSpan = computed(() => {
+  const years = props.books
+    .map(book => book.original_publication_year)
+    .filter((year): year is number => !!year)
 
-  return props.books.slice(0, 4).map(book => book.primary_cover_url || coverColor(book))
-})
+  if (years.length === 0)
+    return null
 
-const authorsLine = computed(() => {
-  const seen = new Set<number>()
-  const out: AuthorMinimal[] = []
-  for (const b of props.books) {
-    for (const a of b.authors) {
-      if (!seen.has(a.author_id)) {
-        seen.add(a.author_id)
-        out.push(a)
-      }
-    }
-  }
+  const first = Math.min(...years)
+  const last = Math.max(...years)
 
-  return out
+  return first === last
+    ? String(first)
+    : `${first}–${last}`
 })
 
 const totalPages = computed(() => {
@@ -88,6 +71,11 @@ const seriesStats = computed(() => {
         : '—',
       label: t('book.readingTime'),
     },
+    {
+      icon: 'mdi-account-multiple',
+      value: n(combinedReaders.value),
+      label: t('stats.readers'),
+    },
   ]
 
   return items
@@ -96,14 +84,25 @@ const seriesStats = computed(() => {
 
 <template>
   <v-card>
-    <v-row no-gutters>
-      <!-- Book Covers Collage -->
+    <v-row
+      no-gutters
+      class="pa-2"
+    >
+      <!-- Covers + progress, the way the book page stacks its shelf panel -->
       <v-col
         cols="12"
         md="3"
-        class="pa-0"
+        class="pa-6"
       >
-        <CoversCollage :covers="collageCovers" />
+        <SeriesCoverStack :books="books" />
+
+        <ClientOnly>
+          <SeriesProgressCard
+            :books="books"
+            :total-pages="series.total_pages ?? 0"
+            class="mt-6"
+          />
+        </ClientOnly>
       </v-col>
 
       <!-- Series Info -->
@@ -113,46 +112,24 @@ const seriesStats = computed(() => {
       >
         <v-card-text class="d-flex flex-column h-100">
           <div>
-            <div class="text-secondary text-h6 mb-1">
+            <div class="text-secondary text-overline mb-2">
               {{ t('series.bookSeries') }}
+
+              <span v-if="publicationSpan"> · {{ publicationSpan }}</span>
             </div>
 
-            <div class="d-flex align-center justify-space-between">
-              <h1 class="text-h3 font-weight-bold">
-                {{ series.name }}
-              </h1>
-
-              <ClientOnly>
-                <div class="d-flex">
-                  <v-btn
-                    v-if="isAdmin"
-                    icon="mdi-pencil"
-                    variant="text"
-                    size="small"
-                    color="secondary"
-                    @click="editDialogOpen = true"
-                  />
-
-                  <v-btn
-                    v-if="isAdmin"
-                    icon="mdi-delete"
-                    variant="text"
-                    size="small"
-                    color="error"
-                    @click="deleteDialogOpen = true"
-                  />
-                </div>
-              </ClientOnly>
-            </div>
+            <h1 class="font-display text-h3 font-weight-bold">
+              {{ series.name }}
+            </h1>
 
             <!-- Authors line -->
             <div
-              v-if="authorsLine.length > 0"
+              v-if="authors.length > 0"
               class="text-body-1 mt-2"
             >
               {{ t('book.byAuthor') }}
               <template
-                v-for="(author, i) in authorsLine"
+                v-for="(author, i) in authors"
                 :key="author.author_id"
               >
                 <NuxtLinkLocale
@@ -162,13 +139,13 @@ const seriesStats = computed(() => {
                   {{ author.name }}
                 </NuxtLinkLocale>
 
-                <span v-if="i < authorsLine.length - 1">, </span>
+                <span v-if="i < authors.length - 1">, </span>
               </template>
             </div>
 
             <!-- Ratings Card -->
             <v-card
-              class="mt-6"
+              class="mt-8"
               flat
               color="background"
             >
@@ -230,7 +207,14 @@ const seriesStats = computed(() => {
             <!-- Stats Row -->
             <StatsRow
               :stats="seriesStats"
-              class="mt-4"
+              class="mt-6"
+            />
+
+            <CategoriesChips
+              v-if="series.genres?.length"
+              :categories="series.genres"
+              hide-label
+              class="mt-6"
             />
           </div>
         </v-card-text>
@@ -245,60 +229,5 @@ const seriesStats = computed(() => {
         <AuthorShortCard :author="primaryAuthor" />
       </v-col>
     </v-row>
-
-    <!-- Dialogs -->
-    <ClientOnly>
-      <AdminEditDialog
-        v-model="editDialogOpen"
-        :title="t('series.editSeries')"
-        :fields="editFields"
-        :original-data="editOriginalData"
-        :authors="authorsLine"
-        :loading="editLoading"
-        :error="editError"
-        @save="emit('editSave', $event)"
-        @remove-authors="emit('removeSeriesAuthors', $event)"
-      />
-
-      <v-dialog
-        v-model="deleteDialogOpen"
-        max-width="400"
-      >
-        <v-card>
-          <v-card-title>{{ t('series.deleteConfirmTitle') }}</v-card-title>
-
-          <v-card-text>
-            {{ t('series.deleteConfirmBody', {"name": series.name}) }}
-            <v-alert
-              v-if="deleteError"
-              type="error"
-              class="mt-3"
-            >
-              {{ deleteError }}
-            </v-alert>
-          </v-card-text>
-
-          <v-card-actions>
-            <v-spacer />
-
-            <v-btn
-              variant="text"
-              @click="deleteDialogOpen = false"
-            >
-              {{ t('common.cancel') }}
-            </v-btn>
-
-            <v-btn
-              color="error"
-              variant="flat"
-              :loading="deleteLoading"
-              @click="emit('deleteConfirm')"
-            >
-              {{ t('common.delete') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </ClientOnly>
   </v-card>
 </template>

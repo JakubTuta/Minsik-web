@@ -5,9 +5,12 @@ interface Props {
   bookId: number
   // compact = icon-only chip, for tight covers (timeline, podium)
   compact?: boolean
+  chipSize?: 'x-small' | 'small'
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  chipSize: 'x-small',
+})
 
 const { t } = useI18n()
 const bookStatusesStore = useBookStatusesStore()
@@ -34,21 +37,23 @@ const meta = computed(() => {
       v-if="meta.isFavorite"
       icon="mdi-heart"
       color="red"
-      size="small"
+      :size="chipSize === 'small'
+        ? 'default'
+        : 'small'"
       class="shelf-fav position-absolute"
     />
 
     <div class="shelf-ribbon">
       <v-chip
         :color="meta.color"
-        size="x-small"
+        :size="chipSize"
         variant="elevated"
         label
         class="font-weight-bold"
       >
         <v-icon
           :icon="meta.icon"
-          size="x-small"
+          :size="chipSize"
           :start="!compact"
         />
 

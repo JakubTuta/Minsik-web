@@ -1,7 +1,11 @@
-/* Single app-wide font family and line height */
+/*
+ * Two app-wide families: Figtree carries the interface, Petrona is the display
+ * and long-form serif. Anything that should be set in Petrona asks for it with
+ * .font-display (headline/number) or .font-reading (body copy).
+ */
 html,
 body {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Figtree', 'Segoe UI', system-ui, sans-serif;
   line-height: 1.67;
 }
 
@@ -19,6 +23,22 @@ html {
 }
 
 .v-application {
-  font-family: 'Montserrat', sans-serif !important;
+  font-family: 'Figtree', 'Segoe UI', system-ui, sans-serif !important;
   line-height: 1.67 !important;
+}
+
+.font-display {
+  font-family: 'Petrona', Georgia, serif;
+  letter-spacing: -0.025em;
+  text-wrap: pretty;
+}
+
+.font-reading {
+  font-family: 'Petrona', Georgia, serif;
+  line-height: 1.64;
+  text-wrap: pretty;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

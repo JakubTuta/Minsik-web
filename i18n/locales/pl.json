@@ -60,7 +60,10 @@
     "copied": "Skopiowano!",
     "bookCount": "{count} książka | {count} książki | {count} książek",
     "commentCount": "{count} komentarz | {count} komentarze | {count} komentarzy",
-    "backToHome": "Powrót do strony głównej"
+    "backToHome": "Powrót do strony głównej",
+    "hide": "Ukryj",
+    "loadMore": "Załaduj więcej",
+    "noResults": "Nie ma tu jeszcze nic do pokazania."
   },
   "footer": {
     "tagline": "Odkryj swoją następną ulubioną książkę dzięki emocjonalnym profilom czytelniczym i sieciom wpływu książek.",
@@ -98,6 +101,7 @@
     "seriesPrefix": "Seria: {name}",
     "bookSeries": "Seria książkowa",
     "editSeries": "Edytuj serię",
+    "delete": "Usuń serię",
     "deleteConfirmTitle": "Usunąć serię?",
     "deleteConfirmBody": "Tej czynności nie można cofnąć. Czy na pewno chcesz usunąć \"{name}\"?",
     "evolutionTitle": "Jak rozwija się seria",
@@ -159,7 +163,8 @@
     "olReading": "Open Library — Czytam: {count}",
     "olRead": "Open Library — Przeczytane: {count}",
     "ratingsCountPlain": "{count} ocen",
-    "readersCount": "{count} czytelników"
+    "readersCount": "{count} czytelników",
+    "rating": "OCENA"
   },
   "user": {
     "fallbackName": "Użytkownik"
@@ -461,6 +466,39 @@
         "3": "Ma kilka lżejszych momentów",
         "5": "Naprawdę zabawna od początku do końca"
       }
+    },
+    "eightAxesEyebrow": "Osiem osi",
+    "eightAxesTitle": "Nie tylko jak dobra — ale jaka to książka",
+    "eightAxesSubtitle": "Czytelnicy oceniają dowolne z ośmiu osi, więc każda ma własną liczbę głosów. Cztery mówią, jak dobrze to zrobiono, cztery po prostu czym to jest.",
+    "qualityAxesHeading": "Osie jakości — im wyżej, tym lepiej",
+    "characterAxesHeading": "Osie charakteru — żaden koniec nie jest lepszy",
+    "inOneLine": "W jednym zdaniu",
+    "noAxesYet": "Nikt jeszcze nie ocenił ośmiu osi tej książki. Bądź pierwszy, a kształt poniżej się wypełni.",
+    "axisCountSingle": "{count} ocen na oś",
+    "axisCountRange": "{low}–{high} ocen na oś",
+    "axisRatings": "{count} ocen",
+    "summaryJoin": ", ",
+    "summaries": {
+      "pacing": {
+        "low": "powolna i rozważna",
+        "mid": "równomiernie prowadzona",
+        "high": "wartko poprowadzona"
+      },
+      "readability": {
+        "low": "gęsta w lekturze",
+        "mid": "średnio wymagająca",
+        "high": "łatwa w czytaniu"
+      },
+      "plot_complexity": {
+        "low": "opowiedziana wprost",
+        "mid": "umiarkowanie wielowarstwowa",
+        "high": "misternie skonstruowana"
+      },
+      "humor": {
+        "low": "w większości poważna",
+        "mid": "lekko zabawna",
+        "high": "naprawdę śmieszna"
+      }
     }
   },
   "comment": {
@@ -530,7 +568,8 @@
     "editions": "Wydania",
     "checkOtherPlatforms": "Sprawdź tę książkę na innych platformach",
     "byAuthor": "autor:",
-    "coverAltIndexed": "Okładka książki {index}"
+    "coverAltIndexed": "Okładka książki {index}",
+    "year": "Rok"
   },
   "bookUser": {
     "book": "Książka",
@@ -786,7 +825,37 @@
     "deleteBook": "Usuń książkę",
     "deleteBookConfirmTitle": "Usunąć książkę?",
     "deleteBookConfirmBody": "Tej czynności nie można cofnąć. Czy na pewno chcesz usunąć \"{title}\"?",
-    "firstSentence": "Pierwsze zdanie"
+    "firstSentence": "Pierwsze zdanie",
+    "onYourShelf": "Na twojej półce",
+    "quickRateHintWithAxes": "Kliknij gwiazdkę, aby zmienić ocenę. Oceniłeś też {count} z ośmiu osi.",
+    "rateAllAxes": "Szczegółowa ocena",
+    "favourite": "Ulubiona",
+    "favourited": "W ulubionych",
+    "guestShelfTitle": "Odłóż ją na półkę",
+    "guestShelfBody": "Oznacz jako przeczytaną, oceń na ośmiu osiach zamiast jednej, a Minsik zacznie lepiej dobierać kolejne propozycje.",
+    "firstPublished": "PIERWSZE WYDANIE",
+    "firstSentenceCaption": "Pierwsze zdanie, dokładnie tak jak wydrukowano.",
+    "firstSentenceCaptionYear": "Pierwsze zdanie, tak jak w wydaniu z {year} roku.",
+    "premiseEyebrow": "Punkt wyjścia",
+    "premiseTitle": "W co się pakujesz",
+    "compareEyebrow": "Jak wypada",
+    "compareTitleAbove": "Lepsza niż większość tego, co napisał {name}",
+    "compareTitleBelow": "Cichszy zakątek twórczości {name}",
+    "compareSubtitle": "Te same liczby, zestawione z towarzystwem, w którym ta książka naprawdę się znajduje.",
+    "compareAuthor": "Na tle autora",
+    "compareSeries": "Na tle serii",
+    "compareDelta": "{delta} wobec dorobku",
+    "compareCatalogueAverage": "Średnia dorobku {value}",
+    "compareReaderRatio": "{value}× średniej",
+    "compareAverageReaders": "Przeciętna pozycja przyciąga tu {value} czytelników.",
+    "compareRank": "Miejsce według oceny",
+    "compareRankOf": "z {count} dzieł",
+    "compareRankPartial": "Miejsce wśród {count} najwyżej ocenionych dzieł w bazie.",
+    "compareRankExact": "Miejsce wśród wszystkich dzieł, od najsłabszego do najlepszego.",
+    "verdictEyebrow": "Werdykt w całości",
+    "verdictTitle": "Kto ocenił, jak i co powiedział",
+    "verdictSubtitle": "Wszystkie oceny czytelników tej książki i to, co o niej napisali. Kliknij słupek, aby przeczytać tylko tych, którzy dali tę ocenę.",
+    "rarity": "Rzadkość"
   },
   "discoverPage": {
     "seoTitle": "Odkryj książkę - Minsik",
@@ -840,7 +909,34 @@
     "totalBooks": "Łączna liczba książek",
     "removeFailed": "Usuwanie nie powiodło się",
     "booksInSeries": "Książki w tej serii",
-    "noBooksInSeries": "Nie znaleziono książek w tej serii."
+    "noBooksInSeries": "Nie znaleziono książek w tej serii.",
+    "aboutEyebrow": "Kształt całości",
+    "aboutTitle": "Czym jest ta seria",
+    "yourProgress": "Twoje postępy",
+    "pagesRead": "Przeczytane strony",
+    "pagesReadOf": "z {total}",
+    "timeInvested": "Poświęcony czas",
+    "upNext": "Następnie",
+    "upNextReading": "właśnie to czytasz",
+    "upNextWaiting": "czeka na ciebie",
+    "guestProgressTitle": "{count} pozycji, jedna po drugiej",
+    "guestProgressBody": "Zaloguj się, a ta karta zmieni się w pierścień postępu: przeczytane tomy, strony za tobą i to, na czym skończyłeś.",
+    "guestProgressFootnote": "Seria nie ma własnej oceny — odkładasz i oceniasz tomy, a wynik serii to ich suma.",
+    "rhythmEyebrow": "Rytm wydawniczy",
+    "rhythmTitle": "Te tomy nie ukazywały się równomiernie",
+    "rhythmSubtitle": "Rozstawione według roku wydania na przestrzeni {years} lat, a nie równo obok siebie. To przerwy są tu opowieścią.",
+    "rhythmLongestGap": "Najdłuższa przerwa: {years} lat",
+    "rhythmGapLabel": "{years} lat",
+    "readersEyebrow": "Czytelnicy na tom",
+    "readersTitle": "Gdzie tłum się przerzedza",
+    "readersSubtitle": "Każdy gdzieś zaczyna, a kończy mniej osób. Każdy tom według liczby czytelników, do których dotarł.",
+    "readersCarryThrough": "{percent}% dociera do końca",
+    "readersMostRead": "Najczęściej czytany",
+    "readersStarted": "Zaczęło od tomu pierwszego",
+    "readersFinished": "Dotrwało do końca",
+    "allVolumesEyebrow": "Wszystkie tomy",
+    "allVolumesSubtitle": "Kolejność serii, od góry do dołu. Pozycje bywają ułamkowe, gdy między numery wciśnie się nowela.",
+    "volumeColumn": "Tom"
   },
   "authorPage": {
     "notFound": "Nie znaleziono autora",
@@ -854,7 +950,36 @@
     "booksHeading": "Książki",
     "listView": "Widok listy",
     "timelineView": "Widok osi czasu",
-    "noBooksForAuthor": "Nie znaleziono książek tego autora."
+    "noBooksForAuthor": "Nie znaleziono książek tego autora.",
+    "openingLine": "Pierwsze zdanie",
+    "openingLineFootnote": "z najczęściej czytanej książki, która ma je w bazie",
+    "yourProgress": "Twoje postępy",
+    "worksRead": "Przeczytane dzieła",
+    "worksReadOf": "z {total}",
+    "onYourShelves": "Na twoich półkach",
+    "progressFootnote": "{count} dzieł to cała kariera. Nikt nie przeczyta całego dorobku {name} — chodzi o to, by znaleźć te warte wieczoru.",
+    "guestProgressTitle": "Ile przeczytałeś z twórczości {name}?",
+    "guestProgressBody": "Zaloguj się, a pojawi się tu pierścień: przeczytane dzieła z {count} i to, co już stoi na twoich półkach.",
+    "shapeEyebrow": "Kształt dorobku",
+    "shapeTitle": "Najwięcej pisał w {period}",
+    "shapeSubtitle": "{works} dzieł i {genres} gatunków, które nie chcą się do tej liczby zsumować, bo większość książek należy do kilku naraz.",
+    "worksPerDecade": "Dzieła wydane w dekadzie",
+    "worksPerYear": "Dzieła wydane w roku",
+    "firstPublished": "Pierwsze wydanie",
+    "lastPublished": "Ostatnie wydanie",
+    "averagePerYear": "Średnio na rok",
+    "genreSpread": "Rozkład gatunków",
+    "genreSpreadFootnote": "Książka może należeć do kilku z nich naraz, więc liczby sumują się do więcej niż {count}.",
+    "mostReadEyebrow": "Najczęściej czytane",
+    "mostReadSubtitle": "Według czytelników, nie ocen — tędy tłum naprawdę wchodzi.",
+    "readersCount": "{count} czytelników",
+    "catalogueEyebrow": "Dorobek",
+    "catalogueSubtitle": "Zgrupuj serie, a wszystkie tomy zwiną się w jeden wiersz, który możesz rozwinąć.",
+    "groupSeries": "Grupuj serie",
+    "seriesGroupHint": "{count} tomów w tej serii",
+    "workColumn": "Dzieło",
+    "noPublicationYears": "Dla tych dzieł nie ma jeszcze w bazie lat wydania, więc nie ma z czego narysować osi czasu.",
+    "noSeriesToGroup": "Żadne z dzieł na tej stronie nie należy do serii. Wyłącz filtr, aby zobaczyć wszystkie."
   },
   "dashboardPage": {
     "pageDescription": "Twój osobisty panel konta.",

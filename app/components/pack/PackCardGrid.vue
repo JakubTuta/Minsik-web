@@ -29,7 +29,7 @@ function getRarityColor(rarity: string | null | undefined) {
 }
 
 function getRarityLabel(rarity: string | null | undefined) {
-  return rarityLabels.value[(rarity as Rarity) ?? 'common'] ?? rarity
+  return rarityLabels.value[(rarity as Rarity) ?? 'common'] ?? ''
 }
 
 function isRevealed(index: number) {
@@ -130,20 +130,9 @@ onUnmounted(() => {
 
           <!-- Face-up (revealed) -->
           <div class="card-face card-front">
-            <div class="card-front-glow" />
-
-            <div class="card-rarity-badge">
-              <span
-                class="rarity-chip text-caption font-weight-bold text-uppercase"
-                :style="{'backgroundColor': getRarityColor(item.rarity),
-                         'color': '#fff'}"
-              >
-                {{ getRarityLabel(item.rarity) }}
-              </span>
-            </div>
-
             <BookPreviewCard
-              compact
+              :badge="getRarityLabel(item.rarity)"
+              :badge-color="getRarityColor(item.rarity)"
               :title="item.title"
               :slug="item.slug"
               :cover-url="item.primary_cover_url"
@@ -173,23 +162,23 @@ onUnmounted(() => {
 .pack-card-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 22px;
+  gap: 20px;
   width: 100%;
-  max-width: 800px;
+  max-width: 920px;
 }
 
 @media (max-width: 599px) {
   .pack-card-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    max-width: 380px;
+    gap: 16px;
+    max-width: 440px;
   }
 }
 
 .pack-card-slot {
   position: relative;
-  aspect-ratio: 2 / 3.5;
-  border-radius: 10px;
+  height: 360px;
+  border-radius: 16px;
   cursor: pointer;
   perspective: 900px;
   user-select: none;
@@ -214,7 +203,7 @@ onUnmounted(() => {
 .card-face {
   position: absolute;
   inset: 0;
-  border-radius: 10px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -237,7 +226,7 @@ onUnmounted(() => {
   background: radial-gradient(ellipse at 50% 80%, var(--rarity-color, #3498DB) 0%, transparent 65%);
   opacity: 0.25;
   pointer-events: none;
-  border-radius: 10px;
+  border-radius: 16px;
 }
 
 .card-back-inner {
@@ -267,36 +256,7 @@ onUnmounted(() => {
 .card-front {
   transform: rotateY(180deg);
   background: rgb(var(--v-theme-surface));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px var(--rarity-color, #3498DB), 0 10px 28px -12px var(--rarity-color, #3498DB);
   cursor: default;
-}
-
-.card-front-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(to bottom, var(--rarity-color, #3498DB) 0%, transparent 100%);
-  opacity: 0.12;
-  pointer-events: none;
-  border-radius: 10px 10px 0 0;
-}
-
-.card-rarity-badge {
-  position: absolute;
-  top: 6px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  z-index: 2;
-}
-
-.rarity-chip {
-  padding: 0px 3px;
-  border-radius: 70px;
-  font-size: 0.34rem;
-  letter-spacing: 0.03em;
 }
 </style>

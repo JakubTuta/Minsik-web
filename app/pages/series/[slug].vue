@@ -1,36 +1,43 @@
 <script setup lang="ts">
 import type { EditFieldConfig } from '~/types/admin'
+import type { Author } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 
 const route = useRoute()
 const seriesStore = useSeriesStore()
 const authorsStore = useAuthorsStore()
-const authStore = useAuthStore()
-const adminStore = useAdminStore()
 const recommendationsStore = useRecommendationsStore()
 const { t } = useI18n()
-// A series resolves to a different per-language record with its own book list,
-// so the page's data follows the interface language.
+// Language is in every key, not a `watch`: a locale switch changes the path,
+// which remounts the page, and a fresh mount never fires a watcher.
 const { language } = useUserLanguage()
 
 const slug = route.params.slug as string
 
-const { data: series, error: seriesError } = await useCachedAsyncData(
-  `series-${slug}`,
+const { data: series, error: seriesError, refresh: refreshSeriesData } = await useCachedAsyncData(
+  computed(() => `series-${slug}-${language.value}`),
   () => seriesStore.fetchSeries(slug),
-  { watch: [language] },
 )
 
-// Books list is secondary to page identity — don't block navigation
-const { data: books } = useCachedAsyncData(
-  `series-books-${slug}`,
+if (seriesError.value || !series.value) {
+  throw createError({
+    statusCode: 404,
+    message: t('seriesPage.notFound'),
+    fatal: true,
+  })
+}
+
+// `lazy` unblocks navigation but still renders on the server, which the volumes,
+// the charts and the social image all need.
+const { data: books, status: booksStatus } = useCachedAsyncData(
+  computed(() => `series-books-${slug}-${language.value}`),
   () => seriesStore.fetchSeriesBooks(slug),
-  { lazy: true, watch: [language], default: () => [] },
+  { lazy: true, default: () => [] },
 )
 
-// Block on author for SSR/SEO — slug comes from series so no books dependency
-const { data: primaryAuthor } = await useCachedAsyncData(
-  `series-author-${slug}`,
+// Client-only: nothing in the head needs it, both read the author off `series`.
+const { data: primaryAuthor } = useLazyAsyncData<Author | null>(
+  computed(() => `series-author-${slug}-${language.value}`),
   async () => {
     const authorSlug = series.value?.author?.slug
     if (!authorSlug)
@@ -43,52 +50,43 @@ const { data: primaryAuthor } = await useCachedAsyncData(
       return null
     }
   },
+  { default: () => null, server: false },
 )
 
-if (seriesError.value || !series.value) {
-  throw createError({
-    statusCode: 404,
-    message: t('seriesPage.notFound'),
-    fatal: true,
-  })
-}
-
-// SEO — series slugs are shared across languages (unlike books, whose slug is
-// per-edition), so the canonical just follows the current UI locale's URL;
-// hreflang alternates come from useLocaleHead() in app.vue.
+// Series slugs are shared across languages, so the canonical follows the
+// current locale's URL; alternates come from useLocaleHead() in app.vue.
 const config = useRuntimeConfig()
 const localePath = useLocalePath()
-const canonicalUrl = `${config.public.siteUrl}${route.path}`
+const canonicalUrl = computed(() => `${config.public.siteUrl}${route.path}`)
+
+// Derived: the volumes are still empty when this composable runs.
+const socialImage = computed(() => books.value?.find(book => book.primary_cover_url)?.primary_cover_url || undefined)
 
 useSeo({
-  title: series.value.name,
-  description: series.value.description || t('seriesPage.seoDescriptionFallback', { name: series.value.name, count: series.value.total_books }),
-  image: books.value?.[0]?.primary_cover_url || undefined,
+  title: computed(() => series.value?.name ?? ''),
+  description: computed(() => series.value?.description
+    || t('seriesPage.seoDescriptionFallback', { name: series.value?.name ?? '', count: series.value?.total_books ?? 0 })),
+  image: socialImage,
   type: 'website',
   url: canonicalUrl,
-  author: series.value.author?.name,
+  author: computed(() => series.value?.author?.name),
 })
 
-useSeriesStructuredData({
-  name: series.value.name,
-  description: series.value.description || undefined,
-  url: canonicalUrl,
-})
+useSeriesStructuredData(() => ({
+  name: series.value?.name ?? '',
+  description: series.value?.description,
+  url: canonicalUrl.value,
+  author: series.value?.author?.name,
+  numberOfItems: series.value?.total_books,
+}))
 
-useBreadcrumbStructuredData([
+useBreadcrumbStructuredData(() => [
   { name: t('nav.home'), url: `${config.public.siteUrl}${localePath('index')}` },
-  ...(series.value.author
+  ...(series.value?.author
     ? [{ name: series.value.author.name, url: `${config.public.siteUrl}${localePath({ name: 'authors-slug', params: { slug: series.value.author.slug } })}` }]
     : []),
-  { name: series.value.name },
+  { name: series.value?.name ?? '' },
 ])
-
-const isAdmin = computed(() => authStore.user?.role === 'admin')
-const editError = ref('')
-const deleteError = ref('')
-const removeAuthorError = ref('')
-const editDialogOpen = ref(false)
-const deleteDialogOpen = ref(false)
 
 const seriesEditFields = computed<EditFieldConfig[]>(() => [
   { key: 'name', label: t('author.fieldName'), type: 'text' },
@@ -104,48 +102,24 @@ const seriesEditOriginalData = computed(() => ({
   total_books: series.value?.total_books ?? null,
 }))
 
-async function handleRemoveSeriesAuthors(authorIds: number[]) {
-  removeAuthorError.value = ''
-  const results = await Promise.all(
-    authorIds.map(id => adminStore.removeSeriesAuthor(series.value!.series_id, id)),
-  )
-  const failed = results.find(r => !r.success)
-  if (failed) {
-    removeAuthorError.value = (failed as any).error || t('seriesPage.removeFailed')
+// The volumes' authors, not the series' nominal one — an anthology has none.
+const volumeAuthors = computed(() => {
+  const seen = new Set<number>()
 
-    return
-  }
-  await seriesStore.fetchSeries(slug, true)
-}
+  return (books.value ?? []).flatMap(book => book.authors.filter((author) => {
+    if (seen.has(author.author_id))
+      return false
+    seen.add(author.author_id)
 
-async function handleSeriesDelete() {
-  deleteError.value = ''
-  const result = await adminStore.deleteSeries(series.value!.series_id)
-  if (result.success) {
-    deleteDialogOpen.value = false
-    await navigateTo(localePath('index'))
-  }
-  else {
-    deleteError.value = (result as any).error || t('admin.deleteFailed')
-  }
-}
+    return true
+  }))
+})
 
-async function handleSeriesEditSave(editedData: Record<string, any>) {
-  editError.value = ''
-  const result = await adminStore.updateSeries(series.value!.series_id, seriesEditOriginalData.value, editedData)
-  if (result.success) {
-    editDialogOpen.value = false
-    const newSlug = editedData.slug && editedData.slug !== slug
-      ? editedData.slug
-      : slug
-    await seriesStore.fetchSeries(newSlug, true)
-    if (newSlug !== slug) {
-      await navigateTo(localePath({ name: 'series-slug', params: { slug: newSlug } }))
-    }
-  }
-  else {
-    editError.value = (result as any).error || t('admin.updateFailed')
-  }
+// The page renders the `useAsyncData` copy, not the store, so both need it.
+async function refreshSeries(nextSlug: string) {
+  await seriesStore.fetchSeries(nextSlug, true)
+  if (nextSlug === slug)
+    await refreshSeriesData()
 }
 
 const seriesRecommendations = ref<RecommendationSection[]>([])
@@ -165,86 +139,88 @@ onMounted(async () => {
     <v-row>
       <v-col cols="12">
         <SeriesHeader
-          v-model:edit-dialog-open="editDialogOpen"
-          v-model:delete-dialog-open="deleteDialogOpen"
           :series="series"
-          :books="books || []"
+          :books="books ?? []"
+          :authors="volumeAuthors"
           :primary-author="primaryAuthor"
-          :is-admin="isAdmin"
-          :edit-fields="seriesEditFields"
-          :edit-original-data="seriesEditOriginalData"
-          :edit-loading="adminStore.isUpdateLoading"
-          :edit-error="editError || removeAuthorError"
-          :delete-loading="adminStore.isDeleteLoading"
-          :delete-error="deleteError"
-          @edit-save="handleSeriesEditSave"
-          @delete-confirm="handleSeriesDelete"
-          @remove-series-authors="handleRemoveSeriesAuthors"
+        />
+
+        <AdminEntityActions
+          :id="series.series_id"
+          entity="series"
+          :name="series.name"
+          :slug="series.slug"
+          :fields="seriesEditFields"
+          :original-data="seriesEditOriginalData"
+          :authors="volumeAuthors"
+          :refresh="refreshSeries"
+          container-class="mt-2 justify-end"
         />
       </v-col>
     </v-row>
 
-    <!-- Description Section -->
-    <v-row class="mt-6">
-      <v-col cols="12">
-        <LongDescriptionCard :description="series.description" />
-      </v-col>
-    </v-row>
+    <!-- Description -->
+    <div class="mt-10">
+      <SectionHeading
+        :eyebrow="t('seriesPage.aboutEyebrow')"
+        :title="t('seriesPage.aboutTitle')"
+      />
+
+      <DescriptionCard
+        :description="series.description"
+        hide-heading
+      />
+    </div>
 
     <!-- Evolution Graph -->
-    <v-row
+    <div
       v-if="(books?.length ?? 0) >= 2"
-      class="mt-6"
+      class="mt-12"
     >
-      <v-col cols="12">
-        <LazySeriesEvolutionCard
-          hydrate-on-visible
-          :books="books!"
-        />
-      </v-col>
-    </v-row>
+      <LazySeriesEvolutionCard
+        hydrate-on-visible
+        :books="books ?? []"
+      />
+    </div>
 
-    <!-- Books List -->
-    <v-row class="mt-6">
-      <v-col cols="12">
-        <v-card>
-          <v-card-text>
-            <h2 class="text-h5 font-weight-bold mb-4">
-              {{ t('seriesPage.booksInSeries') }}
-            </h2>
+    <!-- Publication rhythm -->
+    <div class="mt-12">
+      <LazySeriesPublicationRhythm
+        hydrate-on-visible
+        :books="books ?? []"
+      />
+    </div>
 
-            <BooksList
-              :books="books || []"
-              :loading="seriesStore.isLoadingBooks"
-              :empty-message="t('seriesPage.noBooksInSeries')"
-            />
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+    <!-- Readers per volume -->
+    <div class="mt-12">
+      <LazySeriesReadersPerVolume
+        hydrate-on-visible
+        :books="books ?? []"
+      />
+    </div>
+
+    <!-- All volumes -->
+    <div class="mt-12">
+      <SectionHeading
+        :eyebrow="t('seriesPage.allVolumesEyebrow')"
+        :title="t('seriesPage.booksInSeries')"
+        :subtitle="t('seriesPage.allVolumesSubtitle')"
+      />
+
+      <EntityBooksTable
+        :books="books ?? []"
+        show-position
+        :loading="booksStatus === 'pending'"
+        :empty-message="t('seriesPage.noBooksInSeries')"
+      />
+    </div>
 
     <!-- Series Recommendations -->
     <ClientOnly>
-      <div
-        v-if="seriesRecommendations.length > 0"
-        class="mt-8"
-      >
-        <template
-          v-for="category in seriesRecommendations"
-          :key="category.key"
-        >
-          <RecommendationRow
-            v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-            :category="category"
-            hide-show-more
-          />
-        </template>
-      </div>
+      <RecommendationSections
+        :sections="seriesRecommendations"
+        class="mt-12"
+      />
     </ClientOnly>
-  </v-container>
-
-  <!-- Loading State -->
-  <v-container v-else-if="seriesStore.isLoading">
-    <LoadingState type="detail" />
   </v-container>
 </template>

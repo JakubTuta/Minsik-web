@@ -113,14 +113,17 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     legend: { display: false },
     tooltip: {
       callbacks: {
-        title: ctx => sortedBooks.value[ctx[0].dataIndex]?.title ?? '',
-        label: ctx => ` ${ctx.parsed.y.toFixed(2)} ★`,
+        title: ctx => sortedBooks.value[ctx[0]?.dataIndex ?? 0]?.title ?? '',
+        label: ctx => ` ${(ctx.parsed.y ?? 0).toFixed(2)} ★`,
       },
     },
   },
   scales: {
+    // The volume number is drawn on each point by `positionPlugin`, so the
+    // axis labels underneath were a second, less precise copy of the same thing.
     x: {
       grid: { display: false },
+      ticks: { display: false },
     },
     y: {
       min: minRating.value,
@@ -159,8 +162,8 @@ const seriesStats = computed<StatEntry[]>(() => {
 
   const ratingOf = (b: BookSummary) => bookWeightedRating(b)
 
-  const first = books[0]
-  const last = books.at(-1)
+  const first = books[0]!
+  const last = books.at(-1)!
 
   entries.push({
     keyword: t('series.evolution.beginning'),
@@ -175,11 +178,11 @@ const seriesStats = computed<StatEntry[]>(() => {
   if (books.length > 2) {
     let peakIdx = 0
     for (let i = 1; i < books.length; i++) {
-      if (ratingOf(books[i]) > ratingOf(books[peakIdx]))
+      if (ratingOf(books[i]!) > ratingOf(books[peakIdx]!))
         peakIdx = i
     }
     if (peakIdx !== 0 && peakIdx !== books.length - 1) {
-      const peak = books[peakIdx]
+      const peak = books[peakIdx]!
       entries.push({
         keyword: t('series.evolution.peak'),
         position: fmtPos(peak),
@@ -193,11 +196,11 @@ const seriesStats = computed<StatEntry[]>(() => {
   if (books.length > 2) {
     let dipIdx = 0
     for (let i = 1; i < books.length; i++) {
-      if (ratingOf(books[i]) < ratingOf(books[dipIdx]))
+      if (ratingOf(books[i]!) < ratingOf(books[dipIdx]!))
         dipIdx = i
     }
     if (dipIdx !== 0 && dipIdx !== books.length - 1) {
-      const dip = books[dipIdx]
+      const dip = books[dipIdx]!
       const rating = ratingOf(dip)
       entries.push({
         keyword: rating >= 3
@@ -222,8 +225,8 @@ const seriesStats = computed<StatEntry[]>(() => {
   })
 
   const mean = ratings.value.reduce((s, r) => s + r, 0) / ratings.value.length
-  const deltas = ratings.value.slice(1).map((r, i) => r - ratings.value[i])
-  const signChanges = deltas.slice(1).filter((d, i) => Math.sign(d) !== Math.sign(deltas[i]) && d !== 0 && deltas[i] !== 0).length
+  const deltas = ratings.value.slice(1).map((r, i) => r - ratings.value[i]!)
+  const signChanges = deltas.slice(1).filter((d, i) => Math.sign(d) !== Math.sign(deltas[i]!) && d !== 0 && deltas[i] !== 0).length
 
   let trendIcon: string
   let trendComment: string

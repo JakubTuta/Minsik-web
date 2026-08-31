@@ -62,7 +62,6 @@ async function handleDelete() {
         size="small"
         variant="text"
         :to="localePath(`/books/${entry.book_slug}`)"
-        :as="NuxtLink"
       />
 
       <template v-if="!isPublicProfile">

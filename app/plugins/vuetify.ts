@@ -7,12 +7,9 @@ import { de, en, es, fr, pl } from 'vuetify/locale'
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n'
 import { mdiIconMap } from '~/utils/mdiIcons'
 
-// Named imports, one per app locale — `import * as` from 'vuetify/locale'
-// pulls in all 43 shipped language packs (~115KB) because Rollup can't tell
-// which keys a dynamic index will touch. These re-exports are static, so
-// only the five actually referenced below survive tree-shaking. Keep this
-// list in sync with locales.config.ts's APP_LOCALES by hand — it can't
-// import that list and stay statically analyzable.
+// Named imports, not `import * as`: only the five referenced here survive
+// tree-shaking, the wildcard pulls all 43 packs (~115KB). Keep in sync with
+// APP_LOCALES by hand — importing that list would defeat the analysis.
 const VUETIFY_LOCALE_PACKS: Record<string, Record<string, unknown>> = { en, pl, de, es, fr }
 
 // Resolves "mdi-*" name strings to @mdi/js SVG paths so the 400KB+ icon font is not needed
@@ -23,29 +20,23 @@ const mdiSvg: IconSet = {
   }),
 }
 
+const LIGHT_INK = '#2C2420'
+const LIGHT_INK_MUTED = '#6B5D56'
+const DARK_INK = '#F8FAFB'
+const DARK_INK_MUTED = '#B8C5D6'
+const DARK_BASE = '#1A2332'
+
 export default defineNuxtPlugin((app) => {
   const colorMode = useColorMode()
 
-  // Always 'light', regardless of the reader's cookie. SSR HTML must be
-  // visitor-independent so `/` and friends can be swr-cached (see
-  // nuxt.config.ts routeRules) — deriving this from colorMode.preference
-  // would stamp a per-visitor theme into the cached snapshot and serve
-  // whoever rendered it first to everyone after them. Vuetify compiles both
-  // `.v-theme--light` and `.v-theme--dark` rule blocks into the one
-  // stylesheet either way; @nuxtjs/color-mode's pre-paint inline script sets
-  // the class on <html> before first paint, so a dark-mode reader still gets
-  // correct dark chrome with no flash — this only fixes which theme's colors
-  // Vuetify computes for `rgb(var(--v-theme-*))` usages during SSR. The
-  // client watcher below then performs a real theme.change() on boot for
-  // 'system'/'dark' readers, which is what keeps the runtime stylesheet
-  // correct for them.
+  // Pinned light so the SSR HTML stays visitor-neutral and swr-cacheable.
+  // Vuetify compiles both theme blocks into the one stylesheet and color-mode's
+  // pre-paint script sets the html class, so dark readers get correct chrome
+  // with no flash; the client watcher below does the real theme.change().
   const initialTheme = 'light'
 
-  // Vuetify ships its own translations for internal component strings ("No
-  // data available", pagination, etc.) — separate from our en.json. Merge
-  // whichever of its locale packs match our configured locales into the
-  // shared i18n instance so adding a language here needs no Vuetify-specific
-  // code, only a locales.config.ts entry whose code Vuetify also ships.
+  // Vuetify's own component strings, merged into the shared i18n instance so a
+  // new language needs only a locales.config.ts entry.
   const i18n = app.$i18n as unknown as Composer
   for (const [code, vuetifyMessages] of Object.entries(VUETIFY_LOCALE_PACKS))
     i18n.mergeLocaleMessage(code, { $vuetify: vuetifyMessages })
@@ -105,20 +96,30 @@ export default defineNuxtPlugin((app) => {
             'error-darken-1': '#D35940',
             'error-lighten-1': '#ED8A71',
 
-            // Text colors
-            'onPrimary': '#FFFFFF',
-            'onSecondary': '#FFFFFF',
-            'onBackground': '#2C2420',
-            'onSurface': '#2C2420',
-            'onSurfaceVariant': '#6B5D56',
+            /*
+             * Kebab `on-<key>` is the foreground Vuetify paints when something
+             * asks for that background; anything Vuetify cannot pair it guesses
+             * by contrast, and for `surface-variant` it guessed from its own
+             * stock #424242 surface and printed #EEE on our cream one.
+             */
+            'on-background': LIGHT_INK,
+            'on-surface': LIGHT_INK,
+            'on-surface-variant': LIGHT_INK,
+            'on-primary': LIGHT_INK,
+            'on-secondary': LIGHT_INK,
+
+            // Standalone colors, not pairs — these are what `text-*`/`bg-*`
+            // utilities are generated from (`on-*` keys get no utility class).
+            'onBackground': LIGHT_INK,
+            'onSurface': LIGHT_INK,
 
             // Borders and dividers
             'border': '#F0DCC8',
             'divider': '#F5E6D3',
 
             // Custom named colors
-            'text-primary': '#2C2420',
-            'text-secondary': '#6B5D56',
+            'text-primary': LIGHT_INK,
+            'text-secondary': LIGHT_INK_MUTED,
             'text-disabled': '#A39790',
           },
         },
@@ -126,7 +127,7 @@ export default defineNuxtPlugin((app) => {
           dark: true,
           colors: {
             // Base colors
-            'background': '#1A2332',
+            'background': DARK_BASE,
             'surface': '#243447',
             'surface-bright': '#2D3F56',
             'surface-variant': '#1E2C3D',
@@ -167,20 +168,24 @@ export default defineNuxtPlugin((app) => {
             'error-darken-1': '#CE5D42',
             'error-lighten-1': '#ED8A71',
 
-            // Text colors
-            'onPrimary': '#1A2332',
-            'onSecondary': '#F8FAFB',
-            'onBackground': '#F8FAFB',
-            'onSurface': '#F8FAFB',
-            'onSurfaceVariant': '#B8C5D6',
+            // Pairs — see the note in the light theme
+            'on-background': DARK_INK,
+            'on-surface': DARK_INK,
+            'on-surface-variant': DARK_INK,
+            'on-primary': DARK_BASE,
+            'on-secondary': DARK_BASE,
+
+            // Standalone colors behind `text-*`/`bg-*`
+            'onBackground': DARK_INK,
+            'onSurface': DARK_INK,
 
             // Borders and dividers
             'border': '#344256',
             'divider': '#2A3847',
 
             // Custom named colors
-            'text-primary': '#F8FAFB',
-            'text-secondary': '#B8C5D6',
+            'text-primary': DARK_INK,
+            'text-secondary': DARK_INK_MUTED,
             'text-disabled': '#7A8998',
           },
         },
@@ -240,27 +245,15 @@ export default defineNuxtPlugin((app) => {
         : 'light'
 
       vuetify.theme.change(next)
-      // Keeps the store's `isDark`/`currentTheme` in lockstep with what
-      // Vuetify actually applied, so components reading them flip in the same
-      // tick as Vuetify's own classes rather than mid-hydration.
       themeStore.setAppliedTheme(next)
     }
 
-    // This timing is load-bearing. `initialTheme` is pinned light so the SSR
-    // HTML stays visitor-neutral and cacheable, so the client's first render
-    // has to agree with it: Vue does not patch mismatched classes while
-    // hydrating a production build. Change the theme any earlier and Vuetify
-    // rewrites the :root variables to dark while the `v-theme--light` class it
-    // stamps on every component stays frozen at the server's value — light
-    // components on a dark page canvas, which only rights itself on the next
-    // unrelated re-render.
-    //
-    // `app:mounted` is NOT early enough to be safe here: nuxt-root wraps the
-    // app in <Suspense>, so it fires when the root mounts, while the suspended
-    // page subtree is still hydrating. `app:suspense:resolve` is the hook
-    // deferHydration() calls once `isHydrating` goes false, which is the real
-    // all-clear — after it, a theme change is an ordinary reactive update and
-    // every one of those classes patches.
+    // Timing is load-bearing: changing the theme before hydration finishes
+    // rewrites the :root variables while the `v-theme--light` class Vuetify
+    // stamped on every component stays frozen at the server's value. Vue does
+    // not patch mismatched classes when hydrating a production build.
+    // `app:suspense:resolve`, not `app:mounted` — the latter fires while the
+    // suspended page subtree is still hydrating.
     watch(() => colorMode.value, () => {
       if (!app.isHydrating)
         syncVuetifyTheme()

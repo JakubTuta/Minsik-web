@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Author, Book, BookLanguageVariant, BookSummary } from '~/types/api'
 import { hashColor } from '~/utils/coverColor'
-import { formatSeriesPosition } from '~/utils/format'
+import { bookRarity, formatSeriesPosition } from '~/utils/format'
 import { formatReadingTime } from '~/utils/readingTime'
 
 interface Props {
@@ -192,6 +192,8 @@ const showFallbackNotice = computed(() => !!props.book.language && !!props.curre
 
 const readingTime = computed(() => formatReadingTime(props.book.number_of_pages))
 
+const rarity = computed(() => bookRarity(props.book))
+
 const bookStats = computed(() => {
   const items: Array<{
     icon: string
@@ -215,11 +217,11 @@ const bookStats = computed(() => {
     })
   }
 
-  if (languageDisplay.value) {
+  if (props.book.original_publication_year) {
     items.push({
-      icon: 'mdi-translate',
-      value: languageDisplay.value,
-      label: t('stats.language'),
+      icon: 'mdi-calendar',
+      value: props.book.original_publication_year,
+      label: t('bookPage.firstPublished'),
     })
   }
 
@@ -237,7 +239,10 @@ const bookStats = computed(() => {
 
 <template>
   <v-card>
-    <v-row no-gutters>
+    <v-row
+      no-gutters
+      class="pa-2"
+    >
       <!-- Book Cover -->
       <v-col
         cols="12"
@@ -282,6 +287,13 @@ const bookStats = computed(() => {
             />
           </div>
         </v-dialog>
+
+        <ClientOnly>
+          <BookShelfPanel
+            :slug="slug"
+            class="mt-6"
+          />
+        </ClientOnly>
       </v-col>
 
       <!-- Book Info -->
@@ -292,7 +304,11 @@ const bookStats = computed(() => {
       >
         <v-card-text class="d-flex flex-column h-100">
           <div>
-            <h1 class="text-h4 font-weight-bold mb-3">
+            <div class="mb-4">
+              <RarityBadge :rarity="rarity" />
+            </div>
+
+            <h1 class="font-display text-h3 font-weight-bold mb-4">
               {{ book.title }}
             </h1>
 
@@ -391,7 +407,7 @@ const bookStats = computed(() => {
 
             <!-- Ratings Card -->
             <v-card
-              class="mt-6"
+              class="mt-8"
               flat
               color="background"
             >
@@ -453,26 +469,17 @@ const bookStats = computed(() => {
             <!-- Stats Row -->
             <StatsRow
               :stats="bookStats"
-              class="mt-4"
+              class="mt-6"
             />
 
-            <!-- Categories -->
             <CategoriesChips
               class="mt-6"
               :categories="book.genres"
             />
-
-            <!-- Actions -->
-            <ClientOnly>
-              <BookActions
-                :slug="slug"
-                class="mt-6"
-              />
-            </ClientOnly>
           </div>
 
           <!-- Details / Statistics Toggles -->
-          <div class="pt-4">
+          <div class="pt-8">
             <div class="d-flex flex-wrap gap-2">
               <v-btn
                 variant="text"
@@ -553,6 +560,15 @@ const bookStats = computed(() => {
                       class="mr-1"
                     />
                     {{ book.publisher }}
+                  </span>
+
+                  <span v-if="languageDisplay">
+                    <v-icon
+                      icon="mdi-translate"
+                      size="small"
+                      class="mr-1"
+                    />
+                    {{ languageDisplay }}
                   </span>
 
                   <span v-if="book.view_count">

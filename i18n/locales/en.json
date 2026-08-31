@@ -60,7 +60,10 @@
     "copied": "Copied!",
     "bookCount": "{count} book | {count} books",
     "commentCount": "{count} comment | {count} comments",
-    "backToHome": "Back to home"
+    "backToHome": "Back to home",
+    "hide": "Hide",
+    "loadMore": "Load more",
+    "noResults": "Nothing to show here yet."
   },
   "footer": {
     "tagline": "Discover your next favorite book through emotional reading profiles and book influence networks.",
@@ -98,6 +101,7 @@
     "seriesPrefix": "Series: {name}",
     "bookSeries": "Book Series",
     "editSeries": "Edit Series",
+    "delete": "Delete Series",
     "deleteConfirmTitle": "Delete Series?",
     "deleteConfirmBody": "This action cannot be undone. Are you sure you want to delete \"{name}\"?",
     "evolutionTitle": "How the series evolves",
@@ -159,7 +163,8 @@
     "olReading": "Open Library — Reading: {count}",
     "olRead": "Open Library — Read: {count}",
     "ratingsCountPlain": "{count} ratings",
-    "readersCount": "{count} readers"
+    "readersCount": "{count} readers",
+    "rating": "RATING"
   },
   "user": {
     "fallbackName": "User"
@@ -461,6 +466,39 @@
         "3": "Has some lighter moments",
         "5": "Genuinely funny throughout"
       }
+    },
+    "eightAxesEyebrow": "Eight axes",
+    "eightAxesTitle": "Not just how good it is — what kind of book it is",
+    "eightAxesSubtitle": "Readers score any of the eight axes they like, so each one carries its own count. Four say how well it is done; four just say what it is.",
+    "qualityAxesHeading": "Quality axes — higher is better",
+    "characterAxesHeading": "Character axes — neither end is better",
+    "inOneLine": "In one line",
+    "noAxesYet": "Nobody has scored the eight axes for this book yet. Be the first and the shape below fills in.",
+    "axisCountSingle": "{count} ratings per axis",
+    "axisCountRange": "{low}–{high} ratings per axis",
+    "axisRatings": "{count} ratings",
+    "summaryJoin": ", ",
+    "summaries": {
+      "pacing": {
+        "low": "slow and deliberate",
+        "mid": "evenly paced",
+        "high": "briskly paced"
+      },
+      "readability": {
+        "low": "dense going",
+        "mid": "a fair challenge",
+        "high": "easy to read"
+      },
+      "plot_complexity": {
+        "low": "plainly told",
+        "mid": "moderately layered",
+        "high": "intricately plotted"
+      },
+      "humor": {
+        "low": "largely serious",
+        "mid": "lightly amusing",
+        "high": "genuinely funny"
+      }
     }
   },
   "comment": {
@@ -530,7 +568,8 @@
     "editions": "Editions",
     "checkOtherPlatforms": "Check out this book on other platforms",
     "byAuthor": "by",
-    "coverAltIndexed": "Book cover {index}"
+    "coverAltIndexed": "Book cover {index}",
+    "year": "Year"
   },
   "bookUser": {
     "book": "Book",
@@ -786,7 +825,37 @@
     "deleteBook": "Delete Book",
     "deleteBookConfirmTitle": "Delete Book?",
     "deleteBookConfirmBody": "This action cannot be undone. Are you sure you want to delete \"{title}\"?",
-    "firstSentence": "First sentence"
+    "firstSentence": "First sentence",
+    "onYourShelf": "On your shelf",
+    "quickRateHintWithAxes": "Tap a star to change it. You scored {count} of the eight axes too.",
+    "rateAllAxes": "Detailed rating",
+    "favourite": "Favourite",
+    "favourited": "Favourited",
+    "guestShelfTitle": "Keep this one on a shelf",
+    "guestShelfBody": "Mark it read, rate it on eight axes rather than one, and it starts shaping what Minsik puts in front of you next.",
+    "firstPublished": "FIRST PUBLISHED",
+    "firstSentenceCaption": "The opening line, exactly as printed.",
+    "firstSentenceCaptionYear": "The opening line, as printed in the {year} edition.",
+    "premiseEyebrow": "The premise",
+    "premiseTitle": "What you are getting into",
+    "compareEyebrow": "Where it sits",
+    "compareTitleAbove": "Better than most of what {name} put out",
+    "compareTitleBelow": "A quieter corner of {name}",
+    "compareSubtitle": "The same numbers, measured against the company this book actually keeps.",
+    "compareAuthor": "Against the author",
+    "compareSeries": "Against the series",
+    "compareDelta": "{delta} vs catalogue",
+    "compareCatalogueAverage": "Catalogue average {value}",
+    "compareReaderRatio": "{value}× the average",
+    "compareAverageReaders": "The average work here draws {value} readers.",
+    "compareRank": "Rank by rating",
+    "compareRankOf": "of {count} works",
+    "compareRankPartial": "Ranked within the {count} best-rated works on file.",
+    "compareRankExact": "Ranked across every work here, weakest to strongest.",
+    "verdictEyebrow": "The verdict, in full",
+    "verdictTitle": "Who rated it, how, and what they said",
+    "verdictSubtitle": "Every score readers gave this book, and what they wrote about it. Pick a bar to read only the people who gave that score.",
+    "rarity": "Rarity"
   },
   "discoverPage": {
     "seoTitle": "Discover a Book - Minsik",
@@ -840,7 +909,34 @@
     "totalBooks": "Total Books",
     "removeFailed": "Remove failed",
     "booksInSeries": "Books in this Series",
-    "noBooksInSeries": "No books found in this series."
+    "noBooksInSeries": "No books found in this series.",
+    "aboutEyebrow": "The shape of it",
+    "aboutTitle": "What the series is",
+    "yourProgress": "Your progress",
+    "pagesRead": "Pages read",
+    "pagesReadOf": "of {total}",
+    "timeInvested": "Time invested",
+    "upNext": "Up next",
+    "upNextReading": "you are reading this now",
+    "upNextWaiting": "waiting for you",
+    "guestProgressTitle": "{count} ticks, one at a time",
+    "guestProgressBody": "Sign in and this card turns into a progress ring: volumes read, pages behind you, and which one you left off on.",
+    "guestProgressFootnote": "A series has no rating of its own — you shelve and rate the volumes, and the series total is whatever they add up to.",
+    "rhythmEyebrow": "Publication rhythm",
+    "rhythmTitle": "These did not arrive evenly",
+    "rhythmSubtitle": "Placed by the year each volume appeared across {years} years, not spread out neatly. The gaps are the story.",
+    "rhythmLongestGap": "Longest gap: {years} years",
+    "rhythmGapLabel": "{years} yrs",
+    "readersEyebrow": "Readers per volume",
+    "readersTitle": "Where the crowd thins out",
+    "readersSubtitle": "Everyone starts somewhere and fewer people finish. Each volume by how many readers it reached.",
+    "readersCarryThrough": "{percent}% make it to the end",
+    "readersMostRead": "Most read",
+    "readersStarted": "Started at volume one",
+    "readersFinished": "Still there at the end",
+    "allVolumesEyebrow": "All of them",
+    "allVolumesSubtitle": "Series order, top to bottom. Positions can be fractional when a novella sneaks in between two numbers.",
+    "volumeColumn": "Volume"
   },
   "authorPage": {
     "notFound": "Author not found",
@@ -854,7 +950,36 @@
     "booksHeading": "Books",
     "listView": "List view",
     "timelineView": "Timeline view",
-    "noBooksForAuthor": "No books found for this author."
+    "noBooksForAuthor": "No books found for this author.",
+    "openingLine": "Opening line",
+    "openingLineFootnote": "taken from their most-read book that has one on file",
+    "yourProgress": "Your progress",
+    "worksRead": "Works read",
+    "worksReadOf": "of {total}",
+    "onYourShelves": "On your shelves",
+    "progressFootnote": "{count} works is a career. Nobody finishes {name} — the point is to find the ones worth your evening.",
+    "guestProgressTitle": "How much {name} have you read?",
+    "guestProgressBody": "Sign in and this fills with a ring: works read out of {count}, and what is already sitting on your shelves.",
+    "shapeEyebrow": "Shape of the catalogue",
+    "shapeTitle": "Busiest in the {period}",
+    "shapeSubtitle": "{works} works, and {genres} genres that refuse to add up to that number because most books belong to several.",
+    "worksPerDecade": "Works published per decade",
+    "worksPerYear": "Works published per year",
+    "firstPublished": "First published",
+    "lastPublished": "Last published",
+    "averagePerYear": "Average per year",
+    "genreSpread": "Genre spread",
+    "genreSpreadFootnote": "A book can sit in several of these at once, so the counts add up to more than {count}.",
+    "mostReadEyebrow": "Most read",
+    "mostReadSubtitle": "By readers, not by rating — this is where the crowd actually goes in.",
+    "readersCount": "{count} readers",
+    "catalogueEyebrow": "The catalogue",
+    "catalogueSubtitle": "Group the series and every volume collapses into one row you can open back up.",
+    "groupSeries": "Group series",
+    "seriesGroupHint": "{count} volumes in this series",
+    "workColumn": "Work",
+    "noPublicationYears": "No publication years are on file for these works yet, so there is no timeline to draw.",
+    "noSeriesToGroup": "None of the works on this page belong to a series. Turn the filter off to see them all."
   },
   "dashboardPage": {
     "pageDescription": "Your personal account dashboard.",

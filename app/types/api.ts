@@ -53,6 +53,12 @@ export interface Genre {
   slug: string
 }
 
+export interface GenreCount {
+  name: string
+  slug: string
+  count: number
+}
+
 // Sub-Rating Types
 
 export interface SubRatingStat {
@@ -127,6 +133,7 @@ export interface Series extends SeriesMinimal {
   ol_currently_reading_count: number
   ol_already_read_count: number
   total_pages: number
+  genres: GenreCount[]
 }
 
 // Book Types
@@ -151,9 +158,27 @@ export interface BookSummary {
   app_reading_count: number
   app_read_count: number
   series_position?: number | null
+  series?: SeriesMinimal | null
   rarity?: string | null
   original_publication_year?: number | null
   number_of_pages?: number | null
+}
+
+export interface AuthorDecadeCount {
+  decade: number
+  count: number
+}
+
+export interface AuthorStats {
+  works_count: number
+  first_publication_year?: number | null
+  last_publication_year?: number | null
+  decades: AuthorDecadeCount[]
+  genres: GenreCount[]
+  progress: {
+    works_read: number
+    works_shelved: number
+  }
 }
 
 export interface Book {

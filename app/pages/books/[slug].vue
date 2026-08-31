@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import type { EditFieldConfig } from '~/types/admin'
-import type { Author, BookSummary } from '~/types/api'
+import type { Author, AuthorStats, BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
 import { APP_LOCALES, DEFAULT_LOCALE } from '~~/locales.config'
 
 const LANGUAGE_QUERY_RE = /^[a-z]{2,10}$/i
+const TRAILING_DOTS_RE = /\.+$/
 
-// Each language edition has its own slug (see get_language_variants), so
-// switching editions navigates to a different slug under this same route —
-// force a remount when the slug param changes so the page's fetches don't
-// keep serving the previous edition's data.
+// Each edition has its own slug, so switching edition is a slug change on this
+// same route — remount so the fetches stop serving the previous edition.
+// `ownsLocaleAlternates`: useLocaleHead() would point pl-PL at /pl/<en-slug>,
+// so app.vue drops its alternates here and this page emits the real set.
 definePageMeta({
   key: route => route.params.slug as string,
+  ownsLocaleAlternates: true,
 })
 
 const route = useRoute()
@@ -20,7 +22,6 @@ const authorsStore = useAuthorsStore()
 const seriesStore = useSeriesStore()
 const bookPageStore = useBookPageStore()
 const authStore = useAuthStore()
-const adminStore = useAdminStore()
 const recommendationsStore = useRecommendationsStore()
 const { t } = useI18n()
 const genreLabel = useGenreLabel()
@@ -28,16 +29,8 @@ const { language: uiLanguage } = useUserLanguage()
 
 const slug = route.params.slug as string
 
-// `?lang=` overrides which edition to show (e.g. from a hreflang variant
-// link that already names its own language); absent that, the edition
-// follows the UI locale so a reader on /pl/... gets the Polish edition by
-// default without needing the query param.
-//
-// Computed rather than read once: this page pins its route key to the slug
-// (see definePageMeta above), so switching the interface language navigates
-// to /xx/books/<slug> without re-creating the component. Without the watch
-// below, the reader would be left on the previous language's edition until
-// they reloaded by hand.
+// `?lang=` names an edition explicitly; otherwise it follows the UI locale.
+// Computed: the route key is pinned to the slug, so a locale switch remounts nothing.
 const lang = computed<string>(() => {
   const q = route.query.lang
 
@@ -46,27 +39,11 @@ const lang = computed<string>(() => {
     : uiLanguage.value
 })
 
-const { data: book, error } = await useCachedAsyncData(
-  `book-${slug}`,
+// Language in the key, not a `watch`: the key change refetches while keeping
+// the current edition on screen, and never serves another language's payload.
+const { data: book, error, refresh: refreshBookData } = await useCachedAsyncData(
+  computed(() => `book-${slug}-${lang.value}`),
   () => booksStore.fetchBook(slug, lang.value),
-  { watch: [lang] },
-)
-
-// Language variants are secondary (hreflang only) — don't block navigation.
-// Excluded by the SERVED language (what's actually on the page after
-// edition-fallback), not the requested one — otherwise the edition already
-// shown can reappear as a clickable "other edition."
-const { data: langVariantsData } = useLazyAsyncData(
-  `book-lang-variants-${slug}`,
-  async () => {
-    try {
-      return await booksStore.fetchLanguageVariants(slug, book.value?.language || lang.value)
-    }
-    catch {
-      return []
-    }
-  },
-  { watch: [book], default: () => [] },
 )
 
 // Handle 404
@@ -78,36 +55,48 @@ if (error.value || !book.value) {
   })
 }
 
-// SEO — each language edition of a book has its own slug, so a translation lives at
-// its own locale-prefixed path, not a `?lang=` query on the default-locale one. Built
-// from the SERVED language (book.value.language), not the requested one: when the
-// backend falls back to a different edition than requested, the canonical/hreflang
-// must describe what's actually on the page, not what was asked for.
+// SEO — built from the SERVED edition, not the requested one: on edition
+// fallback the head has to describe what is actually on the page.
 const localePath = useLocalePath()
 const supportedLocales = new Set(APP_LOCALES.map(entry => entry.code))
 
-/**
- * The catalogue holds editions in far more languages than the app ships
- * locales for, and the backend serves one of those rather than 404ing when no
- * edition matches. Such an edition has no locale-prefixed route of its own, so
- * it is rendered at the default locale's URL. Asking `localePath` for an
- * unconfigured locale returns an empty string, which would otherwise
- * canonicalise every one of those books to the site root.
- */
+// An edition in an unconfigured language renders at the default locale's URL:
+// `localePath` returns '' for those, canonicalising the book to the site root.
 function localizedBookPath(bookSlug: string, language: string): string {
   const locale = supportedLocales.has(language)
     ? language
     : DEFAULT_LOCALE
 
-  return localePath({ name: 'books-slug', params: { slug: bookSlug } }, locale)
+  // `localePath` is typed to the configured codes; the guard above establishes it.
+  return localePath({ name: 'books-slug', params: { slug: bookSlug } }, locale as Parameters<typeof localePath>[1])
+}
+
+/** hreflang wants the full tag the app serves (`pl-PL`), not the API's `pl`. */
+function localeTag(language: string): string {
+  return APP_LOCALES.find(entry => entry.code === language)?.language ?? language
 }
 
 const config = useRuntimeConfig()
-// The served language can differ from the requested one (edition fallback) and
-// changes under the page when the interface language does, so everything the
-// head advertises is derived, not captured once.
+// Derived, not captured — the served edition changes with the interface language.
+// The canonical uses its own slug so another slug cannot mint a second URL.
 const servedLang = computed(() => book.value?.language || lang.value)
-const canonicalUrl = computed(() => `${config.public.siteUrl}${localizedBookPath(slug, servedLang.value)}`)
+const servedSlug = computed(() => book.value?.slug || slug)
+const canonicalUrl = computed(() => `${config.public.siteUrl}${localizedBookPath(servedSlug.value, servedLang.value)}`)
+
+// Excluded by the SERVED language, not the requested one — otherwise the
+// edition already on screen reappears as an "other edition" link.
+const { data: langVariantsData } = useLazyAsyncData(
+  computed(() => `book-lang-variants-${slug}-${servedLang.value}`),
+  async () => {
+    try {
+      return await booksStore.fetchLanguageVariants(slug, servedLang.value)
+    }
+    catch {
+      return []
+    }
+  },
+  { default: () => [] },
+)
 
 useSeo({
   title: computed(() => book.value?.title ?? ''),
@@ -146,96 +135,99 @@ useBreadcrumbStructuredData(() => [
   { name: book.value?.title ?? '' },
 ])
 
-// hreflang — point search engines at other language editions, each at its own slug/path
-function variantHref(variantSlug: string, language: string): string {
-  return `${config.public.siteUrl}${localizedBookPath(variantSlug, language)}`
-}
-
+// Only editions the app has a locale for: a hreflang at an unconfigured
+// language would name a URL that cannot serve it. Such a book has none.
 useHead(() => {
-  const variants = langVariantsData.value ?? []
   const selfLang = servedLang.value
-
-  // Only editions the app has a locale for get advertised: an edition in an
-  // unconfigured language has no URL that renders it in that language, so a
-  // hreflang pointing at it would be a promise the site cannot keep. Such a
-  // book simply has no alternates — it stays indexable through its canonical.
   const editions = [
     ...(supportedLocales.has(selfLang)
       ? [{ language: selfLang, href: canonicalUrl.value }]
       : []),
-    ...variants
-      .filter(v => v.language !== selfLang && supportedLocales.has(v.language))
-      .map(v => ({ language: v.language, href: variantHref(v.slug, v.language) })),
+    ...(langVariantsData.value ?? [])
+      .filter(variant => variant.language !== selfLang && supportedLocales.has(variant.language))
+      .map(variant => ({
+        language: variant.language,
+        href: `${config.public.siteUrl}${localizedBookPath(variant.slug, variant.language)}`,
+      })),
   ]
 
   if (editions.length === 0)
     return {}
 
-  // Every edition of a work sees the same cluster (its own language plus the
-  // variants endpoint's "all the others"), so x-default has to resolve to the
-  // same URL from all of them — a cluster whose members disagree on x-default
-  // is a hreflang error, not a preference. The default locale's edition is
-  // that shared answer; sorting by code keeps the pick identical for a work
-  // that has no default-locale edition at all.
+  // Every edition sees the same cluster, so x-default has to resolve to the
+  // same URL from all of them; sorting by code keeps the pick stable.
   const orderedByCode = [...editions].sort((a, b) => a.language.localeCompare(b.language))
-  const xDefault = editions.find(e => e.language === DEFAULT_LOCALE) ?? orderedByCode[0]!
-
-  // `useLocaleHead()` in app.vue also emits alternates, and for books they are
-  // wrong: it swaps the locale prefix while keeping the current slug, but every
-  // edition has its own slug, so it points `pl-PL` at /pl/<english-slug>. Those
-  // tags carry the id `i18n-alt-<language tag>`, so re-emitting the same ids
-  // here makes unhead replace them with the edition's real URL rather than
-  // leaving both versions in the head.
-  const regionTagged = editions.flatMap((edition) => {
-    const locale = APP_LOCALES.find(entry => entry.code === edition.language)
-
-    return locale
-      ? [{ id: `i18n-alt-${locale.language}`, rel: 'alternate', hreflang: locale.language, href: edition.href }]
-      : []
-  })
+  const xDefault = editions.find(edition => edition.language === DEFAULT_LOCALE) ?? orderedByCode[0]!
 
   return {
     link: [
-      ...editions.map(e => ({ rel: 'alternate', hreflang: e.language, href: e.href })),
-      ...regionTagged,
-      { id: 'i18n-xd', rel: 'alternate', hreflang: 'x-default', href: xDefault.href },
+      ...editions.map(edition => ({ rel: 'alternate', hreflang: localeTag(edition.language), href: edition.href })),
+      { rel: 'alternate', hreflang: 'x-default', href: xDefault.href },
     ],
   }
 })
 
-// `server: false` — unlike the language variants above, neither of these
-// feeds a <head> tag, so there's no SEO cost to keeping them off SSR. Without
-// it they'd still block the server response: `book` is a top-level `await`,
-// so both watchers already fire during SSR the moment it resolves, forcing a
-// second server-side round trip before the HTML can ship.
+// `server: false` — none of these feeds the head or a crawler, and `lazy`
+// alone would still block the server response.
 const { data: primaryAuthor } = useLazyAsyncData<Author | null>(
-  `book-primary-author-${slug}`,
+  computed(() => `book-primary-author-${slug}-${servedLang.value}`),
   async () => {
-    if (!book.value?.authors[0]?.slug)
+    const authorSlug = book.value?.authors[0]?.slug
+    if (!authorSlug)
       return null
     try {
-      return await authorsStore.fetchAuthor(book.value.authors[0].slug)
+      return await authorsStore.fetchAuthor(authorSlug)
     }
     catch {
       return null
     }
   },
-  { watch: [book], default: () => null, server: false },
+  { default: () => null, server: false },
 )
 
 const { data: seriesBooks } = useLazyAsyncData<BookSummary[]>(
-  `book-series-books-${slug}`,
+  computed(() => `book-series-books-${slug}-${servedLang.value}`),
   async () => {
-    if (!book.value?.series?.slug)
+    const seriesSlug = book.value?.series?.slug
+    if (!seriesSlug)
       return []
     try {
-      return await seriesStore.fetchSeriesBooks(book.value.series.slug)
+      return await seriesStore.fetchSeriesBooks(seriesSlug)
     }
     catch {
       return []
     }
   },
-  { watch: [book], default: () => [], server: false },
+  { default: () => [], server: false },
+)
+
+// Comparison needs the author's catalogue by rating, plus its true size.
+const { data: authorBooks } = useLazyAsyncData<BookSummary[]>(
+  computed(() => `book-author-books-${slug}-${servedLang.value}`),
+  async () => {
+    const authorSlug = book.value?.authors[0]?.slug
+    if (!authorSlug)
+      return []
+    try {
+      return await authorsStore.fetchAuthorBooks(authorSlug, 'combined_rating', 'desc')
+    }
+    catch {
+      return []
+    }
+  },
+  { default: () => [], server: false },
+)
+
+const { data: authorStats } = useLazyAsyncData<AuthorStats | null>(
+  computed(() => `book-author-stats-${slug}-${servedLang.value}`),
+  () => {
+    const authorSlug = book.value?.authors[0]?.slug
+
+    return authorSlug
+      ? authorsStore.fetchAuthorStats(authorSlug)
+      : Promise.resolve(null)
+  },
+  { default: () => null, server: false },
 )
 
 const bookRecommendations = ref<RecommendationSection[]>([])
@@ -256,8 +248,6 @@ const selectedRatingFilters = computed<number[] | null>(() => {
     : [n, n + 0.5]
 })
 
-const TRAILING_DOTS_RE = /\.+$/
-
 function formatFirstSentence(sentence: string): string {
   const trimmed = sentence.trim()
   const existingDots = (trimmed.match(TRAILING_DOTS_RE) || [''])[0].length
@@ -267,13 +257,6 @@ function formatFirstSentence(sentence: string): string {
 
   return trimmed + '.'.repeat(3 - existingDots)
 }
-
-const isAdmin = computed(() => authStore.user?.role === 'admin')
-const editDialogOpen = ref(false)
-const editError = ref('')
-const deleteDialogOpen = ref(false)
-const deleteError = ref('')
-const removeAuthorError = ref('')
 
 const bookEditFields = computed<EditFieldConfig[]>(() => [
   { key: 'title', label: t('bookPage.fieldTitle'), type: 'text' },
@@ -315,52 +298,14 @@ const bookEditOriginalData = computed(() => ({
   external_ids: book.value?.external_ids ?? {},
 }))
 
-async function handleRemoveAuthors(authorIds: number[]) {
-  removeAuthorError.value = ''
-  const results = await Promise.all(
-    authorIds.map(id => adminStore.removeBookAuthor(book.value!.book_id, id)),
-  )
-  const failed = results.find(r => !r.success)
-  if (failed) {
-    removeAuthorError.value = (failed as any).error || t('seriesPage.removeFailed')
-
-    return
-  }
-  await booksStore.fetchBook(slug, lang.value, true)
+// The page renders the `useAsyncData` copy, not the store, so both need it.
+async function refreshBook(nextSlug: string) {
+  await booksStore.fetchBook(nextSlug, lang.value, true)
+  if (nextSlug === slug)
+    await refreshBookData()
 }
 
-async function handleBookDelete() {
-  deleteError.value = ''
-  const result = await adminStore.deleteBook(book.value!.book_id)
-  if (result.success) {
-    deleteDialogOpen.value = false
-    await navigateTo(localePath('index'))
-  }
-  else {
-    deleteError.value = (result as any).error || t('admin.deleteFailed')
-  }
-}
-
-async function handleBookEditSave(editedData: Record<string, any>) {
-  editError.value = ''
-  const result = await adminStore.updateBook(book.value!.book_id, bookEditOriginalData.value, editedData)
-  if (result.success) {
-    editDialogOpen.value = false
-    const newSlug = editedData.slug && editedData.slug !== slug
-      ? editedData.slug
-      : slug
-    await booksStore.fetchBook(newSlug, lang.value, true)
-    if (newSlug !== slug) {
-      await navigateTo(localePath({ name: 'books-slug', params: { slug: newSlug } }))
-    }
-  }
-  else {
-    editError.value = (result as any).error || t('admin.updateFailed')
-  }
-}
-
-// Recommendations are seeded from the edition on screen, so they follow it
-// when the edition changes under the reader.
+// Seeded from the edition on screen, so they follow it when it changes.
 watch(() => book.value?.book_id, async (bookId) => {
   if (!bookId)
     return
@@ -400,199 +345,117 @@ onUnmounted(() => {
         <BookHeader
           :book="book"
           :slug="slug"
-          :series-books="seriesBooks"
+          :series-books="seriesBooks ?? []"
           :primary-author="primaryAuthor"
-          :lang-variants="langVariantsData"
+          :lang-variants="langVariantsData ?? []"
           :current-lang="lang"
         />
 
-        <ClientOnly>
-          <div
-            v-if="isAdmin"
-            class="d-flex mt-2 justify-end gap-2"
-          >
-            <v-btn
-              prepend-icon="mdi-pencil"
-              variant="text"
-              size="small"
-              color="secondary"
-              @click="editDialogOpen = true"
-            >
-              {{ t('bookPage.editBook') }}
-            </v-btn>
-
-            <v-btn
-              prepend-icon="mdi-delete"
-              variant="text"
-              size="small"
-              color="error"
-              @click="deleteDialogOpen = true"
-            >
-              {{ t('bookPage.deleteBook') }}
-            </v-btn>
-          </div>
-
-          <AdminEditDialog
-            v-model="editDialogOpen"
-            :title="t('bookPage.editBook')"
-            :fields="bookEditFields"
-            :original-data="bookEditOriginalData"
-            :authors="book.authors"
-            :loading="adminStore.isUpdateLoading"
-            :error="editError || removeAuthorError"
-            @save="handleBookEditSave"
-            @remove-authors="handleRemoveAuthors"
-          />
-
-          <v-dialog
-            v-model="deleteDialogOpen"
-            max-width="400"
-          >
-            <v-card>
-              <v-card-title>{{ t('bookPage.deleteBookConfirmTitle') }}</v-card-title>
-
-              <v-card-text>
-                {{ t('bookPage.deleteBookConfirmBody', {"title": book?.title}) }}
-                <v-alert
-                  v-if="deleteError"
-                  type="error"
-                  class="mt-3"
-                >
-                  {{ deleteError }}
-                </v-alert>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer />
-
-                <v-btn
-                  variant="text"
-                  @click="deleteDialogOpen = false"
-                >
-                  {{ t('common.cancel') }}
-                </v-btn>
-
-                <v-btn
-                  color="error"
-                  variant="flat"
-                  :loading="adminStore.isDeleteLoading"
-                  @click="handleBookDelete"
-                >
-                  {{ t('common.delete') }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-        </ClientOnly>
-
-        <!-- First Sentence -->
-        <v-card
-          v-if="book.first_sentence"
-          class="mt-4"
-        >
-          <v-card-text class="pa-6">
-            <h2 class="text-h6 font-weight-bold mb-3">
-              {{ t('bookPage.firstSentence') }}
-            </h2>
-
-            <div class="max-w-full md:max-w-3/5">
-              <p class="text-h5 mb-0 font-italic">
-                {{ formatFirstSentence(book.first_sentence) }}
-              </p>
-            </div>
-          </v-card-text>
-        </v-card>
-
-        <!-- Description -->
-        <LongDescriptionCard
-          :description="book.description"
-          class="mt-4"
+        <AdminEntityActions
+          :id="book.book_id"
+          entity="book"
+          :name="book.title"
+          :slug="book.slug"
+          :fields="bookEditFields"
+          :original-data="bookEditOriginalData"
+          :authors="book.authors"
+          :refresh="refreshBook"
+          container-class="mt-2 justify-end"
         />
 
-        <!-- Rating -->
-        <v-card class="mt-4">
-          <v-card-text>
-            <LazySubRatingSection
-              hydrate-on-visible
-              :stats="bookPageStore.liveSubRatingStats ?? book.sub_rating_stats ?? {}"
-              :rating-count="bookPageStore.liveRatingCount ?? book.rating_count ?? 0"
-              :slug="slug"
-            />
-          </v-card-text>
-        </v-card>
+        <!-- First Sentence -->
+        <QuoteBlock
+          v-if="book.first_sentence"
+          :label="t('bookPage.firstSentence')"
+          :text="formatFirstSentence(book.first_sentence)"
+          class="mt-12"
+        >
+          <template #caption>
+            {{ book.original_publication_year
+              ? t('bookPage.firstSentenceCaptionYear', {'year': book.original_publication_year})
+              : t('bookPage.firstSentenceCaption') }}
+          </template>
+        </QuoteBlock>
+
+        <!-- Description -->
+        <div class="mt-12">
+          <SectionHeading
+            :eyebrow="t('bookPage.premiseEyebrow')"
+            :title="t('bookPage.premiseTitle')"
+          />
+
+          <DescriptionCard
+            :description="book.description"
+            hide-heading
+          />
+        </div>
+
+        <!-- Detailed ratings -->
+        <div class="mt-12">
+          <LazySubRatingSection
+            hydrate-on-visible
+            :stats="bookPageStore.liveSubRatingStats ?? book.sub_rating_stats ?? {}"
+            :rating-count="bookPageStore.liveRatingCount ?? book.rating_count ?? 0"
+            :slug="slug"
+          />
+        </div>
+
+        <!-- Where it sits -->
+        <ClientOnly>
+          <LazyBookComparisonCard
+            :book="book"
+            :author="primaryAuthor"
+            :author-books="authorBooks ?? []"
+            :author-works-count="authorStats?.works_count ?? null"
+            :series-books="seriesBooks ?? []"
+            class="mt-12"
+          />
+        </ClientOnly>
 
         <!-- Book Recommendations -->
         <ClientOnly>
-          <div
-            v-if="personalizedBookRecs.length > 0"
-            class="mt-8"
-          >
-            <template
-              v-for="category in personalizedBookRecs"
-              :key="category.key"
-            >
-              <RecommendationRow
-                v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-                :category="category"
-                hide-show-more
-              />
-            </template>
-          </div>
+          <RecommendationSections
+            :sections="personalizedBookRecs"
+            class="mt-12"
+          />
 
-          <div
-            v-if="bookRecommendations.length > 0"
-            class="mt-8"
-          >
-            <template
-              v-for="category in bookRecommendations"
-              :key="category.key"
-            >
-              <RecommendationRow
-                v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-                :category="category"
-                hide-show-more
-              />
-            </template>
-          </div>
+          <RecommendationSections
+            :sections="bookRecommendations"
+            class="mt-12"
+          />
         </ClientOnly>
 
-        <!-- Rating Distribution -->
+        <!-- Ratings and comments -->
         <ClientOnly>
-          <v-card class="mt-4">
-            <v-card-text>
-              <h2 class="text-h6 font-weight-bold mb-4">
-                {{ t('ratingsPage.ratingDistribution') }}
-              </h2>
+          <div class="mt-12">
+            <SectionHeading
+              :eyebrow="t('bookPage.verdictEyebrow')"
+              :title="t('bookPage.verdictTitle')"
+              :subtitle="t('bookPage.verdictSubtitle')"
+            />
 
-              <RatingDistributionCard
-                :avg-rating="avgRating"
-                :rating-count="totalRatingCount"
-                :distribution="book.rating_distribution ?? {}"
-                clickable
-                :selected-star="selectedRating"
-                @update:selected-star="selectedRating = $event"
-              />
-            </v-card-text>
-          </v-card>
-        </ClientOnly>
+            <v-card>
+              <v-card-text>
+                <RatingDistributionCard
+                  :avg-rating="avgRating"
+                  :rating-count="totalRatingCount"
+                  :distribution="bookPageStore.liveRatingDistribution ?? book.rating_distribution ?? {}"
+                  clickable
+                  :selected-star="selectedRating"
+                  @update:selected-star="selectedRating = $event"
+                />
 
-        <!-- Comments Section -->
-        <ClientOnly>
-          <v-card class="mt-4">
-            <v-card-text>
-              <BookCommentsSection
-                :slug="slug"
-                :selected-rating-filters="selectedRatingFilters"
-              />
-            </v-card-text>
-          </v-card>
+                <v-divider class="my-8" />
+
+                <BookCommentsSection
+                  :slug="slug"
+                  :selected-rating-filters="selectedRatingFilters"
+                />
+              </v-card-text>
+            </v-card>
+          </div>
         </ClientOnly>
       </v-col>
     </v-row>
-  </v-container>
-
-  <!-- Loading State -->
-  <v-container v-else-if="booksStore.isLoading">
-    <LoadingState type="detail" />
   </v-container>
 </template>

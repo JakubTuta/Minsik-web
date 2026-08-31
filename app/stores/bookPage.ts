@@ -22,6 +22,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
   const liveAvgRating = ref<number | null>(null)
   const liveRatingCount = ref<number | null>(null)
   const liveSubRatingStats = ref<Record<string, SubRatingStat> | null>(null)
+  const liveRatingDistribution = ref<Record<string, number> | null>(null)
 
   // Comments state
   const comments = ref<BookComment[]>([])
@@ -117,7 +118,16 @@ export const useBookPageStore = defineStore('bookPage', () => {
       liveAvgRating.value = fresh.avg_rating
       liveRatingCount.value = fresh.rating_count
       liveSubRatingStats.value = fresh.sub_rating_stats ?? null
+      liveRatingDistribution.value = fresh.rating_distribution ?? null
     }
+  }
+
+  // A rating is also attached to the reader's comment, so the comment list is
+  // showing a stale score until it is re-read.
+  async function refreshAfterRatingChange(slug: string) {
+    await refreshLiveRatingStats(slug)
+    if (currentSlug.value === slug)
+      await fetchComments(slug, currentCommentParams.value)
   }
 
   // Upsert bookshelf status (optimistic — reverts on failure)
@@ -184,7 +194,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
     userRating.value = data as BookCommentRating
 
     client.value.post(`/api/v1/books/${slug}/rate`, data)
-      .then(() => { refreshLiveRatingStats(slug).catch(() => {}) })
+      .then(() => { refreshAfterRatingChange(slug).catch(() => {}) })
       .catch((error) => {
         if (currentSlug.value === slug)
           userRating.value = previous
@@ -198,7 +208,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
     userRating.value = null
 
     client.value.delete(`/api/v1/books/${slug}/rate`)
-      .then(() => { refreshLiveRatingStats(slug).catch(() => {}) })
+      .then(() => { refreshAfterRatingChange(slug).catch(() => {}) })
       .catch((error) => {
         if (currentSlug.value === slug)
           userRating.value = previous
@@ -206,7 +216,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
       })
   }
 
-  const fetchComments = async (slug: string, params: Record<string, any> = {}, reset = true) => {
+  async function fetchComments(slug: string, params: Record<string, any> = {}, reset = true) {
     if (commentsLoading.value)
       return
 
@@ -361,6 +371,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
     liveAvgRating.value = null
     liveRatingCount.value = null
     liveSubRatingStats.value = null
+    liveRatingDistribution.value = null
     comments.value = []
     commentsTotal.value = 0
     commentsLoading.value = false
@@ -382,6 +393,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
     liveAvgRating,
     liveRatingCount,
     liveSubRatingStats,
+    liveRatingDistribution,
     fetchBookUserData,
     upsertBookshelf,
     removeFromBookshelf,

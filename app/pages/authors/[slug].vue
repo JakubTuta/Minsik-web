@@ -1,20 +1,27 @@
 <script setup lang="ts">
-import type { AuthorQuote, BookSummary } from '~/types/api'
+import type { EditFieldConfig } from '~/types/admin'
+import type { BookSummary } from '~/types/api'
 import type { RecommendationSection } from '~/types/recommendations'
+
+const BOOKS_PAGE_SIZE = 20
 
 const route = useRoute()
 const authorsStore = useAuthorsStore()
 const recommendationsStore = useRecommendationsStore()
 const authStore = useAuthStore()
 const { t } = useI18n()
-// Author stats and the editions of their books are language-dependent, so the
-// page's data follows the interface language rather than waiting for a reload.
+// Language is in every key, not a `watch`: a locale switch changes the path,
+// which remounts the page, and a fresh mount never fires a watcher.
 const { language } = useUserLanguage()
 
 const slug = route.params.slug as string
 
 type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc' | 'readers-desc' | 'readers-asc'
 const sortBy = ref<SortOption>('date-desc')
+const viewMode = ref<'list' | 'timeline'>('list')
+
+// Grouping only makes sense over rows the list view actually holds.
+const seriesOnly = ref(false)
 
 const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'readers_count'> = {
   date: 'publication_year',
@@ -22,132 +29,130 @@ const sortByMap: Record<string, 'publication_year' | 'combined_rating' | 'reader
   readers: 'readers_count',
 }
 
-function getSortParams() {
+// The timeline reads as a chronology, so it ignores the list's sort order.
+const sortParams = computed(() => {
+  if (viewMode.value === 'timeline')
+    return { sortBy: 'publication_year' as const, order: 'desc' as const }
+
   const [field = 'date', direction = 'desc'] = sortBy.value.split('-')
 
   return {
-    apiSortBy: sortByMap[field] as 'publication_year' | 'combined_rating' | 'readers_count',
-    apiOrder: direction as 'asc' | 'desc',
+    sortBy: sortByMap[field] ?? 'publication_year',
+    order: direction as 'asc' | 'desc',
   }
-}
+})
 
-const { data: author, error: authorError } = await useCachedAsyncData(
-  `author-${slug}`,
+const { data: author, error: authorError, refresh: refreshAuthorData } = await useCachedAsyncData(
+  computed(() => `author-${slug}-${language.value}`),
   () => authorsStore.fetchAuthor(slug),
-  { watch: [language] },
 )
 
 if (authorError.value || !author.value) {
   throw createError({ statusCode: 404, message: t('authorPage.notFound'), fatal: true })
 }
 
-const allBooks = ref<BookSummary[]>([])
-const booksOffset = ref(0)
-const booksTotalCount = ref(0)
+// `lazy` does not opt out of SSR, and this list has to reach crawlers — hence
+// a computed off the payload, not a watcher: watchers never fire on the server.
+const booksKey = computed(() => `author-books-${slug}-${language.value}-${sortParams.value.sortBy}-${sortParams.value.order}`)
+
+const { data: firstBooksPage, status: booksStatus } = useCachedAsyncData(
+  booksKey,
+  () => authorsStore.fetchAuthorBooksPage(slug, sortParams.value.sortBy, sortParams.value.order, 0, BOOKS_PAGE_SIZE),
+  { lazy: true },
+)
+
+const loadedPages = ref<BookSummary[]>([])
+const isLoadingMore = ref(false)
+
+const allBooks = computed(() => [...(firstBooksPage.value?.books ?? []), ...loadedPages.value])
+const booksTotalCount = computed(() => firstBooksPage.value?.total_count ?? 0)
 const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.value)
+const isLoadingBooks = computed(() => booksStatus.value === 'pending' || isLoadingMore.value)
 
-const { data: initialBooksData } = useCachedAsyncData(
-  `author-books-${slug}`,
-  () => authorsStore.fetchAuthorBooksPage(slug, 'publication_year', 'desc', 0, 20),
-  { lazy: true, watch: [language] },
-)
-
-watch(initialBooksData, (val) => {
-  if (val && allBooks.value.length === 0) {
-    allBooks.value = val.books
-    booksTotalCount.value = val.total_count
-    booksOffset.value = val.books.length
-  }
-}, { immediate: true })
-
-const { data: authorQuote } = useCachedAsyncData(
-  `author-quote-${slug}`,
-  () => authorsStore.fetchAuthorQuote(slug),
-  { lazy: true, watch: [language] },
-)
-
-const { data: topBooks } = useCachedAsyncData(
-  `author-top-books-${slug}`,
-  () => authorsStore.fetchAuthorTopBooks(slug),
-  { lazy: true, watch: [language] },
-)
-
-const viewMode = ref<'list' | 'timeline'>('list')
-
-watch(sortBy, async () => {
-  if (viewMode.value !== 'list')
-    return
-  const { apiSortBy, apiOrder } = getSortParams()
-  allBooks.value = []
-  booksTotalCount.value = 0
-  booksOffset.value = 0
-
-  const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, apiOrder, 0, 20)
-  allBooks.value = result.books
-  booksTotalCount.value = result.total_count
-  booksOffset.value = result.books.length
+// A different ordering is a different list.
+watch(booksKey, () => {
+  loadedPages.value = []
 })
 
-watch(viewMode, async (mode) => {
-  allBooks.value = []
-  booksTotalCount.value = 0
-  booksOffset.value = 0
-
-  const { apiSortBy, apiOrder } = mode === 'timeline'
-    ? { apiSortBy: 'publication_year' as const, apiOrder: 'desc' as const }
-    : getSortParams()
-
-  const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, apiOrder, 0, 20)
-  allBooks.value = result.books
-  booksTotalCount.value = result.total_count
-  booksOffset.value = result.books.length
+watch(viewMode, (mode) => {
+  if (mode !== 'list')
+    seriesOnly.value = false
 })
 
+// Vuetify's `loading` greys a button out but does not disable it, hence the
+// flag; the key check drops a page that lands after the reader re-sorted.
 async function loadMoreBooks() {
-  if (!hasMoreBooks.value)
+  if (isLoadingMore.value || !hasMoreBooks.value)
     return
 
-  const { apiSortBy, apiOrder } = viewMode.value === 'timeline'
-    ? { apiSortBy: 'publication_year' as const, apiOrder: 'desc' as const }
-    : getSortParams()
+  const requestKey = booksKey.value
+  const { sortBy: apiSortBy, order } = sortParams.value
+  isLoadingMore.value = true
 
-  const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, apiOrder, booksOffset.value, 20)
-  allBooks.value.push(...result.books)
-  booksTotalCount.value = result.total_count
-  booksOffset.value += result.books.length
+  try {
+    const result = await authorsStore.fetchAuthorBooksPage(slug, apiSortBy, order, allBooks.value.length, BOOKS_PAGE_SIZE)
+    if (booksKey.value === requestKey)
+      loadedPages.value.push(...result.books)
+  }
+  finally {
+    isLoadingMore.value = false
+  }
 }
 
-// SEO — the author entity is language-agnostic (one row), so the canonical
-// just follows the current UI locale's URL; hreflang alternates come from
-// useLocaleHead() in app.vue.
+const { data: authorQuote } = useCachedAsyncData(
+  computed(() => `author-quote-${slug}-${language.value}`),
+  () => authorsStore.fetchAuthorQuote(slug),
+  { lazy: true },
+)
+
+const { data: topBooks, status: topBooksStatus } = useCachedAsyncData(
+  computed(() => `author-top-books-${slug}-${language.value}`),
+  () => authorsStore.fetchAuthorTopBooks(slug),
+  { lazy: true, default: () => [] },
+)
+
+// The progress half of this payload is the viewer's, so auth has to refetch it.
+const { data: authorStats } = useCachedAsyncData(
+  computed(() => `author-stats-${slug}-${language.value}`),
+  () => authorsStore.fetchAuthorStats(slug),
+  { lazy: true, watch: [() => authStore.isAuthenticated] },
+)
+
+// One author row per language, so the canonical just follows the current
+// locale's URL; alternates come from useLocaleHead() in app.vue.
 const config = useRuntimeConfig()
 const localePath = useLocalePath()
-const canonicalUrl = `${config.public.siteUrl}${route.path}`
+const canonicalUrl = computed(() => `${config.public.siteUrl}${route.path}`)
 
 useSeo({
-  title: author.value.name,
-  description: author.value.bio || t('authorPage.seoDescriptionFallback', { name: author.value.name, count: author.value.books_count }),
-  image: author.value.photo_url ?? undefined,
+  title: computed(() => author.value?.name ?? ''),
+  description: computed(() => author.value?.bio
+    || t('authorPage.seoDescriptionFallback', { name: author.value?.name ?? '', count: author.value?.books_count ?? 0 })),
+  image: computed(() => author.value?.photo_url ?? undefined),
   type: 'profile',
   url: canonicalUrl,
-  author: author.value.name,
+  author: computed(() => author.value?.name),
 })
 
-useAuthorStructuredData({
-  name: author.value.name,
-  description: author.value.bio,
-  image: author.value.photo_url ?? undefined,
-  url: canonicalUrl,
-  birthDate: author.value.birth_date,
-  deathDate: author.value.death_date,
-})
+useAuthorStructuredData(() => ({
+  name: author.value?.name ?? '',
+  description: author.value?.bio,
+  image: author.value?.photo_url ?? undefined,
+  url: canonicalUrl.value,
+  birthDate: author.value?.birth_date,
+  deathDate: author.value?.death_date,
+  sameAs: [
+    author.value?.wikipedia_url,
+    author.value?.wikidata_id
+      ? `https://www.wikidata.org/wiki/${author.value.wikidata_id}`
+      : null,
+  ].filter((entry): entry is string => !!entry),
+}))
 
-useBreadcrumbStructuredData([
+useBreadcrumbStructuredData(() => [
   { name: t('nav.home'), url: `${config.public.siteUrl}${localePath('index')}` },
-  { name: author.value.name },
+  { name: author.value?.name ?? '' },
 ])
-
-const isAdmin = computed(() => authStore.user?.role === 'admin')
 
 const sortOptions = computed(() => [
   { value: 'date-desc', title: t('authorPage.sortNewestFirst') },
@@ -177,8 +182,43 @@ watch(() => authStore.isAuthenticated, async (isAuth) => {
     personalizedAuthorRecs.value = []
 }, { immediate: true })
 
-async function handleAuthorDelete() {
-  await navigateTo(localePath('index'))
+const authorEditFields = computed<EditFieldConfig[]>(() => [
+  { key: 'name', label: t('author.fieldName'), type: 'text' },
+  { key: 'slug', label: t('common.fieldSlug'), type: 'text' },
+  { key: 'bio', label: t('author.fieldBiography'), type: 'textarea' },
+  { key: 'birth_date', label: t('author.fieldBirthDate'), type: 'text' },
+  { key: 'death_date', label: t('author.fieldDeathDate'), type: 'text' },
+  { key: 'birth_place', label: t('author.fieldBirthPlace'), type: 'text' },
+  { key: 'nationality', label: t('author.fieldNationality'), type: 'text' },
+  { key: 'photo_url', label: t('author.fieldPhotoUrl'), type: 'text' },
+  { key: 'wikipedia_url', label: t('author.fieldWikipediaUrl'), type: 'text' },
+  { key: 'wikidata_id', label: t('author.fieldWikidataId'), type: 'text' },
+  { key: 'open_library_id', label: t('common.fieldOpenLibraryId'), type: 'text' },
+  { key: 'alternate_names', label: t('author.fieldAlternateNames'), type: 'array' },
+  { key: 'remote_ids', label: t('author.fieldRemoteIds'), type: 'json' },
+])
+
+const authorEditOriginalData = computed(() => ({
+  name: author.value?.name ?? null,
+  slug: author.value?.slug ?? null,
+  bio: author.value?.bio ?? null,
+  birth_date: author.value?.birth_date ?? null,
+  death_date: author.value?.death_date ?? null,
+  birth_place: author.value?.birth_place ?? null,
+  nationality: author.value?.nationality ?? null,
+  photo_url: author.value?.photo_url ?? null,
+  wikipedia_url: author.value?.wikipedia_url ?? null,
+  wikidata_id: author.value?.wikidata_id ?? null,
+  open_library_id: author.value?.open_library_id ?? null,
+  alternate_names: author.value?.alternate_names ?? [],
+  remote_ids: author.value?.remote_ids ?? {},
+}))
+
+// The page renders the `useAsyncData` copy, not the store, so both need it.
+async function refreshAuthor(nextSlug: string) {
+  await authorsStore.fetchAuthor(nextSlug, true)
+  if (nextSlug === slug)
+    await refreshAuthorData()
 }
 </script>
 
@@ -188,126 +228,156 @@ async function handleAuthorDelete() {
     <div class="mb-16">
       <AuthorHeader
         :author="author"
-        :is-admin="isAdmin"
-        @delete="handleAuthorDelete"
+        :stats="authorStats"
+      />
+
+      <AdminEntityActions
+        :id="author.author_id"
+        entity="author"
+        :name="author.name"
+        :slug="author.slug"
+        :fields="authorEditFields"
+        :original-data="authorEditOriginalData"
+        :refresh="refreshAuthor"
+        container-class="mt-4"
       />
     </div>
 
     <!-- Quote -->
-    <div class="mb-16">
-      <AuthorQuoteCard :quote="(authorQuote as AuthorQuote | null)" />
+    <div
+      v-if="authorQuote"
+      class="mb-16"
+    >
+      <AuthorQuoteCard :quote="authorQuote" />
+    </div>
+
+    <!-- Shape of the catalogue -->
+    <div
+      v-if="authorStats"
+      class="mb-16"
+    >
+      <LazyAuthorCatalogueShape
+        hydrate-on-visible
+        :stats="authorStats"
+      />
     </div>
 
     <!-- Top 3 Books (podium) -->
     <div class="mb-16">
       <AuthorTopBooks
-        :books="(topBooks as BookSummary[] | null) ?? []"
-        :loading="authorsStore.isLoadingBooks && !topBooks"
+        :books="topBooks ?? []"
+        :loading="topBooksStatus === 'pending'"
       />
     </div>
 
     <!-- Books Section -->
-    <v-card id="books-list">
-      <v-card-text>
-        <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2">
-          <h2 class="text-h5 font-weight-bold">
-            {{ t('authorPage.booksHeading') }}
-          </h2>
+    <div id="books-list">
+      <SectionHeading
+        :eyebrow="t('authorPage.catalogueEyebrow')"
+        :title="t('authorPage.booksHeading')"
+        :subtitle="t('authorPage.catalogueSubtitle')"
+      />
 
-          <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
-            <v-select
-              v-if="viewMode === 'list'"
-              v-model="sortBy"
-              :items="sortOptions"
-              density="compact"
-              variant="outlined"
-              hide-details
-              style="max-width: 200px;"
-            />
-
-            <v-btn-toggle
-              v-model="viewMode"
-              mandatory
-              density="compact"
-              variant="outlined"
-              color="primary"
-            >
-              <v-btn
-                value="list"
-                size="small"
-                prepend-icon="mdi-view-list"
-              >
-                {{ t('authorPage.listView') }}
-              </v-btn>
-
-              <v-btn
-                value="timeline"
-                size="small"
-                prepend-icon="mdi-timeline-outline"
-              >
-                {{ t('authorPage.timelineView') }}
-              </v-btn>
-            </v-btn-toggle>
-          </div>
-        </div>
-
-        <BooksList
+      <div class="d-flex flex-column flex-sm-row align-sm-center mb-8 gap-4">
+        <v-select
           v-if="viewMode === 'list'"
+          v-model="sortBy"
+          :items="sortOptions"
+          density="comfortable"
+          variant="outlined"
+          hide-details
+          style="min-width: 220px; max-width: 260px;"
+        />
+
+        <v-chip
+          v-if="viewMode === 'list'"
+          size="large"
+          :variant="seriesOnly
+            ? 'flat'
+            : 'outlined'"
+          :color="seriesOnly
+            ? 'primary'
+            : undefined"
+          prepend-icon="mdi-format-list-group"
+          class="px-5"
+          @click="seriesOnly = !seriesOnly"
+        >
+          {{ t('authorPage.groupSeries') }}
+        </v-chip>
+
+        <v-spacer class="d-none d-sm-block" />
+
+        <v-btn-toggle
+          v-model="viewMode"
+          mandatory
+          density="comfortable"
+          variant="outlined"
+          color="primary"
+          rounded="pill"
+        >
+          <v-btn
+            value="list"
+            prepend-icon="mdi-view-list"
+            class="px-5"
+          >
+            {{ t('authorPage.listView') }}
+          </v-btn>
+
+          <v-btn
+            value="timeline"
+            prepend-icon="mdi-timeline-outline"
+            class="px-5"
+          >
+            {{ t('authorPage.timelineView') }}
+          </v-btn>
+        </v-btn-toggle>
+      </div>
+
+      <template v-if="viewMode === 'list'">
+        <EntityBooksTable
           :books="allBooks"
-          :loading="authorsStore.isLoadingBooks"
-          :load-more="loadMoreBooks"
-          :has-more="hasMoreBooks"
+          :group-series="seriesOnly"
+          :loading="isLoadingBooks"
           :empty-message="t('authorPage.noBooksForAuthor')"
         />
 
-        <AuthorTimeline
-          v-else
-          :books="allBooks"
-          :loading="authorsStore.isLoadingBooks"
-          :has-more="hasMoreBooks"
-          :load-more="loadMoreBooks"
-        />
-      </v-card-text>
-    </v-card>
+        <div
+          v-if="hasMoreBooks"
+          class="d-flex mt-6 justify-center"
+        >
+          <v-btn
+            variant="outlined"
+            rounded="pill"
+            :loading="isLoadingMore"
+            :disabled="isLoadingMore"
+            @click="loadMoreBooks"
+          >
+            {{ t('common.loadMore') }}
+          </v-btn>
+        </div>
+      </template>
+
+      <AuthorTimeline
+        v-else
+        :books="allBooks"
+        :loading="isLoadingBooks"
+        :has-more="hasMoreBooks"
+        :empty-message="t('authorPage.noBooksForAuthor')"
+        :load-more="loadMoreBooks"
+      />
+    </div>
 
     <!-- Recommendations -->
     <ClientOnly>
-      <div
-        v-if="personalizedAuthorRecs.length > 0"
-        class="mt-8"
-      >
-        <template
-          v-for="category in personalizedAuthorRecs"
-          :key="category.key"
-        >
-          <RecommendationRow
-            v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-            :category="category"
-            hide-show-more
-          />
-        </template>
-      </div>
+      <RecommendationSections
+        :sections="personalizedAuthorRecs"
+        class="mt-16"
+      />
 
-      <div
-        v-if="authorRecommendations.length > 0"
-        class="mt-8"
-      >
-        <template
-          v-for="category in authorRecommendations"
-          :key="category.key"
-        >
-          <RecommendationRow
-            v-if="(category.book_items?.length ?? 0) > 0 || (category.author_items?.length ?? 0) > 0"
-            :category="category"
-            hide-show-more
-          />
-        </template>
-      </div>
+      <RecommendationSections
+        :sections="authorRecommendations"
+        class="mt-16"
+      />
     </ClientOnly>
-  </v-container>
-
-  <!-- Loading State -->
-  <v-container v-else-if="authorsStore.isLoading">
-    <LoadingState type="detail" />
   </v-container>
 </template>

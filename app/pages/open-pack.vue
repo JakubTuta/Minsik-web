@@ -217,7 +217,7 @@ onUnmounted(() => {
 }
 
 .spread-phase {
-  max-width: 820px;
+  max-width: 960px;
   margin: 0 auto;
   padding-top: 16px;
 }

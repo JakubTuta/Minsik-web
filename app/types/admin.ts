@@ -26,6 +26,12 @@ export interface EditFieldConfig {
   type: 'text' | 'textarea' | 'number' | 'array' | 'json'
 }
 
+export interface AdminMutationResult {
+  success: boolean
+  error?: string
+  noChanges?: boolean
+}
+
 export interface AuditBookItem {
   book_id: number
   title: string

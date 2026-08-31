@@ -1,3 +1,5 @@
+import type { Rarity } from '~/types/case'
+
 // `new Intl.NumberFormat` does its own locale data lookup — cheap once, but
 // this app only ever needs 5 distinct instances (one per shipped locale), so
 // there's no reason each rendered card should construct its own.
@@ -63,6 +65,44 @@ export function toTitleCase(text: string): string {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
+}
+
+/**
+ * The rarity tier a book would be dealt in a case, pack or slot spin.
+ *
+ * Mirrors `_compute_rarity` in the books service, which is a pure function of
+ * the combined rating — so entity pages derive the tier from numbers they
+ * already hold rather than asking the server for a field it would compute the
+ * same way. Keep the thresholds in step with that function.
+ */
+export function rarityFromRating(combinedRating: number): Rarity {
+  if (combinedRating > 4.75)
+    return 'legendary'
+  if (combinedRating > 4.5)
+    return 'ultra_rare'
+  if (combinedRating > 4)
+    return 'super_rare'
+  if (combinedRating > 3.25)
+    return 'rare'
+  if (combinedRating > 2.25)
+    return 'uncommon'
+
+  return 'common'
+}
+
+export function bookRarity(book: {
+  rarity?: string | null
+  avg_rating?: number
+  rating_count?: number
+  ol_avg_rating?: number
+  ol_rating_count?: number
+}): Rarity {
+  if (book.rarity)
+    return book.rarity as Rarity
+
+  return rarityFromRating(
+    weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count),
+  )
 }
 
 export function formatSeriesPosition(position: number | null | undefined): string {

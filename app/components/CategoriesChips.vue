@@ -7,6 +7,7 @@ interface CategoryChip {
 interface Props {
   categories: CategoryChip[]
   maxVisible?: number
+  hideLabel?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -32,7 +33,10 @@ const hasMore = computed(() => props.categories.length > props.maxVisible)
 
 <template>
   <div v-if="categories.length > 0">
-    <div class="text-secondary mb-2">
+    <div
+      v-if="!hideLabel"
+      class="text-secondary mb-2"
+    >
       {{ t('nav.categories') }}
     </div>
 
@@ -42,6 +46,8 @@ const hasMore = computed(() => props.categories.length > props.maxVisible)
         :key="category.slug"
         size="small"
         variant="tonal"
+        color="primary"
+        class="category-chip"
         :to="localePath(`/search?q=${encodeURIComponent(category.name)}&type=categories`)"
       >
         {{ genreLabel(category.slug) }}
@@ -51,6 +57,8 @@ const hasMore = computed(() => props.categories.length > props.maxVisible)
         v-if="hasMore"
         size="small"
         variant="tonal"
+        color="primary"
+        class="category-chip"
         @click="expanded = !expanded"
       >
         {{ expanded
@@ -60,3 +68,15 @@ const hasMore = computed(() => props.categories.length > props.maxVisible)
     </div>
   </div>
 </template>
+
+<style scoped>
+/*
+ * Vuetify tints a tonal chip's text with the same colour as its background, and
+ * on this palette's primary that leaves the label washed out against the tint.
+ * Paint the label with the surface's own text colour instead.
+ */
+.category-chip {
+  color: rgb(var(--v-theme-on-surface));
+  font-weight: 600;
+}
+</style>

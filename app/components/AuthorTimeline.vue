@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import type { BookSummary } from '~/types/api'
-import { totalReaders, weightedRating } from '~/utils/format'
+import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
   books: BookSummary[]
   loading: boolean
   hasMore: boolean
   loadMore: () => void | Promise<void>
+  emptyMessage?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  emptyMessage: '',
+})
 
 const { t, n } = useI18n()
 
@@ -37,7 +40,7 @@ useShelfStatuses(() => props.books)
       class="text-medium-emphasis text-center"
       style="padding: 32px 0;"
     >
-      {{ t('books.emptyList') }}
+      {{ emptyMessage || t('common.noResults') }}
     </div>
 
     <div
@@ -119,7 +122,8 @@ useShelfStatuses(() => props.books)
                     {{ weightedRating(
                       entry.book.avg_rating, entry.book.rating_count,
                       entry.book.ol_avg_rating, entry.book.ol_rating_count,
-                    ).toFixed(1) }} ({{ entry.book.rating_count + entry.book.ol_rating_count }})
+                    ).toFixed(1) }}
+                    ({{ n(totalRatingCount(entry.book.rating_count, entry.book.ol_rating_count)) }})
                   </span>
                 </div>
 

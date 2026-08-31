@@ -60,7 +60,10 @@
     "copied": "Kopiert!",
     "bookCount": "{count} Buch | {count} Bücher",
     "commentCount": "{count} Kommentar | {count} Kommentare",
-    "backToHome": "Zurück zur Startseite"
+    "backToHome": "Zurück zur Startseite",
+    "hide": "Ausblenden",
+    "loadMore": "Mehr laden",
+    "noResults": "Hier gibt es noch nichts zu sehen."
   },
   "footer": {
     "tagline": "Entdecke dein nächstes Lieblingsbuch durch emotionale Leseprofile und Buch-Einfluss-Netzwerke.",
@@ -98,6 +101,7 @@
     "seriesPrefix": "Reihe: {name}",
     "bookSeries": "Buchreihe",
     "editSeries": "Reihe bearbeiten",
+    "delete": "Reihe löschen",
     "deleteConfirmTitle": "Reihe löschen?",
     "deleteConfirmBody": "Diese Aktion kann nicht rückgängig gemacht werden. Möchtest du \"{name}\" wirklich löschen?",
     "evolutionTitle": "Wie sich die Reihe entwickelt",
@@ -159,7 +163,8 @@
     "olReading": "Open Library — Liest gerade: {count}",
     "olRead": "Open Library — Gelesen: {count}",
     "ratingsCountPlain": "{count} Bewertungen",
-    "readersCount": "{count} Leser"
+    "readersCount": "{count} Leser",
+    "rating": "BEWERTUNG"
   },
   "user": {
     "fallbackName": "Nutzer"
@@ -461,6 +466,39 @@
         "3": "Hat einige leichtere Momente",
         "5": "Durchgehend richtig witzig"
       }
+    },
+    "eightAxesEyebrow": "Acht Achsen",
+    "eightAxesTitle": "Nicht nur wie gut — sondern was für ein Buch",
+    "eightAxesSubtitle": "Leser bewerten beliebige der acht Achsen, jede hat daher ihre eigene Anzahl. Vier sagen, wie gut es gemacht ist, vier einfach, was es ist.",
+    "qualityAxesHeading": "Qualitätsachsen — höher ist besser",
+    "characterAxesHeading": "Charakterachsen — kein Ende ist besser",
+    "inOneLine": "In einem Satz",
+    "noAxesYet": "Noch niemand hat die acht Achsen für dieses Buch bewertet. Sei der Erste, dann füllt sich die Form unten.",
+    "axisCountSingle": "{count} Bewertungen je Achse",
+    "axisCountRange": "{low}–{high} Bewertungen je Achse",
+    "axisRatings": "{count} Bewertungen",
+    "summaryJoin": ", ",
+    "summaries": {
+      "pacing": {
+        "low": "langsam und bedächtig",
+        "mid": "gleichmäßig erzählt",
+        "high": "zügig erzählt"
+      },
+      "readability": {
+        "low": "dichte Lektüre",
+        "mid": "durchaus fordernd",
+        "high": "leicht zu lesen"
+      },
+      "plot_complexity": {
+        "low": "geradlinig erzählt",
+        "mid": "mäßig verschachtelt",
+        "high": "kunstvoll verwoben"
+      },
+      "humor": {
+        "low": "weitgehend ernst",
+        "mid": "leicht amüsant",
+        "high": "wirklich komisch"
+      }
     }
   },
   "comment": {
@@ -530,7 +568,8 @@
     "editions": "Ausgaben",
     "checkOtherPlatforms": "Schau dir dieses Buch auf anderen Plattformen an",
     "byAuthor": "von",
-    "coverAltIndexed": "Buchcover {index}"
+    "coverAltIndexed": "Buchcover {index}",
+    "year": "Jahr"
   },
   "bookUser": {
     "book": "Buch",
@@ -786,7 +825,37 @@
     "deleteBook": "Buch löschen",
     "deleteBookConfirmTitle": "Buch löschen?",
     "deleteBookConfirmBody": "Diese Aktion kann nicht rückgängig gemacht werden. Möchtest du \"{title}\" wirklich löschen?",
-    "firstSentence": "Erster Satz"
+    "firstSentence": "Erster Satz",
+    "onYourShelf": "In deinem Regal",
+    "quickRateHintWithAxes": "Tippe auf einen Stern, um zu ändern. Du hast außerdem {count} der acht Achsen bewertet.",
+    "rateAllAxes": "Detaillierte Bewertung",
+    "favourite": "Favorit",
+    "favourited": "Favorisiert",
+    "guestShelfTitle": "Stell es ins Regal",
+    "guestShelfBody": "Markiere es als gelesen, bewerte es auf acht Achsen statt auf einer — und Minsik trifft die nächsten Vorschläge besser.",
+    "firstPublished": "ERSTVERÖFFENTLICHUNG",
+    "firstSentenceCaption": "Der erste Satz, genau wie gedruckt.",
+    "firstSentenceCaptionYear": "Der erste Satz, wie in der Ausgabe von {year} gedruckt.",
+    "premiseEyebrow": "Die Prämisse",
+    "premiseTitle": "Worauf du dich einlässt",
+    "compareEyebrow": "Wo es steht",
+    "compareTitleAbove": "Besser als das meiste von {name}",
+    "compareTitleBelow": "Eine stillere Ecke von {name}",
+    "compareSubtitle": "Dieselben Zahlen, gemessen an der Gesellschaft, in der dieses Buch tatsächlich steht.",
+    "compareAuthor": "Gegen den Autor",
+    "compareSeries": "Gegen die Reihe",
+    "compareDelta": "{delta} zum Werk",
+    "compareCatalogueAverage": "Werkdurchschnitt {value}",
+    "compareReaderRatio": "{value}× des Durchschnitts",
+    "compareAverageReaders": "Ein durchschnittliches Werk zieht hier {value} Leser an.",
+    "compareRank": "Rang nach Bewertung",
+    "compareRankOf": "von {count} Werken",
+    "compareRankPartial": "Rang innerhalb der {count} bestbewerteten erfassten Werke.",
+    "compareRankExact": "Rang über alle Werke hinweg, vom schwächsten zum stärksten.",
+    "verdictEyebrow": "Das Urteil, vollständig",
+    "verdictTitle": "Wer bewertet hat, wie, und was gesagt wurde",
+    "verdictSubtitle": "Alle Bewertungen, die Lesende diesem Buch gegeben haben, und was sie dazu geschrieben haben. Wähle einen Balken, um nur diese Stimmen zu lesen.",
+    "rarity": "Seltenheit"
   },
   "discoverPage": {
     "seoTitle": "Ein Buch entdecken - Minsik",
@@ -821,8 +890,7 @@
     "featureCasinoBody": "Versuch dein Glück mit drei Spielmodi: Dreh die Slots für eine zufällige Empfehlung, öffne eine Mystery Case, um ein Buch mit sammelbaren Seltenheitsstufen aufzudecken, oder reiß einen Buchpack Karte für Karte auf.",
     "howRatingsWorkTitle": "Wie Bewertungen funktionieren",
     "howRatingsWorkIntro": "Jedes Buch auf Minsik zeigt eine kombinierte Bewertung — einen gewichteten Durchschnitt aus zwei unabhängigen Quellen:",
-    "howRatingsWorkOutro": "Die beiden Quellen werden proportional zur Anzahl der Bewertungen kombiniert, sodass Bücher mit mehr Bewertungen eine zuverlässigere Bewertung erhalten. Auf der Detailseite jedes Buches kannst du beide Bewertungen immer unabhängig neben dem kombinierten Ergebnis einsehen."
-    ,
+    "howRatingsWorkOutro": "Die beiden Quellen werden proportional zur Anzahl der Bewertungen kombiniert, sodass Bücher mit mehr Bewertungen eine zuverlässigere Bewertung erhalten. Auf der Detailseite jedes Buches kannst du beide Bewertungen immer unabhängig neben dem kombinierten Ergebnis einsehen.",
     "minsikCommunity": "Minsik-Community",
     "minsikCommunityBody": "Bewertungen und detaillierte Rezensionen von Minsik-Nutzern, gewichtet nach der Anzahl der Einreichungen.",
     "openLibrary": "Open Library",
@@ -841,7 +909,34 @@
     "totalBooks": "Bücher insgesamt",
     "removeFailed": "Entfernen fehlgeschlagen",
     "booksInSeries": "Bücher in dieser Reihe",
-    "noBooksInSeries": "Keine Bücher in dieser Reihe gefunden."
+    "noBooksInSeries": "Keine Bücher in dieser Reihe gefunden.",
+    "aboutEyebrow": "Die Form des Ganzen",
+    "aboutTitle": "Was diese Reihe ist",
+    "yourProgress": "Dein Fortschritt",
+    "pagesRead": "Gelesene Seiten",
+    "pagesReadOf": "von {total}",
+    "timeInvested": "Investierte Zeit",
+    "upNext": "Als Nächstes",
+    "upNextReading": "das liest du gerade",
+    "upNextWaiting": "wartet auf dich",
+    "guestProgressTitle": "{count} Bände, einer nach dem anderen",
+    "guestProgressBody": "Melde dich an, und diese Karte wird zum Fortschrittsring: gelesene Bände, Seiten hinter dir und der Band, bei dem du aufgehört hast.",
+    "guestProgressFootnote": "Eine Reihe hat keine eigene Bewertung — du stellst die Bände ins Regal und bewertest sie, und die Summe ergibt die Reihe.",
+    "rhythmEyebrow": "Erscheinungsrhythmus",
+    "rhythmTitle": "Diese Bände kamen nicht gleichmäßig",
+    "rhythmSubtitle": "Nach Erscheinungsjahr über {years} Jahre gesetzt, nicht sauber verteilt. Die Lücken sind die Geschichte.",
+    "rhythmLongestGap": "Längste Lücke: {years} Jahre",
+    "rhythmGapLabel": "{years} J.",
+    "readersEyebrow": "Leser je Band",
+    "readersTitle": "Wo sich die Menge lichtet",
+    "readersSubtitle": "Alle fangen irgendwo an, und weniger kommen an. Jeder Band danach, wie viele Lesende er erreicht hat.",
+    "readersCarryThrough": "{percent}% kommen bis zum Ende",
+    "readersMostRead": "Meistgelesen",
+    "readersStarted": "Mit Band eins begonnen",
+    "readersFinished": "Am Ende noch dabei",
+    "allVolumesEyebrow": "Alle Bände",
+    "allVolumesSubtitle": "Reihenfolge der Reihe, von oben nach unten. Positionen können Nachkommastellen haben, wenn sich eine Novelle dazwischenschiebt.",
+    "volumeColumn": "Band"
   },
   "authorPage": {
     "notFound": "Autor nicht gefunden",
@@ -855,7 +950,36 @@
     "booksHeading": "Bücher",
     "listView": "Listenansicht",
     "timelineView": "Zeitachsenansicht",
-    "noBooksForAuthor": "Keine Bücher für diesen Autor gefunden."
+    "noBooksForAuthor": "Keine Bücher für diesen Autor gefunden.",
+    "openingLine": "Erster Satz",
+    "openingLineFootnote": "aus dem meistgelesenen Buch, für das einer erfasst ist",
+    "yourProgress": "Dein Fortschritt",
+    "worksRead": "Gelesene Werke",
+    "worksReadOf": "von {total}",
+    "onYourShelves": "In deinen Regalen",
+    "progressFootnote": "{count} Werke sind ein ganzes Leben. Niemand liest {name} zu Ende — es geht darum, die zu finden, die deinen Abend wert sind.",
+    "guestProgressTitle": "Wie viel von {name} hast du gelesen?",
+    "guestProgressBody": "Melde dich an, und hier erscheint ein Ring: gelesene Werke von {count} und was bereits in deinen Regalen steht.",
+    "shapeEyebrow": "Form des Werks",
+    "shapeTitle": "Am produktivsten in den {period}",
+    "shapeSubtitle": "{works} Werke und {genres} Genres, die sich nicht zu dieser Zahl addieren wollen, weil die meisten Bücher in mehreren stehen.",
+    "worksPerDecade": "Werke pro Jahrzehnt",
+    "worksPerYear": "Werke pro Jahr",
+    "firstPublished": "Erstveröffentlichung",
+    "lastPublished": "Letzte Veröffentlichung",
+    "averagePerYear": "Durchschnitt pro Jahr",
+    "genreSpread": "Genre-Verteilung",
+    "genreSpreadFootnote": "Ein Buch kann in mehreren davon stehen, deshalb ergeben die Zahlen mehr als {count}.",
+    "mostReadEyebrow": "Meistgelesen",
+    "mostReadSubtitle": "Nach Lesern, nicht nach Bewertung — hier steigt die Menge tatsächlich ein.",
+    "readersCount": "{count} Leser",
+    "catalogueEyebrow": "Das Werk",
+    "catalogueSubtitle": "Gruppiere die Reihen, und alle Bände klappen in eine Zeile zusammen, die du wieder öffnen kannst.",
+    "groupSeries": "Reihen gruppieren",
+    "seriesGroupHint": "{count} Bände in dieser Reihe",
+    "workColumn": "Werk",
+    "noPublicationYears": "Für diese Werke sind noch keine Erscheinungsjahre erfasst, also lässt sich keine Zeitleiste zeichnen.",
+    "noSeriesToGroup": "Keines der Werke auf dieser Seite gehört zu einer Reihe. Schalte den Filter aus, um alle zu sehen."
   },
   "dashboardPage": {
     "pageDescription": "Dein persönliches Konto-Dashboard.",

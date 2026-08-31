@@ -2,100 +2,132 @@
 interface Props {
   description?: string | null
   emptyMessage?: string
-  collapsible?: boolean
-  maxLines?: number
+  charLimit?: number
+  truncationWindow?: number
+  hideHeading?: boolean
   hideCard?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   description: null,
-  collapsible: false,
-  maxLines: 5,
-  hideCard: false,
+  charLimit: 500,
+  truncationWindow: 20,
 })
 
 const { t } = useI18n()
 
 const expanded = ref(false)
-const contentRef = ref<HTMLElement | null>(null)
-const needsCollapse = ref(false)
+const descriptionRef = ref<HTMLElement>()
+const expandedHeight = ref(0)
 
-onMounted(() => {
-  if (contentRef.value)
-    needsCollapse.value = props.collapsible && contentRef.value.scrollHeight > contentRef.value.clientHeight + 4
+const needsTruncation = computed(() => {
+  const desc = props.description
+  if (!desc)
+    return false
+
+  return desc.length > props.charLimit + props.truncationWindow
 })
+
+function toggle() {
+  if (descriptionRef.value)
+    expandedHeight.value = descriptionRef.value.scrollHeight
+  expanded.value = !expanded.value
+}
 </script>
 
 <template>
-  <v-card v-if="!hideCard">
-    <v-card-text>
-      <h2 class="text-h5 font-weight-bold mb-4">
+  <v-card
+    :flat="hideCard"
+    :class="hideCard
+      ? 'bg-transparent'
+      : ''"
+    rounded="0"
+  >
+    <v-card-text
+      :class="hideCard
+        ? 'pa-2'
+        : 'pa-8'"
+    >
+      <h2
+        v-if="!hideHeading"
+        class="text-h6 font-weight-bold mb-4"
+      >
         {{ t('common.description') }}
       </h2>
 
-      <p
-        v-if="description"
-        ref="contentRef"
-        class="text-body-1"
-        :style="!expanded && collapsible
-          ? `-webkit-line-clamp: ${maxLines}; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line;`
-          : 'white-space: pre-line;'"
-      >
-        {{ description }}
-      </p>
+      <template v-if="description">
+        <div
+          ref="descriptionRef"
+          class="description-content"
+          :class="{'description-collapsed': needsTruncation && !expanded}"
+          :style="needsTruncation && expanded && expandedHeight
+            ? {'maxHeight': `${expandedHeight}px`}
+            : undefined"
+        >
+          <p
+            class="font-reading description-body mb-0"
+            style="white-space: pre-line;"
+          >
+            {{ description }}
+          </p>
+        </div>
+
+        <v-btn
+          v-if="needsTruncation"
+          variant="outlined"
+          rounded="pill"
+          size="small"
+          class="mt-5"
+          :append-icon="expanded
+            ? 'mdi-chevron-up'
+            : 'mdi-chevron-down'"
+          @click="toggle"
+        >
+          {{ expanded
+            ? t('common.readLess')
+            : t('common.readMore') }}
+        </v-btn>
+      </template>
 
       <p
         v-else
-        class="text-body-1 font-italic"
+        class="text-body-1 text-medium-emphasis mb-0 font-italic"
       >
         {{ emptyMessage ?? t('common.noDescription') }}
       </p>
-
-      <v-btn
-        v-if="needsCollapse"
-        variant="text"
-        size="small"
-        color="secondary"
-        class="mt-1 px-0"
-        @click="expanded = !expanded"
-      >
-        {{ expanded
-          ? t('common.showLess')
-          : t('common.showMore') }}
-      </v-btn>
     </v-card-text>
   </v-card>
-
-  <div v-else>
-    <p
-      v-if="description"
-      ref="contentRef"
-      class="text-body-1"
-      :style="!expanded && collapsible
-        ? `-webkit-line-clamp: ${maxLines}; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line;`
-        : 'white-space: pre-line;'"
-    >
-      {{ description }}
-    </p>
-
-    <p
-      v-else
-      class="text-body-1 text-medium-emphasis font-italic"
-    >
-      {{ emptyMessage ?? t('common.noDescription') }}
-    </p>
-
-    <v-btn
-      v-if="needsCollapse"
-      variant="text"
-      size="small"
-      color="secondary"
-      class="mt-1 px-0"
-      @click="expanded = !expanded"
-    >
-      {{ expanded
-        ? t('common.showLess')
-        : t('common.showMore') }}
-    </v-btn>
-  </div>
 </template>
+
+<style scoped>
+.description-body {
+  font-size: 1.0625rem;
+  max-width: 68ch;
+}
+
+.description-content {
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.description-collapsed {
+  max-height: 10em;
+  position: relative;
+}
+
+/* The fade has to end on whatever surface the block is painted on. */
+.description-collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3em;
+  background: linear-gradient(transparent, rgb(var(--v-theme-surface)));
+  pointer-events: none;
+}
+
+.bg-transparent .description-collapsed::after {
+  background: linear-gradient(transparent, rgb(var(--v-theme-background)));
+}
+</style>
