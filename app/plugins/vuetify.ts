@@ -1,4 +1,4 @@
-import type { Composer } from 'vue-i18n'
+import type { Composer, I18n } from 'vue-i18n'
 import type { IconProps, IconSet } from 'vuetify'
 import { useI18n } from 'vue-i18n'
 import { createVuetify } from 'vuetify'
@@ -44,7 +44,9 @@ export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
     ssr: true,
     locale: {
-      adapter: createVueI18nAdapter({ i18n: { global: i18n }, useI18n }),
+      // The adapter only ever touches `i18n.global`, so the shared Composer is
+      // enough — the full I18n instance it asks for is never constructed here.
+      adapter: createVueI18nAdapter({ i18n: { global: i18n } as unknown as I18n, useI18n }),
     },
     icons: {
       defaultSet: 'mdi',

@@ -15,13 +15,12 @@ const editDialogOpen = ref(false)
 const deleteConfirmOpen = ref(false)
 const deleting = ref(false)
 
-const subRatings = computed(() =>
-  ratingDimensions.value
-    .map(dim => ({
-      ...dim,
-      value: props.entry[dim.key as keyof RatingEntry] as number | null | undefined,
-    }))
-    .filter(r => r.value != null),
+const subRatings = computed(() => ratingDimensions.value
+  .map(dim => ({
+    ...dim,
+    value: props.entry[dim.key as keyof RatingEntry] as number | null | undefined,
+  }))
+  .filter(r => r.value != null),
 )
 
 async function handleSave(data: Record<string, any>) {
@@ -48,7 +47,7 @@ async function handleDelete() {
     :author-names="entry.book_author_names"
     :author-slugs="entry.book_author_slugs"
     :updated-at="entry.created_at"
-    :show-actions="true"
+    show-actions
   >
     <template #dateExtra>
       <span
@@ -59,7 +58,7 @@ async function handleDelete() {
 
     <template #meta>
       <div
-        class="flex-shrink-0 d-flex flex-column align-start gap-1"
+        class="d-flex flex-column flex-shrink-0 gap-1 align-start"
         style="width: 140px;"
       >
         <div class="text-caption text-medium-emphasis font-weight-bold text-uppercase">
@@ -80,7 +79,7 @@ async function handleDelete() {
       </div>
 
       <div
-        class="flex-shrink-0 d-flex flex-column align-start gap-1"
+        class="d-flex flex-column flex-shrink-0 gap-1 align-start"
         style="width: 140px;"
       >
         <div class="text-caption text-medium-emphasis font-weight-bold text-uppercase">
@@ -153,7 +152,7 @@ async function handleDelete() {
           >{{ sub.label }}</span>
 
           <v-progress-linear
-            :model-value="(sub.value! / 5) * 100"
+            :model-value="sub.value! / 5 * 100"
             :color="sub.color"
             rounded
             height="6"

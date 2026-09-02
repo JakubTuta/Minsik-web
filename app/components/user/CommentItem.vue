@@ -39,7 +39,7 @@ async function handleDelete() {
     :author-slugs="entry.book_author_slugs"
     :series-name="entry.book_series_name"
     :updated-at="entry.updated_at"
-    :show-actions="true"
+    show-actions
   >
     <template #details>
       <v-chip
@@ -48,7 +48,7 @@ async function handleDelete() {
         color="warning"
         variant="tonal"
         prepend-icon="mdi-alert"
-        class="flex-shrink-0 mt-2 align-self-start"
+        class="align-self-start mt-2 flex-shrink-0"
       >
         {{ t('comment.spoiler') }}
       </v-chip>
@@ -56,7 +56,7 @@ async function handleDelete() {
       <v-sheet
         color="surface-variant"
         rounded="lg"
-        class="pa-3 mt-2 text-body-2"
+        class="text-body-2 mt-2 pa-3"
         style="display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"
       >
         {{ entry.body }}

@@ -8,13 +8,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { t } = useI18n()
-
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
+const { t } = useI18n()
+
+// eslint-disable-next-line vue/no-setup-props-reactivity-loss -- seeds an editable draft; reseeded by the watcher below each time the dialog opens
 const editBody = ref(props.body)
+// eslint-disable-next-line vue/no-setup-props-reactivity-loss -- seeds an editable draft; reseeded by the watcher below each time the dialog opens
 const editIsSpoiler = ref(props.isSpoiler)
 const saving = ref(false)
 

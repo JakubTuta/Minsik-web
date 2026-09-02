@@ -88,9 +88,9 @@ export const useRatingsStore = defineStore('ratings', () => {
 
   const updateRating = async (slug: string, data: UpsertRatingData) => {
     await client.value.post(`/api/v1/books/${slug}/rate`, data)
-    const idx = items.value.findIndex(e => e.book_slug === slug)
-    if (idx !== -1)
-      items.value[idx] = { ...items.value[idx], ...data }
+    const existing = items.value.find(e => e.book_slug === slug)
+    if (existing)
+      Object.assign(existing, data)
     await useDashboardStore().fetchStats(true)
   }
 

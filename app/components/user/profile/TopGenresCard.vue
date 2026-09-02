@@ -29,6 +29,7 @@ const genreLabel = useGenreLabel()
         >
           <div class="d-flex justify-space-between text-body-1 mb-2">
             <span class="font-weight-medium">{{ genreLabel(genre.slug) }}</span>
+
             <span class="text-medium-emphasis">{{ genre.percent }}%</span>
           </div>
 

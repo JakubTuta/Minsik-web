@@ -20,7 +20,9 @@ const { existingComment } = toRefs(props)
 const { t } = useI18n()
 const bookPageStore = useBookPageStore()
 
+// eslint-disable-next-line vue/no-ref-object-reactivity-loss -- seeds an editable local copy; kept in step by the watcher below
 const body = ref(existingComment.value?.body ?? '')
+// eslint-disable-next-line vue/no-ref-object-reactivity-loss -- seeds an editable local copy; kept in step by the watcher below
 const isSpoiler = ref(existingComment.value?.is_spoiler ?? false)
 const saving = ref(false)
 const error = ref('')

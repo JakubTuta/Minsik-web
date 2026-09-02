@@ -27,6 +27,7 @@ const router = useRouter()
 const searchStore = useSearchStore()
 const quickSearchStore = useQuickSearchStore()
 
+// eslint-disable-next-line vue/no-ref-object-reactivity-loss -- seeds an editable local copy; kept in step by the watcher below
 const localQuery = ref(modelValue.value)
 const showResults = ref(false)
 const searchFieldRef = ref()

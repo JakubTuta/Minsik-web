@@ -4,10 +4,7 @@ interface Props {
   disabled?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
-  opening: false,
-  disabled: false,
-})
+defineProps<Props>()
 
 const emit = defineEmits<{
   open: []

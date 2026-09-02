@@ -6,7 +6,7 @@ interface Props {
   currentStatus: BookshelfStatus | null
   slug: string
   onSave?: (status: BookshelfStatus) => Promise<void>
-  onRemove?: () => Promise<void>
+  onRemove?: () => void | Promise<void>
 }
 
 const props = defineProps<Props>()
@@ -22,6 +22,7 @@ const { t } = useI18n()
 const bookPageStore = useBookPageStore()
 const { bookshelfStatus } = storeToRefs(bookPageStore)
 
+// eslint-disable-next-line vue/no-ref-object-reactivity-loss -- seeds an editable local copy; kept in step by the watcher below
 const selectedStatus = ref<BookshelfStatus | null>(currentStatus.value)
 const saving = ref(false)
 const removing = ref(false)

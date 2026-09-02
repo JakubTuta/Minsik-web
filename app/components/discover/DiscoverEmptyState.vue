@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const emit = defineEmits<{ 'reset-filters': [] }>()
+const emit = defineEmits<{ resetFilters: [] }>()
 const { t } = useI18n()
 </script>
 
@@ -29,7 +29,7 @@ const { t } = useI18n()
       color="primary"
       variant="elevated"
       prepend-icon="mdi-filter-remove"
-      @click="emit('reset-filters')"
+      @click="emit('resetFilters')"
     >
       {{ t('discover.resetFilters') }}
     </v-btn>

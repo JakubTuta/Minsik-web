@@ -10,7 +10,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits<{ 'play-again': [] }>()
+const emit = defineEmits<{ playAgain: [] }>()
 
 const { t, n } = useI18n()
 const { rarityLabels } = useRarityLabels()
@@ -136,7 +136,7 @@ const authorsList = computed(() => props.winner.authors)
             <v-btn
               variant="outlined"
               prepend-icon="mdi-refresh"
-              @click="emit('play-again')"
+              @click="emit('playAgain')"
             >
               {{ t('caseGame.openAnother') }}
             </v-btn>

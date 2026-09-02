@@ -16,6 +16,7 @@ const props = withDefaults(defineProps<{
   showActions?: boolean
 }>(), {
   status: null,
+  // eslint-disable-next-line vue/no-boolean-default -- actions are shown unless a caller opts out
   showActions: true,
 })
 

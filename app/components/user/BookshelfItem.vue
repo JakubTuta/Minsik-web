@@ -19,7 +19,7 @@ async function handleSave(newStatus: BookshelfStatus) {
   await bookshelfStore.upsertStatus(props.entry.book_slug, newStatus)
 }
 
-async function handleRemove() {
+function handleRemove() {
   bookshelfStore.removeItem(props.entry.book_slug)
 }
 
@@ -45,7 +45,7 @@ async function handleDelete() {
     :series-name="entry.book_series_name"
     :status="entry.status"
     :updated-at="entry.updated_at"
-    :show-actions="true"
+    show-actions
   >
     <template #actions>
       <template v-if="!isPublicProfile">

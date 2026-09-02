@@ -81,9 +81,11 @@ export const useUserCommentsStore = defineStore('userComments', () => {
       { body, is_spoiler: isSpoiler },
     )
     const updated = response.data.data!
-    const idx = items.value.findIndex(e => e.comment_id === commentId)
-    if (idx !== -1) {
-      items.value[idx] = { ...items.value[idx], body: updated.body, is_spoiler: updated.is_spoiler, updated_at: updated.updated_at }
+    const existing = items.value.find(e => e.comment_id === commentId)
+    if (existing) {
+      existing.body = updated.body
+      existing.is_spoiler = updated.is_spoiler
+      existing.updated_at = updated.updated_at
     }
   }
 

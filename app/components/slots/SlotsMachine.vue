@@ -36,6 +36,7 @@ function initializeReels() {
   const initial: Rarity[][] = [[], [], []]
   for (let c = 0; c < 3; c++) {
     // 30 items per reel for long spin
+    // eslint-disable-next-line e18e/prefer-array-fill -- the callback is not constant: every slot needs its own roll
     const col = Array.from({ length: 30 }, () => getRandomRarity())
 
     // We will land on index 27 (so indices 26, 27, 28 are visible in 3x3)

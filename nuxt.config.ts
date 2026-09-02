@@ -1,3 +1,4 @@
+import type { LocaleObject } from '@nuxtjs/i18n'
 import process from 'node:process'
 import vuetify from 'vite-plugin-vuetify'
 import { APP_LOCALES, DEFAULT_LOCALE } from './locales.config'
@@ -52,8 +53,7 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
-        config.plugins = config.plugins || []
-        config.plugins.push(vuetify({ autoImport: true }))
+        config.plugins?.push(vuetify({ autoImport: true }))
       })
     },
   ],
@@ -107,7 +107,9 @@ export default defineNuxtConfig({
   i18n: {
     strategy: 'prefix_except_default',
     defaultLocale: DEFAULT_LOCALE,
-    locales: APP_LOCALES,
+    // AppLocale is an interface, so it lacks the implicit index signature
+    // LocaleObject declares; the shape itself matches.
+    locales: APP_LOCALES as LocaleObject[],
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'pref_lang',

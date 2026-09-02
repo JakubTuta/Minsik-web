@@ -27,6 +27,7 @@ const SLOT_SIZE = computed(() => ITEM_WIDTH.value + ITEM_GAP)
 const generatedList = ref<Rarity[]>([])
 
 function initializeTrack() {
+  // eslint-disable-next-line e18e/prefer-array-fill -- the callback is not constant: every slot needs its own roll
   const list = Array.from({ length: 40 }, () => getRandomRarity())
   // The winner is placed at our landing index
   list[35] = props.data.winner.rarity as Rarity

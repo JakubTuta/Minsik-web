@@ -22,7 +22,9 @@ async function copyProfileUrl() {
     return
   await copy(props.copyUrl)
   copyFeedback.value = true
-  setTimeout(() => { copyFeedback.value = false }, 2000)
+  setTimeout(() => {
+    copyFeedback.value = false
+  }, 2000)
 }
 </script>
 

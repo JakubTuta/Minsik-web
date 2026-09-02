@@ -11,7 +11,10 @@
     "start": "bun run ./.output/server/index.mjs",
     "postinstall": "bun --bun run nuxt prepare",
     "lint": "bun --bun run eslint --ext .ts,.js,.vue .",
-    "lint:fix": "bun --bun run eslint --ext .ts,.js,.vue . --fix"
+    "lint:fix": "bun --bun run eslint --ext .ts,.js,.vue . --fix",
+    "typecheck": "bun --bun run nuxt typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "patchedDependencies": {
     "@nuxt/vite-builder@4.4.2": "patches/@nuxt%2Fvite-builder@4.4.2.patch"
@@ -45,6 +48,7 @@
     "@unocss/eslint-plugin": "^66.6.7",
     "eslint": "^9.39.4",
     "typescript": "^5.9.3",
+    "vitest": "^4.1.11",
     "vue-tsc": "^3.2.6"
   }
 }

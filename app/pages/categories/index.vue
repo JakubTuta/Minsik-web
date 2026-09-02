@@ -11,6 +11,7 @@ const { categories, getCategoryBySlug } = useCategories()
 
 const selectedSlug = computed(() => route.query.category as string | null ?? null)
 
+// eslint-disable-next-line vue/no-ref-object-reactivity-loss -- a one-time redirect guard, not a rendered value
 if (!selectedSlug.value) {
   await navigateTo(localePath('index'))
 }
@@ -26,11 +27,12 @@ const booksOffset = ref(0)
 const booksTotalCount = ref(0)
 const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.value)
 
-async function loadBooks(slug: string, sort: 'popularity' | 'rating', offset: number) {
+function loadBooks(slug: string, sort: 'popularity' | 'rating', offset: number) {
   return categoriesStore.fetchCategoryBooksPage(slug, sort, 'desc', offset, 20)
 }
 
 const { data: initialBooksData } = useLazyAsyncData(
+  // eslint-disable-next-line vue/no-ref-object-reactivity-loss -- the cache key must be a static string, not a reactive read
   `category-books-${selectedSlug.value}-${sortBy.value}`,
   () => loadBooks(selectedSlug.value!, sortBy.value, 0),
   { watch: [language] },
@@ -77,10 +79,12 @@ const currentCategory = computed(() => (selectedSlug.value
 
 const pageTitle = computed(() => currentCategory.value?.name ?? t('categories.browse'))
 
+/* eslint-disable vue/no-ref-object-reactivity-loss -- head tags are resolved once per navigation */
 useSeo({
   title: pageTitle.value,
   description: t('categories.seoDescription', { category: pageTitle.value }),
 })
+/* eslint-enable vue/no-ref-object-reactivity-loss */
 </script>
 
 <template>

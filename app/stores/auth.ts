@@ -76,9 +76,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Single-flight within a tab (_refreshPromise) and across tabs (Web Locks + last-refresh stamp),
   // so concurrent refreshes never race on refresh-token rotation.
-  const _runRefresh = (): Promise<boolean> => {
+  const _runRefresh = async (): Promise<boolean> => {
     if (import.meta.client && navigator.locks) {
-      return navigator.locks.request('minsik-token-refresh', async () => {
+      return await navigator.locks.request('minsik-token-refresh', async () => {
         const last = Number(localStorage.getItem(LAST_REFRESH_KEY) || '0')
         if (user.value && Date.now() - last < REFRESH_DEDUP_MS)
           return true

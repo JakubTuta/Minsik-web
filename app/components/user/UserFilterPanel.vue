@@ -155,7 +155,6 @@ const showContent = computed(() => !mobile.value || expanded.value)
           </v-chip>
         </div>
       </template>
-
     </template>
   </v-card>
 </template>

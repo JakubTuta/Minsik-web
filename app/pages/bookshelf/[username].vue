@@ -8,6 +8,7 @@ const dashboardStore = useDashboardStore()
 const profileStore = useProfileStore()
 
 const { error: overviewError } = await useAsyncData(
+  // eslint-disable-next-line vue/no-ref-object-reactivity-loss -- the cache key must be a static string, not a reactive read
   `profile-overview-${username.value}`,
   () => profileStore.fetchOverview(username.value),
 )

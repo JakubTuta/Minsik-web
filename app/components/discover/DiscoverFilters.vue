@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BookLength, Era, Mood, Popularity, Quality, SeriesFilter } from '~/types/discover'
 
-const emit = defineEmits<{ 'clear-all': [] }>()
+const emit = defineEmits<{ clearAll: [] }>()
 const { t } = useI18n()
 const {
   bookLengthOptions,
@@ -34,7 +34,7 @@ function clearAll() {
   era.value = null
   seriesFilter.value = null
   popularity.value = null
-  emit('clear-all')
+  emit('clearAll')
 }
 </script>
 

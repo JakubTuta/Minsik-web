@@ -9,17 +9,20 @@ const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
 
+const TRAILING_SLASH = /\/$/
+const URL_SCHEME = /^https?:\/\//
+
 const confirmDialog = ref(false)
 const deleting = ref(false)
 
 const publicProfileUrl = computed(() => {
-  const base = config.public.siteUrl.replace(/\/$/, '')
+  const base = config.public.siteUrl.replace(TRAILING_SLASH, '')
 
   return `${base}/bookshelf/${authStore.user?.username}`
 })
 
 const publicProfileDisplay = computed(() => {
-  const host = config.public.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')
+  const host = config.public.siteUrl.replace(URL_SCHEME, '').replace(TRAILING_SLASH, '')
 
   return `${host}/@${authStore.user?.username}`
 })
