@@ -31,7 +31,7 @@ const mobileColumns = computed(() => {
       : 'd-flex align-center'"
     :style="mobile
       ? {'display': 'grid',
-         'gridTemplateColumns': `repeat(${mobileColumns}, 1fr)`,
+         'gridTemplateColumns': `repeat(${mobileColumns}, minmax(0, 1fr))`,
          'gap': '4px'}
       : undefined"
   >
@@ -40,7 +40,7 @@ const mobileColumns = computed(() => {
       :key="i"
     >
       <div
-        class="d-flex flex-column align-center py-2"
+        class="d-flex flex-column align-center stat-item py-2"
         :class="mobile
           ? ''
           : 'flex-1-1'"
@@ -94,3 +94,12 @@ const mobileColumns = computed(() => {
     </template>
   </div>
 </template>
+
+<style scoped>
+/* Grid columns default to their content's min-width, so an unbroken long
+   number (reader/rating counts) widened the grid past the viewport. */
+.stat-item {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+</style>

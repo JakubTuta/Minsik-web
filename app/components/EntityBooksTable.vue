@@ -136,300 +136,302 @@ useShelfStatuses(() => props.books)
     </v-alert>
 
     <template v-else>
-      <div class="entity-row entity-head px-5">
-        <div
-          v-if="showPosition"
-          class="entity-pos"
-        >
-          #
-        </div>
-
-        <div class="entity-cover-col" />
-
-        <div class="entity-main">
-          {{ showPosition
-            ? t('seriesPage.volumeColumn')
-            : t('authorPage.workColumn') }}
-        </div>
-
-        <div class="entity-stats">
-          <div
-            v-if="showYear"
-            class="entity-stat entity-stat--year"
-          >
-            {{ t('book.year') }}
-          </div>
-
-          <div class="entity-stat entity-stat--rating">
-            {{ t('stats.rating') }}
-          </div>
-
-          <div class="entity-stat entity-stat--readers">
-            {{ t('stats.readers') }}
-          </div>
-
-          <div class="entity-stat entity-stat--rarity">
-            {{ t('bookPage.rarity') }}
-          </div>
-        </div>
-      </div>
-
-      <template
-        v-for="row in rows"
-        :key="row.key"
-      >
-        <!-- Single work -->
-        <v-sheet
-          v-if="row.book"
-          border
-          rounded="xl"
-          class="entity-row pa-5"
-        >
+      <div class="entity-scroll">
+        <div class="entity-row entity-head px-5">
           <div
             v-if="showPosition"
             class="entity-pos"
           >
-            <span class="font-display tabular entity-position">
-              {{ row.book.series_position
-                ? formatSeriesPosition(row.book.series_position).replace('#', '')
-                : '–' }}
-            </span>
+            #
           </div>
 
-          <div class="entity-cover-col">
-            <div class="entity-cover">
-              <BookCover
-                :title="row.book.title"
-                :src="row.book.primary_cover_url"
-                :width="72"
-                :height="108"
-                fit="cover"
-                :fallback-color="coverColor(row.book)"
-              />
-
-              <BookShelfBadge
-                :book-id="row.book.book_id"
-                compact
-                chip-size="small"
-              />
-            </div>
-          </div>
+          <div class="entity-cover-col" />
 
           <div class="entity-main">
-            <NuxtLinkLocale
-              :to="`/books/${row.book.slug}`"
-              class="entity-title"
-            >
-              {{ row.book.title }}
-            </NuxtLinkLocale>
-
-            <div
-              v-if="!showPosition && row.book.series"
-              class="text-caption text-medium-emphasis mt-1"
-            >
-              {{ row.book.series.name }}
-              {{ row.book.series_position
-                ? ` · ${formatSeriesPosition(row.book.series_position)}`
-                : '' }}
-            </div>
-
-            <div
-              v-if="row.book.description"
-              class="text-body-2 text-medium-emphasis line-clamp-2 mt-1"
-            >
-              {{ row.book.description }}
-            </div>
-          </div>
-
-          <div class="entity-stats">
-            <div
-              v-if="showYear"
-              class="entity-stat entity-stat--year tabular text-body-2"
-            >
-              {{ row.book.original_publication_year || '–' }}
-            </div>
-
-            <div class="entity-stat entity-stat--rating">
-              <v-rating
-                :model-value="Math.floor(rating(row.book) * 2) / 2"
-                readonly
-                half-increments
-                color="warning"
-                active-color="warning"
-                size="x-small"
-                density="compact"
-              />
-
-              <b class="tabular text-body-2 mt-1">{{ rating(row.book).toFixed(2) }}</b>
-            </div>
-
-            <div class="entity-stat entity-stat--readers tabular text-body-2 font-weight-bold text-info">
-              {{ compactFmt.format(readers(row.book)) }}
-            </div>
-
-            <div class="entity-stat entity-stat--rarity">
-              <RarityBadge
-                :rarity="bookRarity(row.book)"
-                size="small"
-              />
-            </div>
-          </div>
-        </v-sheet>
-
-        <!-- Collapsed series -->
-        <v-sheet
-          v-else
-          border
-          rounded="xl"
-          class="entity-row entity-group pa-5"
-          @click="toggleGroup(row.key)"
-        >
-          <div
-            v-if="showPosition"
-            class="entity-pos"
-          />
-
-          <div class="entity-cover-col">
-            <div class="entity-cover">
-              <BookCover
-                :title="row.members![0]!.title"
-                :src="row.members![0]!.primary_cover_url"
-                :width="72"
-                :height="108"
-                fit="cover"
-                :fallback-color="coverColor(row.members![0]!)"
-              />
-            </div>
-          </div>
-
-          <div class="entity-main">
-            <div class="d-flex align-center gap-2">
-              <NuxtLinkLocale
-                v-if="row.seriesSlug"
-                :to="`/series/${row.seriesSlug}`"
-                class="entity-title"
-                @click.stop
-              >
-                {{ row.seriesName }}
-              </NuxtLinkLocale>
-
-              <span
-                v-else
-                class="entity-title"
-              >{{ row.seriesName }}</span>
-
-              <v-icon
-                size="small"
-                :icon="expandedGroups.has(row.key)
-                  ? 'mdi-chevron-up'
-                  : 'mdi-chevron-down'"
-              />
-            </div>
-
-            <div class="text-body-2 text-medium-emphasis mt-1">
-              {{ expandedGroups.has(row.key)
-                ? t('common.hide')
-                : t('authorPage.seriesGroupHint', {'count': row.members!.length}) }}
-            </div>
+            {{ showPosition
+              ? t('seriesPage.volumeColumn')
+              : t('authorPage.workColumn') }}
           </div>
 
           <div class="entity-stats">
             <div
               v-if="showYear"
               class="entity-stat entity-stat--year"
-            />
-
-            <div class="entity-stat entity-stat--rating">
-              <v-rating
-                :model-value="Math.floor(groupRating(row.members!) * 2) / 2"
-                readonly
-                half-increments
-                color="warning"
-                active-color="warning"
-                size="x-small"
-                density="compact"
-              />
-
-              <b class="tabular text-body-2 mt-1">{{ groupRating(row.members!).toFixed(2) }}</b>
-            </div>
-
-            <div class="entity-stat entity-stat--readers tabular text-body-2 font-weight-bold text-info">
-              {{ compactFmt.format(groupReaders(row.members!)) }}
-            </div>
-
-            <div class="entity-stat entity-stat--rarity" />
-          </div>
-        </v-sheet>
-
-        <!-- Volumes of an opened series -->
-        <v-sheet
-          v-for="member in (expandedGroups.has(row.key)
-            ? row.members ?? []
-            : [])"
-          :key="`${row.key}-${member.book_id}`"
-          color="surface-variant"
-          border
-          rounded="xl"
-          class="entity-row entity-member pa-5"
-        >
-          <div
-            v-if="showPosition"
-            class="entity-pos"
-          />
-
-          <div class="entity-cover-col">
-            <div class="entity-cover">
-              <BookCover
-                :title="member.title"
-                :src="member.primary_cover_url"
-                :width="72"
-                :height="108"
-                fit="cover"
-                :fallback-color="coverColor(member)"
-              />
-
-              <BookShelfBadge
-                :book-id="member.book_id"
-                compact
-                chip-size="small"
-              />
-            </div>
-          </div>
-
-          <div class="entity-main">
-            <NuxtLinkLocale
-              :to="`/books/${member.slug}`"
-              class="entity-title"
             >
-              {{ formatSeriesPosition(member.series_position) }} {{ member.title }}
-            </NuxtLinkLocale>
-          </div>
-
-          <div class="entity-stats">
-            <div
-              v-if="showYear"
-              class="entity-stat entity-stat--year tabular text-body-2"
-            >
-              {{ member.original_publication_year || '–' }}
+              {{ t('book.year') }}
             </div>
 
             <div class="entity-stat entity-stat--rating">
-              <b class="tabular text-body-2">{{ rating(member).toFixed(2) }}</b>
+              {{ t('stats.rating') }}
             </div>
 
-            <div class="entity-stat entity-stat--readers tabular text-body-2 font-weight-bold text-info">
-              {{ compactFmt.format(readers(member)) }}
+            <div class="entity-stat entity-stat--readers">
+              {{ t('stats.readers') }}
             </div>
 
             <div class="entity-stat entity-stat--rarity">
-              <RarityBadge
-                :rarity="bookRarity(member)"
-                size="small"
-              />
+              {{ t('bookPage.rarity') }}
             </div>
           </div>
-        </v-sheet>
-      </template>
+        </div>
+
+        <template
+          v-for="row in rows"
+          :key="row.key"
+        >
+          <!-- Single work -->
+          <v-sheet
+            v-if="row.book"
+            border
+            rounded="xl"
+            class="entity-row pa-5"
+          >
+            <div
+              v-if="showPosition"
+              class="entity-pos"
+            >
+              <span class="font-display tabular entity-position">
+                {{ row.book.series_position
+                  ? formatSeriesPosition(row.book.series_position).replace('#', '')
+                  : '–' }}
+              </span>
+            </div>
+
+            <div class="entity-cover-col">
+              <div class="entity-cover">
+                <BookCover
+                  :title="row.book.title"
+                  :src="row.book.primary_cover_url"
+                  :width="72"
+                  :height="108"
+                  fit="cover"
+                  :fallback-color="coverColor(row.book)"
+                />
+
+                <BookShelfBadge
+                  :book-id="row.book.book_id"
+                  compact
+                  chip-size="small"
+                />
+              </div>
+            </div>
+
+            <div class="entity-main">
+              <NuxtLinkLocale
+                :to="`/books/${row.book.slug}`"
+                class="entity-title"
+              >
+                {{ row.book.title }}
+              </NuxtLinkLocale>
+
+              <div
+                v-if="!showPosition && row.book.series"
+                class="text-caption text-medium-emphasis mt-1"
+              >
+                {{ row.book.series.name }}
+                {{ row.book.series_position
+                  ? ` · ${formatSeriesPosition(row.book.series_position)}`
+                  : '' }}
+              </div>
+
+              <div
+                v-if="row.book.description"
+                class="text-body-2 text-medium-emphasis line-clamp-2 mt-1"
+              >
+                {{ row.book.description }}
+              </div>
+            </div>
+
+            <div class="entity-stats">
+              <div
+                v-if="showYear"
+                class="entity-stat entity-stat--year tabular text-body-2"
+              >
+                {{ row.book.original_publication_year || '–' }}
+              </div>
+
+              <div class="entity-stat entity-stat--rating">
+                <v-rating
+                  :model-value="Math.floor(rating(row.book) * 2) / 2"
+                  readonly
+                  half-increments
+                  color="warning"
+                  active-color="warning"
+                  size="x-small"
+                  density="compact"
+                />
+
+                <b class="tabular text-body-2 mt-1">{{ rating(row.book).toFixed(2) }}</b>
+              </div>
+
+              <div class="entity-stat entity-stat--readers tabular text-body-2 font-weight-bold text-info">
+                {{ compactFmt.format(readers(row.book)) }}
+              </div>
+
+              <div class="entity-stat entity-stat--rarity">
+                <RarityBadge
+                  :rarity="bookRarity(row.book)"
+                  size="small"
+                />
+              </div>
+            </div>
+          </v-sheet>
+
+          <!-- Collapsed series -->
+          <v-sheet
+            v-else
+            border
+            rounded="xl"
+            class="entity-row entity-group pa-5"
+            @click="toggleGroup(row.key)"
+          >
+            <div
+              v-if="showPosition"
+              class="entity-pos"
+            />
+
+            <div class="entity-cover-col">
+              <div class="entity-cover">
+                <BookCover
+                  :title="row.members![0]!.title"
+                  :src="row.members![0]!.primary_cover_url"
+                  :width="72"
+                  :height="108"
+                  fit="cover"
+                  :fallback-color="coverColor(row.members![0]!)"
+                />
+              </div>
+            </div>
+
+            <div class="entity-main">
+              <div class="d-flex align-center gap-2">
+                <NuxtLinkLocale
+                  v-if="row.seriesSlug"
+                  :to="`/series/${row.seriesSlug}`"
+                  class="entity-title"
+                  @click.stop
+                >
+                  {{ row.seriesName }}
+                </NuxtLinkLocale>
+
+                <span
+                  v-else
+                  class="entity-title"
+                >{{ row.seriesName }}</span>
+
+                <v-icon
+                  size="small"
+                  :icon="expandedGroups.has(row.key)
+                    ? 'mdi-chevron-up'
+                    : 'mdi-chevron-down'"
+                />
+              </div>
+
+              <div class="text-body-2 text-medium-emphasis mt-1">
+                {{ expandedGroups.has(row.key)
+                  ? t('common.hide')
+                  : t('authorPage.seriesGroupHint', {'count': row.members!.length}) }}
+              </div>
+            </div>
+
+            <div class="entity-stats">
+              <div
+                v-if="showYear"
+                class="entity-stat entity-stat--year"
+              />
+
+              <div class="entity-stat entity-stat--rating">
+                <v-rating
+                  :model-value="Math.floor(groupRating(row.members!) * 2) / 2"
+                  readonly
+                  half-increments
+                  color="warning"
+                  active-color="warning"
+                  size="x-small"
+                  density="compact"
+                />
+
+                <b class="tabular text-body-2 mt-1">{{ groupRating(row.members!).toFixed(2) }}</b>
+              </div>
+
+              <div class="entity-stat entity-stat--readers tabular text-body-2 font-weight-bold text-info">
+                {{ compactFmt.format(groupReaders(row.members!)) }}
+              </div>
+
+              <div class="entity-stat entity-stat--rarity" />
+            </div>
+          </v-sheet>
+
+          <!-- Volumes of an opened series -->
+          <v-sheet
+            v-for="member in (expandedGroups.has(row.key)
+              ? row.members ?? []
+              : [])"
+            :key="`${row.key}-${member.book_id}`"
+            color="surface-variant"
+            border
+            rounded="xl"
+            class="entity-row entity-member pa-5"
+          >
+            <div
+              v-if="showPosition"
+              class="entity-pos"
+            />
+
+            <div class="entity-cover-col">
+              <div class="entity-cover">
+                <BookCover
+                  :title="member.title"
+                  :src="member.primary_cover_url"
+                  :width="72"
+                  :height="108"
+                  fit="cover"
+                  :fallback-color="coverColor(member)"
+                />
+
+                <BookShelfBadge
+                  :book-id="member.book_id"
+                  compact
+                  chip-size="small"
+                />
+              </div>
+            </div>
+
+            <div class="entity-main">
+              <NuxtLinkLocale
+                :to="`/books/${member.slug}`"
+                class="entity-title"
+              >
+                {{ formatSeriesPosition(member.series_position) }} {{ member.title }}
+              </NuxtLinkLocale>
+            </div>
+
+            <div class="entity-stats">
+              <div
+                v-if="showYear"
+                class="entity-stat entity-stat--year tabular text-body-2"
+              >
+                {{ member.original_publication_year || '–' }}
+              </div>
+
+              <div class="entity-stat entity-stat--rating">
+                <b class="tabular text-body-2">{{ rating(member).toFixed(2) }}</b>
+              </div>
+
+              <div class="entity-stat entity-stat--readers tabular text-body-2 font-weight-bold text-info">
+                {{ compactFmt.format(readers(member)) }}
+              </div>
+
+              <div class="entity-stat entity-stat--rarity">
+                <RarityBadge
+                  :rarity="bookRarity(member)"
+                  size="small"
+                />
+              </div>
+            </div>
+          </v-sheet>
+        </template>
+      </div>
     </template>
 
     <div
@@ -448,14 +450,19 @@ useShelfStatuses(() => props.books)
   gap: 12px;
 }
 
-/*
- * Columns hide in CSS, not from `useDisplay()`: a viewport-derived value differs
- * between server and client, and Vue does not patch that when hydrating.
- */
+/* Narrower than the row's content scrolls sideways instead of hiding columns. */
+.entity-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-x: auto;
+}
+
 .entity-row {
   display: flex;
   align-items: center;
   gap: 20px;
+  min-width: 820px;
 }
 
 .entity-head {
@@ -520,23 +527,6 @@ useShelfStatuses(() => props.books)
 
 .entity-stat--rarity {
   flex: 0 0 128px;
-}
-
-@media (max-width: 1279px) {
-  .entity-stat--rarity {
-    display: none;
-  }
-}
-
-@media (max-width: 959px) {
-  .entity-stat--year,
-  .entity-stat--readers {
-    display: none;
-  }
-
-  .entity-head {
-    display: none;
-  }
 }
 
 /* AppImage fills its parent, so every cover slot needs an explicit box. */

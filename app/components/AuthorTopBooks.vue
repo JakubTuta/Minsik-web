@@ -36,7 +36,7 @@ function bookReaders(book: BookSummary): number {
  * still stacked — reordering there scrambled the ranking on tablets. Columns
  * are equal: uneven ones wrapped the third card onto its own line.
  */
-const podium = computed(() => props.books.slice(0, 3).map((book, index) => {
+const podium = computed(() => props.books.slice(1, 3).map((book, index) => {
   const rank = index + 1
 
   return {
@@ -66,10 +66,10 @@ const podium = computed(() => props.books.slice(0, 3).map((book, index) => {
 
     <v-row v-if="loading">
       <v-col
-        v-for="i in 3"
+        v-for="i in 2"
         :key="i"
         cols="12"
-        md="4"
+        md="6"
       >
         <v-skeleton-loader type="card" />
       </v-col>
@@ -83,7 +83,7 @@ const podium = computed(() => props.books.slice(0, 3).map((book, index) => {
         v-for="entry in podium"
         :key="entry.rank"
         cols="12"
-        md="4"
+        md="6"
         :class="entry.orderClass"
       >
         <v-card
