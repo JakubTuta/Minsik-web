@@ -450,8 +450,8 @@ useShelfStatuses(() => props.books)
   gap: 12px;
 }
 
-/* Narrower than the row's content scrolls sideways instead of hiding columns. */
 .entity-scroll {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;

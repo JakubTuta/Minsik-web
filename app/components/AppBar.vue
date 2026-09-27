@@ -315,6 +315,7 @@ const appBarSearchQuery = ref('')
 @media (max-width: 959px) {
   .search-container {
     flex: 1 1 auto;
+    max-width: calc(100vw - 64px);
     margin: 0 8px;
   }
 }
