@@ -16,6 +16,15 @@ export const useApiStore = defineStore('api', () => {
     ? config.apiBaseInternal as string
     : config.public.apiBase as string
 
+  // The gateway rate-limits per client IP. A server-side render calls it from this
+  // container, so without the visitor's address every render of every visitor would
+  // share one bucket. Behind the reverse proxy the visitor is in X-Forwarded-For;
+  // the gateway trusts that header from this container's network.
+  const visitorAddress = import.meta.server
+    ? useRequestHeaders(['x-forwarded-for', 'x-real-ip'])
+    : {}
+  const forwardedFor = visitorAddress['x-forwarded-for'] ?? visitorAddress['x-real-ip']
+
   let client: AxiosInstance
 
   const initClient = () => {
@@ -26,6 +35,9 @@ export const useApiStore = defineStore('api', () => {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',
+          ...(forwardedFor
+            ? { 'X-Forwarded-For': forwardedFor }
+            : {}),
         },
         paramsSerializer: serializeQueryParams,
       })

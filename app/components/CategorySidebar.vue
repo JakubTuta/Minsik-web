@@ -21,7 +21,7 @@ const { t } = useI18n()
         <v-list-item
           v-for="category in categories"
           :key="category.slug"
-          :to="localePath(`/categories?category=${category.slug}`)"
+          :to="localePath(`/categories/${category.slug}`)"
           :active="selectedSlug === category.slug"
           :title="category.name"
           color="primary"
@@ -46,7 +46,7 @@ const { t } = useI18n()
           <v-list-item
             v-for="category in categories"
             :key="category.slug"
-            :to="localePath(`/categories?category=${category.slug}`)"
+            :to="localePath(`/categories/${category.slug}`)"
             :active="selectedSlug === category.slug"
             :title="category.name"
             color="primary"

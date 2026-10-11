@@ -46,30 +46,22 @@ const { data: book, error, refresh: refreshBookData } = await useCachedAsyncData
   () => booksStore.fetchBook(slug, lang.value),
 )
 
-// Handle 404
-if (error.value || !book.value) {
-  throw createError({
-    statusCode: 404,
-    message: t('bookPage.notFound'),
-    fatal: true,
-  })
-}
+if (error.value || !book.value)
+  throw createError(pageErrorProps(error.value, { notFound: t('bookPage.notFound'), failed: t('common.loadFailed') }))
+
+// Same edition under a newer slug: redirect. A different edition served because the
+// requested language has none is not a rename and keeps its URL.
+// eslint-disable-next-line vue/no-ref-object-reactivity-loss -- a one-off check of the request being rendered
+if (book.value.language === lang.value)
+  await useCanonicalSlug()('books-slug', slug, book.value.slug)
 
 // SEO — built from the SERVED edition, not the requested one: on edition
 // fallback the head has to describe what is actually on the page.
 const localePath = useLocalePath()
 const supportedLocales = new Set(APP_LOCALES.map(entry => entry.code))
+const OPEN_LIBRARY_WORK_ID = /^OL\d+W$/
 
-// An edition in an unconfigured language renders at the default locale's URL:
-// `localePath` returns '' for those, canonicalising the book to the site root.
-function localizedBookPath(bookSlug: string, language: string): string {
-  const locale = supportedLocales.has(language)
-    ? language
-    : DEFAULT_LOCALE
-
-  // `localePath` is typed to the configured codes; the guard above establishes it.
-  return localePath({ name: 'books-slug', params: { slug: bookSlug } }, locale as Parameters<typeof localePath>[1])
-}
+const localizedBookPath = useLocalizedBookPath()
 
 /** hreflang wants the full tag the app serves (`pl-PL`), not the API's `pl`. */
 function localeTag(language: string): string {
@@ -113,7 +105,21 @@ useSeo({
 
 useBookStructuredData(() => ({
   name: book.value?.title ?? '',
-  author: (book.value?.authors ?? []).map(a => a.name),
+  id: `${canonicalUrl.value}#book`,
+  author: (book.value?.authors ?? []).map(a => ({
+    name: a.name,
+    url: `${config.public.siteUrl}${localePath({ name: 'authors-slug', params: { slug: a.slug } })}`,
+  })),
+  sameAs: OPEN_LIBRARY_WORK_ID.test(book.value?.work_id ?? '')
+    ? [`https://openlibrary.org/works/${book.value?.work_id}`]
+    : undefined,
+  series: book.value?.series
+    ? {
+        name: book.value.series.name,
+        url: `${config.public.siteUrl}${localePath({ name: 'series-slug', params: { slug: book.value.series.slug } })}`,
+        position: book.value.series_position,
+      }
+    : undefined,
   isbn: book.value?.isbn?.[0],
   description: book.value?.description || undefined,
   image: book.value?.primary_cover_url || undefined,
@@ -386,6 +392,8 @@ onUnmounted(() => {
 
           <DescriptionCard
             :description="book.description"
+            :fallback-description="book.fallback_description"
+            :fallback-language="book.fallback_language"
             hide-heading
           />
         </div>

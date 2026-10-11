@@ -1,21 +1,5 @@
 import type { Category } from '~/types/categories'
-
-export const CATEGORY_SLUGS = [
-  'fantasy',
-  'science-fiction',
-  'romance',
-  'mystery-thriller',
-  'horror',
-  'historical-fiction',
-  'young-adult',
-  'classics',
-  'adventure',
-  'biography',
-  'self-help',
-  'business',
-  'science-nature',
-  'graphic-novels',
-] as const
+import { CATEGORY_SLUGS } from '~~/categories.config'
 
 export function useCategories() {
   const { t } = useI18n()

@@ -24,7 +24,12 @@ export const useSearchStore = defineStore('search', () => {
   const hasMore = computed(() => results.value.length < total.value)
   const isEmpty = computed(() => !isLoading.value && !hasData.value && query.value.length > 0)
 
+  // Guards against a slower earlier request (e.g. "hob") resolving after a faster later
+  // one ("hobbit") and replacing its results.
+  let requestToken = 0
+
   const clear = () => {
+    requestToken++
     query.value = ''
     results.value = []
     offset.value = 0
@@ -32,8 +37,9 @@ export const useSearchStore = defineStore('search', () => {
     isLoading.value = false
   }
 
-  const getCacheKey = (q: string, t: SearchType, off: number) => {
-    return `${q}_${t}_${off}`
+  // The language is part of the key: the same query renders different editions per language.
+  const getCacheKey = (q: string, t: SearchType, off: number, lang: string) => {
+    return `${lang}_${q}_${t}_${off}`
   }
 
   const isCacheFresh = (key: string) => {
@@ -55,11 +61,13 @@ export const useSearchStore = defineStore('search', () => {
       return
     }
 
-    const cacheKey = getCacheKey(query.value, type.value, offset.value)
+    const request = { q: query.value, type: type.value, offset: offset.value, language: language.value }
+    const cacheKey = getCacheKey(request.q, request.type, request.offset, request.language)
+    const token = ++requestToken
 
     if (!force && isCacheFresh(cacheKey)) {
       const cached = cache.get(cacheKey)!
-      if (offset.value === 0)
+      if (request.offset === 0)
         results.value = [...cached.data]
       else
         results.value.push(...cached.data)
@@ -74,13 +82,7 @@ export const useSearchStore = defineStore('search', () => {
 
     try {
       const response = await apiStore.client.get<SearchResponse>('/api/v1/search', {
-        params: {
-          q: query.value,
-          type: type.value,
-          limit: limit.value,
-          offset: offset.value,
-          language: language.value,
-        },
+        params: { ...request, limit: limit.value },
       })
 
       const searchData = response.data.data
@@ -92,7 +94,10 @@ export const useSearchStore = defineStore('search', () => {
         total: searchData.total_count || 0,
       })
 
-      if (offset.value === 0)
+      if (token !== requestToken)
+        return
+
+      if (request.offset === 0)
         results.value = newResults
       else
         results.value.push(...newResults)
@@ -101,14 +106,18 @@ export const useSearchStore = defineStore('search', () => {
       lastFetchTime.value = Date.now()
     }
     catch (error) {
+      if (token !== requestToken)
+        return
+
       console.error('Search error:', error)
-      if (offset.value === 0) {
+      if (request.offset === 0) {
         results.value = []
         total.value = 0
       }
     }
     finally {
-      isLoading.value = false
+      if (token === requestToken)
+        isLoading.value = false
     }
   }
 

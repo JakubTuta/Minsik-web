@@ -47,9 +47,10 @@ const { data: author, error: authorError, refresh: refreshAuthorData } = await u
   () => authorsStore.fetchAuthor(slug),
 )
 
-if (authorError.value || !author.value) {
-  throw createError({ statusCode: 404, message: t('authorPage.notFound'), fatal: true })
-}
+if (authorError.value || !author.value)
+  throw createError(pageErrorProps(authorError.value, { notFound: t('authorPage.notFound'), failed: t('common.loadFailed') }))
+
+await useCanonicalSlug()('authors-slug', slug, author.value.slug)
 
 // `lazy` does not opt out of SSR, and this list has to reach crawlers — hence
 // a computed off the payload, not a watcher: watchers never fire on the server.
@@ -141,6 +142,9 @@ useAuthorStructuredData(() => ({
   url: canonicalUrl.value,
   birthDate: author.value?.birth_date,
   deathDate: author.value?.death_date,
+  birthPlace: author.value?.birth_place,
+  nationality: author.value?.nationality,
+  alternateName: author.value?.alternate_names?.slice(0, 10),
   sameAs: [
     author.value?.wikipedia_url,
     author.value?.wikidata_id

@@ -143,7 +143,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     try {
       const response = await apiStore.client.get<HomePageResponse>(
         `/api/v1/recommendations/book/${bookId}`,
-        { params: { items_per_category: 15 } },
+        { params: { items_per_category: 15, language: language.value } },
       )
       const categories = response.data.data!.sections
       bookRecommendations.value.set(bookId, categories)
@@ -171,7 +171,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     try {
       const response = await apiStore.client.get<HomePageResponse>(
         `/api/v1/recommendations/author/${authorId}`,
-        { params: { items_per_category: 15 } },
+        { params: { items_per_category: 15, language: language.value } },
       )
       const categories = response.data.data!.sections
       authorRecommendations.value.set(authorId, categories)
@@ -197,7 +197,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     try {
       const response = await apiStore.client.get<HomePageResponse>(
         '/api/v1/users/me/recommendations/home',
-        { params: { items_per_category: 10 } },
+        { params: { items_per_category: 10, language: language.value } },
       )
       personalizedHomeCategories.value = response.data.data!.sections
       lastFetchTime.value.set(cacheKey, Date.now())
@@ -215,14 +215,14 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   }
 
   async function fetchPersonalizedBookRecommendations(bookId: number, force = false) {
-    const cacheKey = `personal-book-${bookId}`
+    const cacheKey = languageKey(`personal-book-${bookId}`)
     if (!force && personalizedBookRecommendations.value.has(bookId) && isCacheFresh(cacheKey))
       return personalizedBookRecommendations.value.get(bookId)!
     isLoadingPersonalizedBookRecs.value = true
     try {
       const response = await apiStore.client.get<HomePageResponse>(
         `/api/v1/users/me/recommendations/book/${bookId}`,
-        { params: { items_per_category: 15 } },
+        { params: { items_per_category: 15, language: language.value } },
       )
       const categories = response.data.data!.sections
       personalizedBookRecommendations.value.set(bookId, categories)
@@ -241,14 +241,14 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
   }
 
   async function fetchPersonalizedAuthorRecommendations(authorId: number, force = false) {
-    const cacheKey = `personal-author-${authorId}`
+    const cacheKey = languageKey(`personal-author-${authorId}`)
     if (!force && personalizedAuthorRecommendations.value.has(authorId) && isCacheFresh(cacheKey))
       return personalizedAuthorRecommendations.value.get(authorId)!
     isLoadingPersonalizedAuthorRecs.value = true
     try {
       const response = await apiStore.client.get<HomePageResponse>(
         `/api/v1/users/me/recommendations/author/${authorId}`,
-        { params: { items_per_category: 15 } },
+        { params: { items_per_category: 15, language: language.value } },
       )
       const categories = response.data.data!.sections
       personalizedAuthorRecommendations.value.set(authorId, categories)
@@ -276,7 +276,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     try {
       const response = await apiStore.client.get<HomePageResponse>(
         `/api/v1/recommendations/series/${seriesId}`,
-        { params: { items_per_category: 15 } },
+        { params: { items_per_category: 15, language: language.value } },
       )
       const categories = response.data.data!.sections
       seriesRecommendations.value.set(seriesId, categories)
@@ -322,7 +322,7 @@ export const useRecommendationsStore = defineStore('recommendations', () => {
     if (fromHome)
       return fromHome.display_name
 
-    const fromAvailable = availableCategories.value.find(c => c.category === category)
+    const fromAvailable = availableCategories.value.find(c => c.key === category)
 
     return fromAvailable?.display_name ?? category
   }

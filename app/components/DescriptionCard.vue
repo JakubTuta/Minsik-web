@@ -1,6 +1,9 @@
 <script setup lang="ts">
 interface Props {
   description?: string | null
+  /** Text of another edition, shown only when this one has no description of its own. */
+  fallbackDescription?: string | null
+  fallbackLanguage?: string | null
   emptyMessage?: string
   charLimit?: number
   truncationWindow?: number
@@ -10,18 +13,32 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   description: null,
+  fallbackDescription: null,
+  fallbackLanguage: null,
   charLimit: 500,
   truncationWindow: 20,
 })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+// An edition without its own description shows a sibling's, labelled with the
+// language it is actually written in rather than passed off as the reader's.
+const shownText = computed(() => props.description || props.fallbackDescription)
+const fallbackNote = computed(() => {
+  if (props.description || !props.fallbackDescription || !props.fallbackLanguage)
+    return null
+
+  const language = new Intl.DisplayNames([locale.value], { type: 'language' }).of(props.fallbackLanguage) ?? props.fallbackLanguage
+
+  return t('common.descriptionFallbackNote', { language })
+})
 
 const expanded = ref(false)
 const descriptionRef = ref<HTMLElement>()
 const expandedHeight = ref(0)
 
 const needsTruncation = computed(() => {
-  const desc = props.description
+  const desc = shownText.value
   if (!desc)
     return false
 
@@ -55,7 +72,18 @@ function toggle() {
         {{ t('common.description') }}
       </h2>
 
-      <template v-if="description">
+      <template v-if="shownText">
+        <v-chip
+          v-if="fallbackNote"
+          size="small"
+          variant="tonal"
+          prepend-icon="mdi-translate"
+          class="mb-3 h-auto"
+          style="white-space: normal;"
+        >
+          {{ fallbackNote }}
+        </v-chip>
+
         <div
           ref="descriptionRef"
           class="description-content"
@@ -68,7 +96,7 @@ function toggle() {
             class="font-reading description-body mb-0"
             style="white-space: pre-line;"
           >
-            {{ description }}
+            {{ shownText }}
           </p>
         </div>
 

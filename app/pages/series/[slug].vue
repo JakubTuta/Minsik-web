@@ -19,13 +19,8 @@ const { data: series, error: seriesError, refresh: refreshSeriesData } = await u
   () => seriesStore.fetchSeries(slug),
 )
 
-if (seriesError.value || !series.value) {
-  throw createError({
-    statusCode: 404,
-    message: t('seriesPage.notFound'),
-    fatal: true,
-  })
-}
+if (seriesError.value || !series.value)
+  throw createError(pageErrorProps(seriesError.value, { notFound: t('seriesPage.notFound'), failed: t('common.loadFailed') }))
 
 // `lazy` unblocks navigation but still renders on the server, which the volumes,
 // the charts and the social image all need.
@@ -78,6 +73,11 @@ useSeriesStructuredData(() => ({
   url: canonicalUrl.value,
   author: series.value?.author?.name,
   numberOfItems: series.value?.total_books,
+  books: (books.value ?? []).slice(0, 50).map(book => ({
+    name: book.title,
+    url: `${config.public.siteUrl}${localePath({ name: 'books-slug', params: { slug: book.slug } })}`,
+    position: book.series_position,
+  })),
 }))
 
 useBreadcrumbStructuredData(() => [
@@ -168,6 +168,8 @@ onMounted(async () => {
 
       <DescriptionCard
         :description="series.description"
+        :fallback-description="series.fallback_description"
+        :fallback-language="series.fallback_language"
         hide-heading
       />
     </div>

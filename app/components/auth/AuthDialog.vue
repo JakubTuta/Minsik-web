@@ -98,6 +98,7 @@ function signInWithGoogle() {
     scope: 'openid email profile',
     access_type: 'offline',
     prompt: 'select_account',
+    state: createOAuthState(),
   })
 
   authDialogStore.close()

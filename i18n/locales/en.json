@@ -12,6 +12,7 @@
     "home": "Home",
     "search": "Search",
     "discover": "Discover",
+    "lists": "Lists",
     "categories": "Categories",
     "casino": "Casino",
     "playSlots": "Play Slots",
@@ -41,6 +42,7 @@
     "dismiss": "Dismiss",
     "description": "Description",
     "noDescription": "There is no description yet, we will add it soon.",
+    "descriptionFallbackNote": "There is no description in your language yet. Showing the {language} one.",
     "showMore": "Show more",
     "showLess": "Show less",
     "readMore": "Read more",
@@ -56,6 +58,8 @@
     "save": "Save",
     "open": "Open",
     "close": "Close",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
     "remove": "Remove",
     "copied": "Copied!",
     "bookCount": "{count} book | {count} books",
@@ -87,6 +91,7 @@
     "noResultsFor": "No results found for \"{query}\""
   },
   "categories": {
+    "notFound": "Category not found",
     "browse": "Browse Categories",
     "mostPopular": "Most Popular",
     "highestRated": "Highest Rated",
@@ -94,6 +99,7 @@
     "seoDescription": "Browse {category} — discover your next read by genre"
   },
   "books": {
+    "shownInLanguage": "Shown in {language}",
     "emptyList": "No books found."
   },
   "series": {
@@ -554,6 +560,7 @@
   },
   "book": {
     "pages": "PAGES",
+    "pagesCount": "{count} pages",
     "readingTime": "READING TIME",
     "fallbackNotice": "Not yet available in {requested} — showing the {served} edition.",
     "minsikReaders": "Minsik readers",
@@ -569,6 +576,10 @@
     "checkOtherPlatforms": "Check out this book on other platforms",
     "byAuthor": "by",
     "coverAltIndexed": "Book cover {index}",
+    "enlargeCover": "Enlarge cover",
+    "seriesPositionOf": "Book {position} of {total}",
+    "previousVolume": "Previous: {title}",
+    "nextVolume": "Next: {title}",
     "year": "Year"
   },
   "bookUser": {
@@ -1025,7 +1036,13 @@
     "noResultsHint": "Try different keywords or filters",
     "startTyping": "Start typing to search"
   },
+  "isbnPage": {
+    "notFound": "No book found for ISBN {isbn}."
+  },
   "recommendationsPage": {
+    "browseEyebrow": "Charts",
+    "browseTitle": "Browse lists",
+    "browseSubtitle": "Charts built from what readers on Minsik and Open Library actually do.",
     "title": "Recommendations",
     "description": "Browse the full {name} list on Minsik.",
     "categoryNotFound": "Category not found",

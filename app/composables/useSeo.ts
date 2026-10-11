@@ -90,9 +90,16 @@ export function useStructuredData(data: MaybeRefOrGetter<Record<string, any>>) {
   }))
 }
 
+interface PersonReference {
+  name: string
+  url?: string
+}
+
 interface BookStructuredData {
   name: string
-  author: string | string[]
+  author: string | string[] | PersonReference[]
+  /** Stable identifier of this edition's page, so other markup can point at it. */
+  id?: string
   isbn?: string
   description?: string
   image?: string
@@ -104,6 +111,20 @@ interface BookStructuredData {
   genres?: string[]
   ratingValue?: number
   ratingCount?: number
+  /** Pages describing the same work elsewhere (Open Library, ...). */
+  sameAs?: string[]
+  series?: { name: string, url?: string, position?: number | null }
+}
+
+function personNode(person: string | PersonReference): Record<string, any> {
+  if (typeof person === 'string')
+    return { '@type': 'Person', 'name': person }
+
+  const node: Record<string, any> = { '@type': 'Person', 'name': person.name }
+  if (person.url)
+    node.url = person.url
+
+  return node
 }
 
 export function useBookStructuredData(source: MaybeRefOrGetter<BookStructuredData>) {
@@ -114,15 +135,26 @@ export function useBookStructuredData(source: MaybeRefOrGetter<BookStructuredDat
       '@type': 'Book',
       'name': book.name,
       'author': Array.isArray(book.author)
-        ? book.author.map(name => ({
-            '@type': 'Person',
-            'name': name,
-          }))
-        : {
-            '@type': 'Person',
-            'name': book.author,
-          },
+        ? (book.author as (string | PersonReference)[]).map(personNode)
+        : personNode(book.author),
       'url': book.url,
+    }
+
+    if (book.id) {
+      structuredData['@id'] = book.id
+    }
+
+    if (book.sameAs && book.sameAs.length > 0) {
+      structuredData.sameAs = book.sameAs
+    }
+
+    if (book.series) {
+      const series: Record<string, any> = { '@type': 'BookSeries', 'name': book.series.name }
+      if (book.series.url)
+        series.url = book.series.url
+      if (book.series.position)
+        series.position = book.series.position
+      structuredData.isPartOf = series
     }
 
     if (book.isbn) {
@@ -195,6 +227,9 @@ interface AuthorStructuredData {
   url: string
   birthDate?: string | null
   deathDate?: string | null
+  birthPlace?: string | null
+  nationality?: string | null
+  alternateName?: string[]
   sameAs?: string[]
 }
 
@@ -224,9 +259,23 @@ export function useAuthorStructuredData(source: MaybeRefOrGetter<AuthorStructure
       structuredData.deathDate = author.deathDate
     }
 
+    if (author.birthPlace) {
+      structuredData.birthPlace = { '@type': 'Place', 'name': author.birthPlace }
+    }
+
+    if (author.nationality) {
+      structuredData.nationality = author.nationality
+    }
+
+    if (author.alternateName && author.alternateName.length > 0) {
+      structuredData.alternateName = author.alternateName
+    }
+
     if (author.sameAs && author.sameAs.length > 0) {
       structuredData.sameAs = author.sameAs
     }
+
+    structuredData.jobTitle = 'Author'
 
     return structuredData
   })
@@ -238,6 +287,7 @@ interface SeriesStructuredData {
   url: string
   author?: string | null
   numberOfItems?: number | null
+  books?: { name: string, url: string, position?: number | null }[]
 }
 
 export function useSeriesStructuredData(source: MaybeRefOrGetter<SeriesStructuredData>) {
@@ -260,6 +310,17 @@ export function useSeriesStructuredData(source: MaybeRefOrGetter<SeriesStructure
 
     if (series.numberOfItems) {
       structuredData.numberOfItems = series.numberOfItems
+    }
+
+    if (series.books && series.books.length > 0) {
+      structuredData.hasPart = series.books.map(book => ({
+        '@type': 'Book',
+        'name': book.name,
+        'url': book.url,
+        ...(book.position
+          ? { position: book.position }
+          : {}),
+      }))
     }
 
     return structuredData

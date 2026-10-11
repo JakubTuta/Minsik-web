@@ -1,145 +1,23 @@
 <script setup lang="ts">
-import type { BookSummary } from '~/types/api'
-
+// The category used to live in a query string (/categories?category=fantasy), which gave
+// every category the same canonical URL. Old links keep working and land on the path route.
 const route = useRoute()
-const { t, n } = useI18n()
-// Which edition of each book is listed depends on the reader's language.
-const { language } = useUserLanguage()
 const localePath = useLocalePath()
-const categoriesStore = useCategoriesStore()
-const { categories, getCategoryBySlug } = useCategories()
 
-const selectedSlug = computed(() => route.query.category as string | null ?? null)
+const legacySlug = typeof route.query.category === 'string'
+  ? route.query.category
+  : null
 
-// eslint-disable-next-line vue/no-ref-object-reactivity-loss -- a one-time redirect guard, not a rendered value
-if (!selectedSlug.value) {
-  await navigateTo(localePath('index'))
-}
-
-const sortBy = ref<'popularity' | 'rating'>('popularity')
-const sortOptions = computed(() => [
-  { value: 'popularity', title: t('categories.mostPopular') },
-  { value: 'rating', title: t('categories.highestRated') },
-])
-
-const allBooks = ref<BookSummary[]>([])
-const booksOffset = ref(0)
-const booksTotalCount = ref(0)
-const hasMoreBooks = computed(() => allBooks.value.length < booksTotalCount.value)
-
-function loadBooks(slug: string, sort: 'popularity' | 'rating', offset: number) {
-  return categoriesStore.fetchCategoryBooksPage(slug, sort, 'desc', offset, 20)
-}
-
-const { data: initialBooksData } = useLazyAsyncData(
-  // eslint-disable-next-line vue/no-ref-object-reactivity-loss -- the cache key must be a static string, not a reactive read
-  `category-books-${selectedSlug.value}-${sortBy.value}`,
-  () => loadBooks(selectedSlug.value!, sortBy.value, 0),
-  { watch: [language] },
+await navigateTo(
+  legacySlug
+    ? localePath(`/categories/${legacySlug}`)
+    : localePath('index'),
+  legacySlug
+    ? { redirectCode: 301, replace: true }
+    : { replace: true },
 )
-
-watch(initialBooksData, (data) => {
-  if (data) {
-    allBooks.value = data.books
-    booksTotalCount.value = data.total_count
-    booksOffset.value = data.books.length
-  }
-}, { immediate: true })
-
-async function resetAndFetch() {
-  if (!selectedSlug.value)
-    return
-
-  allBooks.value = []
-  booksTotalCount.value = 0
-  booksOffset.value = 0
-
-  const result = await loadBooks(selectedSlug.value, sortBy.value, 0)
-  allBooks.value = result.books
-  booksTotalCount.value = result.total_count
-  booksOffset.value = result.books.length
-}
-
-watch(selectedSlug, resetAndFetch)
-watch(sortBy, resetAndFetch)
-
-async function loadMoreBooks() {
-  if (!hasMoreBooks.value || !selectedSlug.value)
-    return
-
-  const result = await loadBooks(selectedSlug.value, sortBy.value, booksOffset.value)
-  allBooks.value.push(...result.books)
-  booksTotalCount.value = result.total_count
-  booksOffset.value += result.books.length
-}
-
-const currentCategory = computed(() => (selectedSlug.value
-  ? getCategoryBySlug(selectedSlug.value)
-  : null))
-
-const pageTitle = computed(() => currentCategory.value?.name ?? t('categories.browse'))
-
-/* eslint-disable vue/no-ref-object-reactivity-loss -- head tags are resolved once per navigation */
-useSeo({
-  title: pageTitle.value,
-  description: t('categories.seoDescription', { category: pageTitle.value }),
-})
-/* eslint-enable vue/no-ref-object-reactivity-loss */
 </script>
 
 <template>
-  <v-container>
-    <v-row>
-      <v-col
-        cols="12"
-        md="3"
-      >
-        <CategorySidebar
-          :categories="categories"
-          :selected-slug="selectedSlug"
-        />
-      </v-col>
-
-      <v-col
-        cols="12"
-        md="9"
-      >
-        <v-card>
-          <v-card-text>
-            <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2">
-              <div>
-                <h1 class="text-h5 font-weight-bold">
-                  {{ pageTitle }}
-                </h1>
-
-                <span
-                  v-if="booksTotalCount > 0"
-                  class="text-body-2 text-medium-emphasis"
-                >
-                  {{ t('common.bookCount', {"count": n(booksTotalCount)}, booksTotalCount) }}
-                </span>
-              </div>
-
-              <v-select
-                v-model="sortBy"
-                :items="sortOptions"
-                density="compact"
-                variant="outlined"
-                hide-details
-                style="max-width: 200px;"
-              />
-            </div>
-
-            <BooksList
-              :books="allBooks"
-              :loading="categoriesStore.isLoadingBooks"
-              :load-more="loadMoreBooks"
-              :has-more="hasMoreBooks"
-              :empty-message="t('categories.noBooksInCategory')"
-            />
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+  <div />
 </template>

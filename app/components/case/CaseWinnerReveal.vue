@@ -13,6 +13,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{ playAgain: [] }>()
 
 const { t, n } = useI18n()
+const localePath = useLocalePath()
 const { rarityLabels } = useRarityLabels()
 
 const rarityColor = computed(() => RARITY_COLORS[props.winner.rarity as Rarity] ?? '#95A5A6')
@@ -120,18 +121,14 @@ const authorsList = computed(() => props.winner.authors)
           </p>
 
           <div class="d-flex flex-wrap justify-center gap-3">
-            <NuxtLinkLocale
-              :to="`/books/${winner.slug}`"
-              class="text-decoration-none"
+            <v-btn
+              :to="localePath(`/books/${winner.slug}`)"
+              color="primary"
+              variant="elevated"
+              prepend-icon="mdi-book-open"
             >
-              <v-btn
-                color="primary"
-                variant="elevated"
-                prepend-icon="mdi-book-open"
-              >
-                {{ t('caseGame.viewBook') }}
-              </v-btn>
-            </NuxtLinkLocale>
+              {{ t('caseGame.viewBook') }}
+            </v-btn>
 
             <v-btn
               variant="outlined"

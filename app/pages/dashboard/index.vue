@@ -24,7 +24,7 @@ const publicProfileUrl = computed(() => {
 const publicProfileDisplay = computed(() => {
   const host = config.public.siteUrl.replace(URL_SCHEME, '').replace(TRAILING_SLASH, '')
 
-  return `${host}/@${authStore.user?.username}`
+  return `${host}/bookshelf/${authStore.user?.username}`
 })
 
 const totalBookshelf = computed(() => {

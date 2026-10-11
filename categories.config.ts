@@ -1,0 +1,16 @@
+export const CATEGORY_SLUGS = [
+  'fantasy',
+  'science-fiction',
+  'romance',
+  'mystery-thriller',
+  'horror',
+  'historical-fiction',
+  'young-adult',
+  'classics',
+  'adventure',
+  'biography',
+  'self-help',
+  'business',
+  'science-nature',
+  'graphic-novels',
+] as const

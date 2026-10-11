@@ -30,11 +30,22 @@ export const useAuthStore = defineStore('auth', () => {
     ? new Promise<void>((resolve) => { _authReadyResolve = resolve })
     : Promise.resolve()
 
+  const clearUserStores = useClearUserStores()
+
   const clearRefreshTimer = () => {
     if (_refreshTimer !== null) {
       clearTimeout(_refreshTimer)
       _refreshTimer = null
     }
+  }
+
+  // One place that ends a session, so an expired refresh token and an explicit
+  // logout leave the same (empty) client state behind.
+  const endSession = () => {
+    clearRefreshTimer()
+    user.value = null
+    localStorage.removeItem(LAST_REFRESH_KEY)
+    clearUserStores()
   }
 
   const scheduleRefresh = (expiresInSeconds: number) => {
@@ -61,9 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Only a genuine 401 (refresh token invalid/expired) ends the session.
       // Network errors and 5xx are transient — keep the session so a later retry can recover.
       if (error.response?.status === 401) {
-        user.value = null
-        clearRefreshTimer()
-        localStorage.removeItem(LAST_REFRESH_KEY)
+        endSession()
         deleteCookie(CSRF_COOKIE)
       }
       else {
@@ -174,10 +183,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
     catch { /* silently ignore — clearing state regardless */ }
     finally {
-      clearRefreshTimer()
-      user.value = null
+      endSession()
       authInitialized.value = false
-      localStorage.removeItem(LAST_REFRESH_KEY)
 
       const middleware = route.meta.middleware
       const isProtected = middleware === 'auth' || (Array.isArray(middleware) && middleware.includes('auth'))

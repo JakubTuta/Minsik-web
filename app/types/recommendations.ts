@@ -87,7 +87,7 @@ export interface BookOfTheWeek {
 // Category info (from /recommendations/categories)
 
 export interface CategoryInfo {
-  category: string
+  key: string
   display_name: string
   item_type: 'book' | 'author'
 }

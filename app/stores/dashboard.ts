@@ -63,6 +63,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
     await authStore.logout()
   }
 
+  const reset = () => {
+    stats.value = null
+    isLoading.value = false
+    error.value = null
+  }
+
   return {
     stats,
     isLoading,
@@ -73,5 +79,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     fetchStats,
     fetchStatsByUsername,
     deleteAccount,
+    reset,
   }
 })

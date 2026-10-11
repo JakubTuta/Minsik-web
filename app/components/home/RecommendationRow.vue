@@ -15,6 +15,7 @@ const props = defineProps<Props>()
 const PRIORITY_ITEM_COUNT = 5
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const recommendationTitle = useRecommendationTitle()
 
 const scrollContainer = ref<HTMLElement | null>(null)
@@ -65,21 +66,17 @@ onUnmounted(() => {
         {{ recommendationTitle(category) }}
       </h2>
 
-      <NuxtLinkLocale
+      <v-btn
         v-if="!hideShowMore"
-        :to="`/recommendations/${category.key}`"
-        class="text-decoration-none"
+        :to="localePath(`/recommendations/${category.key}`)"
+        variant="text"
+        color="primary"
+        size="small"
+        append-icon="mdi-chevron-right"
+        class="text-none"
       >
-        <v-btn
-          variant="text"
-          color="primary"
-          size="small"
-          append-icon="mdi-chevron-right"
-          class="text-none"
-        >
-          {{ t('home.showMore') }}
-        </v-btn>
-      </NuxtLinkLocale>
+        {{ t('home.showMore') }}
+      </v-btn>
     </div>
 
     <!-- Skeleton loading -->
@@ -108,6 +105,7 @@ onUnmounted(() => {
         size="small"
         variant="elevated"
         class="scroll-btn scroll-btn-left"
+        :aria-label="t('common.scrollLeft')"
         @click="scroll('left')"
       />
 
@@ -155,6 +153,7 @@ onUnmounted(() => {
         size="small"
         variant="elevated"
         class="scroll-btn scroll-btn-right"
+        :aria-label="t('common.scrollRight')"
         @click="scroll('right')"
       />
     </div>

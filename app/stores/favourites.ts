@@ -81,6 +81,16 @@ export const useFavouritesStore = defineStore('favourites', () => {
     }
   }
 
+  const reset = () => {
+    items.value = []
+    total.value = 0
+    isLoading.value = false
+    currentSortBy.value = 'created_at'
+    currentOrder.value = 'desc'
+    error.value = null
+    hasMore.value = false
+  }
+
   return {
     items,
     total,
@@ -92,5 +102,6 @@ export const useFavouritesStore = defineStore('favourites', () => {
     fetch,
     loadMore,
     removeFavourite,
+    reset,
   }
 })

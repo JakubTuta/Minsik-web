@@ -14,6 +14,7 @@ const emit = defineEmits<{
   backToFilters: []
 }>()
 const { t, n } = useI18n()
+const localePath = useLocalePath()
 const themeStore = useThemeStore()
 
 const cardInner = ref<HTMLElement | null>(null)
@@ -157,18 +158,14 @@ onUnmounted(() => {
             </v-chip>
 
             <div class="d-flex flex-wrap justify-center gap-3">
-              <NuxtLinkLocale
-                :to="`/books/${book.slug}`"
-                class="text-decoration-none"
+              <v-btn
+                :to="localePath(`/books/${book.slug}`)"
+                color="primary"
+                variant="elevated"
+                prepend-icon="mdi-book-open"
               >
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  prepend-icon="mdi-book-open"
-                >
-                  {{ t('caseGame.viewBook') }}
-                </v-btn>
-              </NuxtLinkLocale>
+                {{ t('caseGame.viewBook') }}
+              </v-btn>
 
               <v-btn
                 variant="outlined"

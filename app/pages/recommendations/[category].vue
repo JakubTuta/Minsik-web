@@ -3,6 +3,7 @@ import type { RecommendationAuthorItem, RecommendationBookItem } from '~/types/r
 
 const route = useRoute()
 const { t } = useI18n()
+const localePath = useLocalePath()
 // The list is built per language server-side.
 const { language } = useUserLanguage()
 const recommendationsStore = useRecommendationsStore()
@@ -11,9 +12,8 @@ const recommendationTitle = useRecommendationTitle()
 const category = route.params.category as string
 
 const { data: categoryData, error } = await useAsyncData(
-  `recommendation-${category}`,
+  computed(() => `recommendation-${category}-${language.value}`),
   () => recommendationsStore.fetchCategoryRecommendations(category, 20, 0),
-  { watch: [language] },
 )
 
 const pageTitle = computed(() => (categoryData.value
@@ -26,22 +26,29 @@ useSeo({
   image: '/og-image.jpg',
 })
 
-if (error.value || !categoryData.value) {
-  throw createError({ statusCode: 404, message: t('recommendationsPage.categoryNotFound'), fatal: true })
-}
+if (error.value || !categoryData.value)
+  throw createError(pageErrorProps(error.value, { notFound: t('recommendationsPage.categoryNotFound'), failed: t('common.loadFailed') }))
 
 const isAuthorCategory = computed(() => categoryData.value?.item_type === 'author')
 const itemLabel = computed(() => (isAuthorCategory.value
   ? t('recommendationsPage.authorsLabel')
   : t('recommendationsPage.booksLabel')))
 
-const items = ref<(RecommendationBookItem | RecommendationAuthorItem)[]>(
-  categoryData.value?.item_type === 'author'
-    ? [...(categoryData.value?.author_items ?? [])]
-    : [...(categoryData.value?.book_items ?? [])],
-)
+function firstPage(data: typeof categoryData.value): (RecommendationBookItem | RecommendationAuthorItem)[] {
+  return data?.item_type === 'author'
+    ? [...(data.author_items ?? [])]
+    : [...(data?.book_items ?? [])]
+}
+
+const items = ref<(RecommendationBookItem | RecommendationAuthorItem)[]>(firstPage(categoryData.value))
 const total = ref(categoryData.value.total)
 const isLoadingMore = ref(false)
+
+// A language switch loads a different list: start over from its first page.
+watch(categoryData, (data) => {
+  items.value = firstPage(data)
+  total.value = data?.total ?? 0
+})
 
 const hasMore = computed(() => items.value.length < total.value)
 
@@ -74,19 +81,15 @@ async function loadMore() {
 <template>
   <v-container class="py-6">
     <div class="mb-6">
-      <NuxtLinkLocale
-        to="/"
-        class="text-decoration-none"
+      <v-btn
+        :to="localePath('index')"
+        variant="text"
+        color="default"
+        prepend-icon="mdi-arrow-left"
+        class="text-none"
       >
-        <v-btn
-          variant="text"
-          color="default"
-          prepend-icon="mdi-arrow-left"
-          class="text-none"
-        >
-          {{ t('recommendationsPage.backToHome') }}
-        </v-btn>
-      </NuxtLinkLocale>
+        {{ t('recommendationsPage.backToHome') }}
+      </v-btn>
     </div>
 
     <div class="mb-6">

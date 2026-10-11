@@ -58,7 +58,7 @@ const appBarSearchQuery = ref('')
           v-for="cat in categories"
           :key="cat.slug"
           :title="cat.name"
-          :to="localePath(`/categories?category=${cat.slug}`)"
+          :to="localePath(`/categories/${cat.slug}`)"
           :active="false"
         />
       </v-list>
@@ -73,6 +73,16 @@ const appBarSearchQuery = ref('')
       :to="localePath('/discover')"
     >
       {{ t('nav.discover') }}
+    </v-btn>
+
+    <v-btn
+      class="d-none d-md-inline-flex nav-btn ml-1"
+      variant="text"
+      density="comfortable"
+      prepend-icon="mdi-format-list-bulleted"
+      :to="localePath('/recommendations')"
+    >
+      {{ t('nav.lists') }}
     </v-btn>
 
     <v-spacer class="d-none d-md-flex" />

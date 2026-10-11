@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { SuggestItem } from '~/types/api'
-import { totalRatingCount, weightedRating } from '~/utils/format'
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'appbar',
@@ -12,7 +11,7 @@ const emit = defineEmits<{
   'search': [query: string]
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const localePath = useLocalePath()
 
 interface Props {
@@ -20,6 +19,8 @@ interface Props {
   modelValue?: string
   autofocus?: boolean
 }
+
+const LISTBOX_ID = 'search-suggest-listbox'
 
 const { modelValue } = toRefs(props)
 
@@ -127,16 +128,110 @@ watch(localQuery, (newQuery) => {
   }
 })
 
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Enter' && props.variant === 'appbar' && localQuery.value.trim()) {
-    showResults.value = false
-    router.push({
-      path: localePath('/search'),
-      query: { q: localQuery.value },
-    })
+// Group results by type for the appbar dropdown. The server already caps
+// each bucket (books/authors/series), so no further slicing is needed here.
+const groupedResults = computed(() => {
+  if (props.variant !== 'appbar')
+    return null
+
+  const results = quickSearchStore.results
+
+  return {
+    books: results.filter(r => r.type === 'book'),
+    series: results.filter(r => r.type === 'series'),
+    authors: results.filter(r => r.type === 'author'),
   }
-  else if (event.key === 'Escape') {
+})
+
+const resultGroups = computed(() => {
+  const groups = groupedResults.value
+  if (!groups)
+    return []
+
+  return [
+    { key: 'books', title: t('search.groupBooks'), results: groups.books },
+    { key: 'series', title: t('search.groupSeries'), results: groups.series },
+    { key: 'authors', title: t('search.groupAuthors'), results: groups.authors },
+  ].filter(group => group.results.length > 0)
+})
+
+// 12 grid columns split evenly between the groups that have results.
+const columnWidth = computed(() => 12 / Math.max(1, resultGroups.value.length))
+
+// 400px per column, but never wider than the viewport.
+const dropdownWidth = computed(() => `min(${Math.max(1, resultGroups.value.length) * 400}px, calc(100vw - 16px))`)
+
+const hasResults = computed(() => props.variant === 'appbar' && quickSearchStore.hasResults)
+const isEmpty = computed(() => props.variant === 'appbar' && quickSearchStore.isEmpty)
+const isLoading = computed(() => (props.variant === 'appbar'
+  ? quickSearchStore.isLoading
+  : searchStore.isLoading))
+
+const isDropdownOpen = computed(() => props.variant === 'appbar' && showResults.value && localQuery.value.trim().length > 0)
+
+function optionId(result: SuggestItem): string {
+  return `suggest-${result.type}-${result.id}`
+}
+
+const SECTION_BY_TYPE = { book: 'books', series: 'series', author: 'authors' } as const
+
+function pathFor(result: SuggestItem): string {
+  return localePath(`/${SECTION_BY_TYPE[result.type]}/${result.slug}`)
+}
+
+// Visual order of the columns, which is also the order the arrow keys walk.
+const orderedResults = computed<SuggestItem[]>(() => resultGroups.value.flatMap(group => group.results))
+
+const activeIndex = ref(-1)
+const activeResult = computed<SuggestItem | undefined>(() => orderedResults.value[activeIndex.value])
+const activeId = computed(() => (activeResult.value
+  ? optionId(activeResult.value)
+  : null))
+
+watch(orderedResults, () => {
+  activeIndex.value = -1
+})
+
+function moveActive(step: 1 | -1) {
+  const count = orderedResults.value.length
+  if (count === 0)
+    return
+
+  activeIndex.value = activeIndex.value === -1
+    ? (step === 1
+        ? 0
+        : count - 1)
+    : (activeIndex.value + step + count) % count
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
     showResults.value = false
+    activeIndex.value = -1
+
+    return
+  }
+
+  if (props.variant !== 'appbar' || !localQuery.value.trim())
+    return
+
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault()
+    showResults.value = true
+    moveActive(event.key === 'ArrowDown'
+      ? 1
+      : -1)
+  }
+  else if (event.key === 'Enter') {
+    const target = activeResult.value
+    const isbn = isbnFromQuery(localQuery.value)
+    showResults.value = false
+
+    router.push(target
+      ? pathFor(target)
+      : isbn
+        ? localePath(`/isbn/${isbn}`)
+        : { path: localePath('/search'), query: { q: localQuery.value } })
   }
 }
 
@@ -152,104 +247,6 @@ function clearSearch() {
     searchStore.clear()
   }
 }
-
-const isLoading = computed(() => (props.variant === 'appbar'
-  ? quickSearchStore.isLoading
-  : searchStore.isLoading))
-
-// Group results by type for the appbar dropdown. The server already caps
-// each bucket (books/authors/series), so no further slicing is needed here.
-const groupedResults = computed(() => {
-  if (props.variant !== 'appbar')
-    return null
-
-  const results = quickSearchStore.results
-
-  const books = results.filter(r => r.type === 'book')
-  const series = results.filter(r => r.type === 'series')
-  const authors = results.filter(r => r.type === 'author')
-
-  return { books, series, authors }
-})
-
-const columnWidth = computed(() => {
-  if (props.variant !== 'appbar' || !groupedResults.value)
-    return 12
-
-  const activeCategories = [
-    groupedResults.value.books.length > 0,
-    groupedResults.value.series.length > 0,
-    groupedResults.value.authors.length > 0,
-  ].filter(Boolean).length
-
-  // 1 category: full width, 2 categories: half width each, 3 categories: third width each
-  if (activeCategories === 1)
-    return 12
-  if (activeCategories === 2)
-    return 6
-
-  return 4
-})
-
-const dropdownWidth = computed(() => {
-  if (props.variant !== 'appbar' || !groupedResults.value)
-    return '400px'
-
-  const activeCategories = [
-    groupedResults.value.books.length > 0,
-    groupedResults.value.series.length > 0,
-    groupedResults.value.authors.length > 0,
-  ].filter(Boolean).length
-
-  // Always at least 400px (1 column), even for loading/empty states
-  // 1 column: 400px, 2 columns: 800px, 3 columns: 1200px
-  return `${Math.max(1, activeCategories) * 400}px`
-})
-
-const hasResults = computed(() => {
-  if (props.variant !== 'appbar')
-    return false
-
-  return quickSearchStore.hasResults
-})
-
-const isEmpty = computed(() => {
-  if (props.variant !== 'appbar')
-    return false
-
-  return quickSearchStore.isEmpty
-})
-
-// Format subtitle for each suggest result type
-interface SubtitlePart {
-  text: string
-  type: 'authors' | 'rating' | 'readers' | 'separator'
-}
-
-function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
-  const compactFmt = new Intl.NumberFormat(locale.value, { notation: 'compact', maximumFractionDigits: 1 })
-  const parts: SubtitlePart[] = []
-  const ratingCount = totalRatingCount(result.app_rating_count, result.ol_rating_count)
-  const avg = weightedRating(result.app_avg_rating, result.app_rating_count, result.ol_avg_rating, result.ol_rating_count)
-
-  if (result.authors && result.authors.length > 0) {
-    parts.push({ text: result.authors.join(', '), type: 'authors' })
-  }
-
-  if (ratingCount > 0) {
-    if (parts.length > 0)
-      parts.push({ text: '', type: 'separator' })
-    parts.push({ text: `${avg.toFixed(1)} (${compactFmt.format(ratingCount)})`, type: 'rating' })
-  }
-
-  if (result.readers > 0) {
-    if (parts.length > 0)
-      parts.push({ text: '', type: 'separator' })
-    parts.push({ text: compactFmt.format(result.readers), type: 'readers' })
-  }
-
-  return parts
-}
 </script>
 
 <template>
@@ -263,6 +260,22 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
       :placeholder="variant === 'appbar'
         ? t('search.placeholderFull')
         : t('search.placeholderShort')"
+      :aria-label="variant === 'appbar'
+        ? t('search.placeholderFull')
+        : t('search.placeholderShort')"
+      :role="variant === 'appbar'
+        ? 'combobox'
+        : undefined"
+      :aria-expanded="variant === 'appbar'
+        ? String(isDropdownOpen)
+        : undefined"
+      :aria-controls="variant === 'appbar'
+        ? LISTBOX_ID
+        : undefined"
+      :aria-activedescendant="activeId ?? undefined"
+      :aria-autocomplete="variant === 'appbar'
+        ? 'list'
+        : undefined"
       prepend-inner-icon="mdi-magnify"
       :clearable="localQuery.length > 0"
       :density="variant === 'appbar'
@@ -280,10 +293,13 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
     <!-- Results Dropdown for AppBar -->
     <Teleport to="body">
       <v-card
-        v-if="variant === 'appbar' && showResults && localQuery.trim()"
+        v-if="isDropdownOpen"
+        :id="LISTBOX_ID"
         ref="resultsCardRef"
         class="search-results-dropdown"
         elevation="8"
+        role="listbox"
+        :aria-label="t('search.placeholderFull')"
         :style="{...dropdownStyle,
                  'min-width': dropdownWidth}"
       >
@@ -317,254 +333,24 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
 
         <!-- Results Grid -->
         <v-card-text
-          v-else-if="hasResults && groupedResults"
+          v-else-if="hasResults"
           class="pa-0"
         >
           <v-row no-gutters>
-            <!-- Books Column -->
             <v-col
-              v-if="groupedResults.books.length > 0"
+              v-for="group in resultGroups"
+              :key="group.key"
               cols="12"
               :md="columnWidth"
             >
-              <div class="pa-3">
-                <div class="text-secondary font-weight-bold mb-2">
-                  {{ t('search.groupBooks') }}
-                </div>
-
-                <v-list
-                  density="comfortable"
-                  class="scrollable-list pa-0"
-                >
-                  <v-list-item
-                    v-for="result in groupedResults.books"
-                    :key="result.id"
-                    :title="result.title"
-                    :to="localePath(`/books/${result.slug}`)"
-                    class="mb-1 rounded"
-                    @click="showResults = false"
-                  >
-                    <template #prepend>
-                      <v-avatar
-                        size="40"
-                        rounded="lg"
-                      >
-                        <BookCover
-                          :title="result.title"
-                          :src="result.cover_url"
-                          :width="40"
-                          :height="60"
-                          fit="cover"
-                          priority
-                        />
-                      </v-avatar>
-                    </template>
-
-                    <template #subtitle>
-                      <span class="d-inline-flex align-center flex-wrap">
-                        <template
-                          v-for="(part, index) in getSubtitleParts(result)"
-                          :key="index"
-                        >
-                          <v-icon
-                            v-if="part.type === 'separator'"
-                            icon="mdi-circle-small"
-                            color="secondary"
-                            size="small"
-                          />
-
-                          <span
-                            v-else-if="part.type === 'rating'"
-                            class="d-inline-flex align-center"
-                          >
-                            <v-icon
-                              icon="mdi-star"
-                              color="amber"
-                              size="x-small"
-                              class="mr-1"
-                            />
-                            {{ part.text }}
-                          </span>
-
-                          <span
-                            v-else-if="part.type === 'readers'"
-                            class="d-inline-flex align-center"
-                          >
-                            <v-icon
-                              icon="mdi-account-multiple"
-                              color="info"
-                              size="x-small"
-                              class="mr-1"
-                            />
-                            {{ part.text }}
-                          </span>
-
-                          <span v-else>{{ part.text }}</span>
-                        </template>
-                      </span>
-                    </template>
-                  </v-list-item>
-                </v-list>
-              </div>
-            </v-col>
-
-            <!-- Series Column -->
-            <v-col
-              v-if="groupedResults.series.length > 0"
-              cols="12"
-              :md="columnWidth"
-            >
-              <div class="pa-3">
-                <div class="text-secondary font-weight-bold mb-2">
-                  {{ t('search.groupSeries') }}
-                </div>
-
-                <v-list
-                  density="comfortable"
-                  class="scrollable-list pa-0"
-                >
-                  <v-list-item
-                    v-for="result in groupedResults.series"
-                    :key="result.id"
-                    :title="result.title"
-                    :to="localePath(`/series/${result.slug}`)"
-                    class="mb-1 rounded"
-                    @click="showResults = false"
-                  >
-                    <template #prepend>
-                      <v-icon icon="mdi-book-multiple" />
-                    </template>
-
-                    <template #subtitle>
-                      <span class="d-inline-flex align-center flex-wrap">
-                        <template
-                          v-for="(part, index) in getSubtitleParts(result)"
-                          :key="index"
-                        >
-                          <v-icon
-                            v-if="part.type === 'separator'"
-                            icon="mdi-circle-small"
-                            color="secondary"
-                            size="small"
-                          />
-
-                          <span
-                            v-else-if="part.type === 'rating'"
-                            class="d-inline-flex align-center"
-                          >
-                            <v-icon
-                              icon="mdi-star"
-                              color="amber"
-                              size="x-small"
-                              class="mr-1"
-                            />
-                            {{ part.text }}
-                          </span>
-
-                          <span
-                            v-else-if="part.type === 'readers'"
-                            class="d-inline-flex align-center"
-                          >
-                            <v-icon
-                              icon="mdi-account-multiple"
-                              color="info"
-                              size="x-small"
-                              class="mr-1"
-                            />
-                            {{ part.text }}
-                          </span>
-
-                          <span v-else>{{ part.text }}</span>
-                        </template>
-                      </span>
-                    </template>
-                  </v-list-item>
-                </v-list>
-              </div>
-            </v-col>
-
-            <!-- Authors Column -->
-            <v-col
-              v-if="groupedResults.authors.length > 0"
-              cols="12"
-              :md="columnWidth"
-            >
-              <div class="pa-3">
-                <div class="text-secondary font-weight-bold mb-2">
-                  {{ t('search.groupAuthors') }}
-                </div>
-
-                <v-list
-                  density="comfortable"
-                  class="scrollable-list pa-0"
-                >
-                  <v-list-item
-                    v-for="result in groupedResults.authors"
-                    :key="result.id"
-                    :title="result.title"
-                    :to="localePath(`/authors/${result.slug}`)"
-                    class="mb-1 rounded"
-                    @click="showResults = false"
-                  >
-                    <template #prepend>
-                      <v-avatar
-                        size="40"
-                      >
-                        <AuthorPhoto
-                          :name="result.title"
-                          :src="result.cover_url"
-                          :size="40"
-                          priority
-                        />
-                      </v-avatar>
-                    </template>
-
-                    <template #subtitle>
-                      <span class="d-inline-flex align-center flex-wrap">
-                        <template
-                          v-for="(part, index) in getSubtitleParts(result)"
-                          :key="index"
-                        >
-                          <v-icon
-                            v-if="part.type === 'separator'"
-                            icon="mdi-circle-small"
-                            color="secondary"
-                            size="small"
-                          />
-
-                          <span
-                            v-else-if="part.type === 'rating'"
-                            class="d-inline-flex align-center"
-                          >
-                            <v-icon
-                              icon="mdi-star"
-                              color="amber"
-                              size="x-small"
-                              class="mr-1"
-                            />
-                            {{ part.text }}
-                          </span>
-
-                          <span
-                            v-else-if="part.type === 'readers'"
-                            class="d-inline-flex align-center"
-                          >
-                            <v-icon
-                              icon="mdi-account-multiple"
-                              color="info"
-                              size="x-small"
-                              class="mr-1"
-                            />
-                            {{ part.text }}
-                          </span>
-
-                          <span v-else>{{ part.text }}</span>
-                        </template>
-                      </span>
-                    </template>
-                  </v-list-item>
-                </v-list>
-              </div>
+              <SearchSuggestGroup
+                :title="group.title"
+                :results="group.results"
+                :active-id="activeId"
+                :option-id="optionId"
+                :path-for="pathFor"
+                @select="showResults = false"
+              />
             </v-col>
           </v-row>
         </v-card-text>
@@ -596,15 +382,5 @@ function getSubtitleParts(result: SuggestItem): SubtitlePart[] {
     max-height: calc(100dvh - var(--app-bar-height, 56px) - 16px);
     overflow-y: auto;
   }
-
-  .search-results-dropdown .scrollable-list {
-    max-height: none;
-    overflow-y: visible;
-  }
-}
-
-.scrollable-list {
-  max-height: 400px;
-  overflow-y: auto;
 }
 </style>

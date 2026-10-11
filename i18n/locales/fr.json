@@ -12,6 +12,7 @@
     "home": "Accueil",
     "search": "Recherche",
     "discover": "Découvrir",
+    "lists": "Listes",
     "categories": "Catégories",
     "casino": "Casino",
     "playSlots": "Jouer aux machines à sous",
@@ -41,6 +42,7 @@
     "dismiss": "Ignorer",
     "description": "Description",
     "noDescription": "Il n'y a pas encore de description, nous l'ajouterons bientôt.",
+    "descriptionFallbackNote": "Il n'y a pas encore de description dans votre langue. Voici celle en {language}.",
     "showMore": "Afficher plus",
     "showLess": "Afficher moins",
     "readMore": "Lire la suite",
@@ -56,6 +58,8 @@
     "save": "Enregistrer",
     "open": "Ouvrir",
     "close": "Fermer",
+    "scrollLeft": "Défiler vers la gauche",
+    "scrollRight": "Défiler vers la droite",
     "remove": "Retirer",
     "copied": "Copié !",
     "bookCount": "{count} livre | {count} livres",
@@ -87,6 +91,7 @@
     "noResultsFor": "Aucun résultat pour « {query} »"
   },
   "categories": {
+    "notFound": "Catégorie introuvable",
     "browse": "Parcourir les catégories",
     "mostPopular": "Les plus populaires",
     "highestRated": "Les mieux notés",
@@ -94,6 +99,7 @@
     "seoDescription": "Parcours {category} — découvre ta prochaine lecture par genre"
   },
   "books": {
+    "shownInLanguage": "Affiché en {language}",
     "emptyList": "Aucun livre trouvé."
   },
   "series": {
@@ -554,6 +560,7 @@
   },
   "book": {
     "pages": "PAGES",
+    "pagesCount": "{count} p.",
     "readingTime": "TEMPS DE LECTURE",
     "fallbackNotice": "Pas encore disponible en {requested} — édition {served} affichée.",
     "minsikReaders": "Lecteurs Minsik",
@@ -569,6 +576,10 @@
     "checkOtherPlatforms": "Découvre ce livre sur d'autres plateformes",
     "byAuthor": "de",
     "coverAltIndexed": "Couverture du livre {index}",
+    "enlargeCover": "Agrandir la couverture",
+    "seriesPositionOf": "Tome {position} sur {total}",
+    "previousVolume": "Précédent : {title}",
+    "nextVolume": "Suivant : {title}",
     "year": "Année"
   },
   "bookUser": {
@@ -1025,7 +1036,13 @@
     "noResultsHint": "Essaie d'autres mots-clés ou filtres",
     "startTyping": "Commence à taper pour rechercher"
   },
+  "isbnPage": {
+    "notFound": "Aucun livre trouvé pour l'ISBN {isbn}."
+  },
   "recommendationsPage": {
+    "browseEyebrow": "Classements",
+    "browseTitle": "Parcourir les listes",
+    "browseSubtitle": "Des classements issus de ce que font réellement les lecteurs de Minsik et d'Open Library.",
     "title": "Recommandations",
     "description": "Parcours la liste complète {name} sur Minsik.",
     "categoryNotFound": "Catégorie introuvable",

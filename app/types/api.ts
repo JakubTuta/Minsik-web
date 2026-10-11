@@ -76,7 +76,9 @@ export interface AuthorMinimal {
 }
 
 export interface Author extends AuthorMinimal {
-  bio?: string
+  bio?: string | null
+  fallback_bio?: string | null
+  fallback_language?: string | null
   birth_date?: string
   death_date?: string
   birth_place?: string | null
@@ -117,6 +119,8 @@ export interface SeriesMinimal {
 
 export interface Series extends SeriesMinimal {
   description?: string | null
+  fallback_description?: string | null
+  fallback_language?: string | null
   view_count: number
   last_viewed_at?: string | null
   created_at: string
@@ -162,6 +166,8 @@ export interface BookSummary {
   rarity?: string | null
   original_publication_year?: number | null
   number_of_pages?: number | null
+  /** Series listings: false when the volume has no edition in the requested language and is shown in another. */
+  available_in_language?: boolean
 }
 
 export interface AuthorDecadeCount {
@@ -187,6 +193,8 @@ export interface Book {
   slug: string
   title: string
   description?: string | null
+  fallback_description?: string | null
+  fallback_language?: string | null
   first_sentence?: string | null
   language: string
   original_publication_year?: number | null
@@ -226,6 +234,11 @@ export interface BookLanguageVariant {
   language: string
   title: string
   primary_cover_url?: string | null
+  publisher?: string | null
+  number_of_pages?: number | null
+  original_publication_year?: number | null
+  isbn?: string | null
+  has_description?: boolean
 }
 
 // Search Types

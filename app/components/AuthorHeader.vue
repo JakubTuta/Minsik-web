@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Author, AuthorStats } from '~/types/api'
+import { ageBetween, formatAuthorDate, parseAuthorDate } from '~/utils/authorDates'
 import { totalRatingCount, totalReaders, weightedRating } from '~/utils/format'
 
 interface Props {
@@ -14,34 +15,20 @@ const props = withDefaults(defineProps<Props>(), {
 const { t, locale, n } = useI18n()
 const localePath = useLocalePath()
 
-function formatShortDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString(locale.value, { year: 'numeric', month: 'short', day: 'numeric' })
-}
+const birthDate = computed(() => parseAuthorDate(props.author.birth_date))
+const deathDate = computed(() => parseAuthorDate(props.author.death_date))
 
-const age = computed(() => {
-  if (!props.author.birth_date)
-    return null
+// Rendered on the server and again in the browser, so the age is counted against the day
+// the page was requested rather than a clock that differs between the two.
+const age = computed(() => ageBetween(birthDate.value, deathDate.value, new Date()))
 
-  const birthDate = new Date(props.author.birth_date)
-  const endDate = props.author.death_date
-    ? new Date(props.author.death_date)
-    : new Date()
-
-  let years = endDate.getFullYear() - birthDate.getFullYear()
-  const monthDiff = endDate.getMonth() - birthDate.getMonth()
-  if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate()))
-    years--
-
-  return years
-})
-
-const birthDateFormatted = computed(() => (props.author.birth_date
-  ? formatShortDate(props.author.birth_date)
+const birthDateFormatted = computed(() => (birthDate.value
+  ? formatAuthorDate(birthDate.value, locale.value)
   : null),
 )
 
-const deathDateFormatted = computed(() => (props.author.death_date
-  ? formatShortDate(props.author.death_date)
+const deathDateFormatted = computed(() => (deathDate.value
+  ? formatAuthorDate(deathDate.value, locale.value)
   : null),
 )
 
@@ -106,12 +93,8 @@ const authorStats = computed(() => [
 ])
 
 const lifeSpan = computed(() => {
-  const birth = props.author.birth_date
-    ? new Date(props.author.birth_date).getFullYear()
-    : null
-  const death = props.author.death_date
-    ? new Date(props.author.death_date).getFullYear()
-    : null
+  const birth = birthDate.value?.year ?? null
+  const death = deathDate.value?.year ?? null
 
   if (!birth && !death)
     return null
@@ -226,6 +209,8 @@ const categoryChips = computed(() => (props.author.book_categories ?? []).slice(
 
       <DescriptionCard
         :description="author.bio"
+        :fallback-description="author.fallback_bio"
+        :fallback-language="author.fallback_language"
         hide-card
         hide-heading
         empty-message=""

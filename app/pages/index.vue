@@ -13,10 +13,12 @@ useSeo({
   description: t('home.seoDescription'),
 })
 
+// The language is in the key: a client-side return to the home page must not
+// be served the payload of the language the reader has since switched away from.
 const { data: categories, error } = useCachedAsyncData(
-  'home-recommendations',
+  computed(() => `home-recommendations-${language.value}`),
   () => recommendationsStore.fetchHomeRecommendations(),
-  { lazy: true, watch: [language] },
+  { lazy: true },
 )
 
 const { data: popularCategories } = useCachedAsyncData<PopularCategory[]>(
@@ -26,12 +28,27 @@ const { data: popularCategories } = useCachedAsyncData<PopularCategory[]>(
 )
 
 const { data: botw } = useCachedAsyncData<BookOfTheWeek | null>(
-  'hero-book-of-the-week',
+  computed(() => `hero-book-of-the-week-${language.value}`),
   () => recommendationsStore.fetchBookOfTheWeek(),
-  { lazy: true, default: () => null, watch: [language] },
+  { lazy: true, default: () => null },
 )
 
 const siteUrl = useRuntimeConfig().public.siteUrl as string
+const localizedBookPath = useLocalizedBookPath()
+const localePath = useLocalePath()
+
+// Lets a search engine offer a search box for the site straight in its results.
+useStructuredData(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  'name': 'Minsik',
+  'url': `${siteUrl}${localePath('index')}`,
+  'potentialAction': {
+    '@type': 'SearchAction',
+    'target': `${siteUrl}${localePath('search')}?q={search_term_string}`,
+    'query-input': 'required name=search_term_string',
+  },
+}))
 
 useHead(() => {
   if (!botw.value)
@@ -45,7 +62,7 @@ useHead(() => {
         '@type': 'Book',
         'name': botw.value.title,
         'author': botw.value.authors.map(a => ({ '@type': 'Person', 'name': a.name })),
-        'url': `${siteUrl}/books/${botw.value.slug}`,
+        'url': `${siteUrl}${localizedBookPath(botw.value.slug, botw.value.language)}`,
         'image': botw.value.primary_cover_url,
         'inLanguage': botw.value.language,
         'genre': botw.value.categories.map(c => c.name),

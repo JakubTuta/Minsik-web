@@ -72,6 +72,10 @@ export const useBookPageStore = defineStore('bookPage', () => {
         `/api/v1/users/me/books/${slug}`,
       )
 
+      // The reader may have moved to another book while this was in flight.
+      if (currentSlug.value !== slug)
+        return
+
       const data = response.data.data!
 
       if (data.bookshelf) {
@@ -106,7 +110,8 @@ export const useBookPageStore = defineStore('bookPage', () => {
       console.error('Failed to fetch book user data:', error)
     }
     finally {
-      statusLoading.value = false
+      if (currentSlug.value === slug)
+        statusLoading.value = false
     }
   }
 
@@ -216,9 +221,15 @@ export const useBookPageStore = defineStore('bookPage', () => {
       })
   }
 
+  // A reset (new filter or sort) supersedes whatever is in flight instead of
+  // being dropped; only "load more" waits for the page already loading.
+  let commentsRequestId = 0
+
   async function fetchComments(slug: string, params: Record<string, any> = {}, reset = true) {
-    if (commentsLoading.value)
+    if (!reset && commentsLoading.value)
       return
+
+    const requestId = ++commentsRequestId
 
     if (reset) {
       comments.value = []
@@ -236,6 +247,9 @@ export const useBookPageStore = defineStore('bookPage', () => {
         `/api/v1/books/${slug}/comments`,
         { params: { ...params, limit: COMMENTS_LIMIT, offset } },
       )
+
+      if (requestId !== commentsRequestId || currentSlug.value !== slug)
+        return
 
       const data = response.data.data!
 
@@ -255,7 +269,8 @@ export const useBookPageStore = defineStore('bookPage', () => {
       console.error('Failed to fetch comments:', error)
     }
     finally {
-      commentsLoading.value = false
+      if (requestId === commentsRequestId)
+        commentsLoading.value = false
     }
   }
 
@@ -375,6 +390,7 @@ export const useBookPageStore = defineStore('bookPage', () => {
     comments.value = []
     commentsTotal.value = 0
     commentsLoading.value = false
+    commentsRequestId++
     myComment.value = null
     currentCommentParams.value = {}
   }

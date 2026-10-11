@@ -66,7 +66,7 @@ function getVisual(slug: string) {
         lg="2"
       >
         <NuxtLinkLocale
-          :to="`/categories?category=${cat.slug}`"
+          :to="`/categories/${cat.slug}`"
           class="text-decoration-none"
         >
           <v-card

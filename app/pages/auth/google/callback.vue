@@ -31,6 +31,15 @@ async function handleCallback() {
     return
   }
 
+  // The code is only meaningful for the sign-in this tab started; one that arrives with a state
+  // we did not send could be an attacker's, which would log the reader into the attacker's account.
+  if (!consumeOAuthState(route.query.state as string | undefined)) {
+    state.value = 'error'
+    errorMessage.value = t('auth.googleFailed')
+
+    return
+  }
+
   const redirectUri = `${config.public.siteUrl}/auth/google/callback`
   const result = await authStore.googleAuth(code, redirectUri)
 
@@ -94,15 +103,14 @@ onMounted(handleCallback)
         {{ errorMessage }}
       </p>
 
-      <NuxtLinkLocale to="/">
-        <v-btn
-          color="primary"
-          variant="elevated"
-          block
-        >
-          {{ t('common.backToHome') }}
-        </v-btn>
-      </NuxtLinkLocale>
+      <v-btn
+        :to="localePath('index')"
+        color="primary"
+        variant="elevated"
+        block
+      >
+        {{ t('common.backToHome') }}
+      </v-btn>
     </v-card>
   </v-container>
 </template>

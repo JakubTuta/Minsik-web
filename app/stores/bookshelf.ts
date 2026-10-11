@@ -38,10 +38,18 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
 
   const LIMIT = 10
 
+  // A reset (new filter or sort) must win over whatever is still loading, not be dropped
+  // because a request is in flight; each request then only applies its answer if it is the
+  // latest. Only "load more" yields to a running request.
+  let myRequest = 0
+  let publicRequest = 0
+
   // My bookshelf
   const fetchMine = async (params: BookshelfParams = {}, reset = true) => {
-    if (myIsLoading.value)
+    if (!reset && myIsLoading.value)
       return
+
+    const request = ++myRequest
 
     if (reset) {
       myItems.value = []
@@ -62,6 +70,9 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
         { params: { ...params, limit: LIMIT, offset } },
       )
 
+      if (request !== myRequest)
+        return
+
       const data = response.data.data!
       const newItems = data.items
       myItems.value = [...myItems.value, ...newItems]
@@ -69,11 +80,15 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
       myHasMore.value = data.has_more ?? (newItems.length >= LIMIT)
     }
     catch (error) {
+      if (request !== myRequest)
+        return
+
       console.error('Failed to fetch bookshelf:', error)
       myError.value = t('storeErrors.bookshelfLoadFailed')
     }
     finally {
-      myIsLoading.value = false
+      if (request === myRequest)
+        myIsLoading.value = false
     }
   }
 
@@ -85,8 +100,10 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
 
   // Public user bookshelf
   const fetchByUsername = async (username: string, params: BookshelfParams = {}, reset = true) => {
-    if (publicIsLoading.value)
+    if (!reset && publicIsLoading.value)
       return
+
+    const request = ++publicRequest
 
     if (reset) {
       publicItems.value = []
@@ -108,6 +125,9 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
         { params: { ...params, limit: LIMIT, offset } },
       )
 
+      if (request !== publicRequest)
+        return
+
       const data = response.data.data!
       const newPublicItems = data.items
       publicItems.value = [...publicItems.value, ...newPublicItems]
@@ -115,11 +135,15 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
       publicHasMore.value = data.has_more ?? (newPublicItems.length >= LIMIT)
     }
     catch (error) {
+      if (request !== publicRequest)
+        return
+
       console.error('Failed to fetch public bookshelf:', error)
       publicError.value = t('storeErrors.publicBookshelfLoadFailed')
     }
     finally {
-      publicIsLoading.value = false
+      if (request === publicRequest)
+        publicIsLoading.value = false
     }
   }
 
@@ -157,6 +181,17 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     removeItem(slug)
   }
 
+  // The signed-in reader's own shelf only; the public profile being viewed is not theirs.
+  const resetMine = () => {
+    myRequest++
+    myItems.value = []
+    myTotal.value = 0
+    myIsLoading.value = false
+    myHasMore.value = false
+    myCurrentParams.value = {}
+    myError.value = null
+  }
+
   return {
     // My bookshelf
     myItems,
@@ -183,5 +218,6 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     upsertStatus,
     removeItem,
     deleteMine,
+    resetMine,
   }
 })

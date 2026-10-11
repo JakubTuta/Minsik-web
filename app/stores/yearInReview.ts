@@ -47,10 +47,19 @@ export const useYearInReviewStore = defineStore('yearInReview', () => {
     }
   }
 
+  const reset = () => {
+    review.value = null
+    isLoading.value = false
+    error.value = null
+    lastFetchedAt.value = 0
+    fetchedLanguage.value = ''
+  }
+
   return {
     review,
     isLoading,
     error,
     fetch,
+    reset,
   }
 })

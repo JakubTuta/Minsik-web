@@ -12,7 +12,16 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { t, n } = useI18n()
+const { t, n, locale } = useI18n()
+const languageNames = computed(() => new Intl.DisplayNames([locale.value], { type: 'language' }))
+
+// Only series listings can show a volume in a language other than the reader's.
+function otherLanguageNote(book: BookSummary): string | null {
+  if (book.available_in_language !== false || !book.language)
+    return null
+
+  return t('books.shownInLanguage', { language: languageNames.value.of(book.language) ?? book.language })
+}
 
 const scrollEnabled = computed(() => Boolean(props.loadMore) && props.hasMore)
 const { sentinel } = useInfiniteScroll(() => props.loadMore?.(), { enabled: scrollEnabled })
@@ -26,6 +35,7 @@ useShelfStatuses(() => props.books)
 // This only recomputes when `books` itself changes (e.g. a new page appended).
 const rows = computed(() => props.books.map(book => ({
   book,
+  languageNote: otherLanguageNote(book),
   coverBg: coverColor(book),
   rating: weightedRating(book.avg_rating, book.rating_count, book.ol_avg_rating, book.ol_rating_count),
   ratingCount: totalRatingCount(book.rating_count, book.ol_rating_count),
@@ -39,11 +49,10 @@ const rows = computed(() => props.books.map(book => ({
       v-if="books && books.length > 0"
       class="books-list"
     >
-      <NuxtLinkLocale
-        v-for="{book, coverBg, rating, ratingCount, readers} in rows"
+      <div
+        v-for="{book, languageNote, coverBg, rating, ratingCount, readers} in rows"
         :key="book.book_id"
-        :to="`/books/${book.slug}`"
-        class="book-item text-decoration-none"
+        class="book-item position-relative"
       >
         <v-card
           hover
@@ -75,8 +84,23 @@ const rows = computed(() => props.books.map(book => ({
 
           <v-card-text class="flex-grow-1">
             <h3 class="text-h6 font-weight-bold mb-1">
-              {{ book.title }}
+              <NuxtLinkLocale
+                :to="`/books/${book.slug}`"
+                class="book-title-link text-decoration-none"
+              >
+                {{ book.title }}
+              </NuxtLinkLocale>
             </h3>
+
+            <v-chip
+              v-if="languageNote"
+              size="x-small"
+              variant="tonal"
+              prepend-icon="mdi-translate"
+              class="author-link mb-2"
+            >
+              {{ languageNote }}
+            </v-chip>
 
             <div
               v-if="book.authors && book.authors.length > 0"
@@ -89,7 +113,6 @@ const rows = computed(() => props.books.map(book => ({
                 <NuxtLinkLocale
                   :to="`/authors/${author.slug}`"
                   class="text-body-2 text-medium-emphasis text-decoration-none author-link"
-                  @click.stop
                 >
                   {{ author.name }}
                 </NuxtLinkLocale>
@@ -101,7 +124,7 @@ const rows = computed(() => props.books.map(book => ({
               </template>
             </div>
 
-            <div class="d-flex mb-3 flex-wrap gap-3">
+            <div class="d-flex stat-row mb-3 flex-wrap gap-3">
               <div class="d-flex align-center gap-1">
                 <v-icon
                   icon="mdi-star"
@@ -171,7 +194,7 @@ const rows = computed(() => props.books.map(book => ({
             </p>
           </v-card-text>
         </v-card>
-      </NuxtLinkLocale>
+      </div>
     </div>
 
     <v-alert
@@ -217,6 +240,25 @@ const rows = computed(() => props.books.map(book => ({
 
 .book-item {
   display: block;
+}
+
+/* The title link stretches over the whole card, so the card is one click target
+   without nesting the author links inside another anchor. */
+.book-title-link {
+  color: inherit;
+}
+
+.book-title-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.author-link,
+.stat-row {
+  position: relative;
+  z-index: 2;
 }
 
 .author-link:hover {

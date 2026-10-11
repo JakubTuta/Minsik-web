@@ -95,6 +95,15 @@ export const useUserCommentsStore = defineStore('userComments', () => {
     total.value = Math.max(0, total.value - 1)
   }
 
+  const reset = () => {
+    items.value = []
+    total.value = 0
+    isLoading.value = false
+    currentParams.value = {}
+    error.value = null
+    hasMore.value = false
+  }
+
   return {
     items,
     total,
@@ -108,5 +117,6 @@ export const useUserCommentsStore = defineStore('userComments', () => {
     loadMore,
     updateComment,
     deleteComment,
+    reset,
   }
 })

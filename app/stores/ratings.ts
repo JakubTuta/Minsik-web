@@ -104,6 +104,15 @@ export const useRatingsStore = defineStore('ratings', () => {
     await useDashboardStore().fetchStats(true)
   }
 
+  const reset = () => {
+    items.value = []
+    total.value = 0
+    isLoading.value = false
+    currentParams.value = {}
+    error.value = null
+    hasMore.value = false
+  }
+
   return {
     items,
     total,
@@ -117,5 +126,6 @@ export const useRatingsStore = defineStore('ratings', () => {
     loadMore,
     updateRating,
     deleteRating,
+    reset,
   }
 })

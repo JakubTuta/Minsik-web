@@ -73,7 +73,7 @@ const userDisplayName = computed(() => user.value?.display_name || user.value?.u
         v-for="cat in categories"
         :key="cat.slug"
         :title="cat.name"
-        :to="localePath(`/categories?category=${cat.slug}`)"
+        :to="localePath(`/categories/${cat.slug}`)"
       />
     </v-list-group>
 

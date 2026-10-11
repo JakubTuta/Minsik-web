@@ -35,6 +35,16 @@ function variantTo(variant: BookLanguageVariant) {
   }
 }
 
+// The facts that tell one edition from another at a glance.
+function variantFacts(variant: BookLanguageVariant): string {
+  return [
+    variant.original_publication_year || null,
+    variant.number_of_pages
+      ? t('book.pagesCount', { count: variant.number_of_pages })
+      : null,
+  ].filter(Boolean).join(' · ')
+}
+
 const coverBg = computed(() => coverColor(props.book))
 const authorNames = computed(() => (props.book.authors ?? []).map(a => a.name))
 
@@ -192,6 +202,45 @@ const showFallbackNotice = computed(() => !!props.book.language && !!props.curre
 
 const readingTime = computed(() => formatReadingTime(props.book.number_of_pages))
 
+// A volume that exists only in another language is shown in that language; say which.
+function otherLanguageNote(volume: BookSummary): string | null {
+  if (volume.available_in_language !== false || !volume.language)
+    return null
+
+  return t('books.shownInLanguage', { language: languageNames.value.of(volume.language) ?? volume.language })
+}
+
+function isThisBook(volume: BookSummary): boolean {
+  return volume.book_id === props.book.book_id || (!!volume.work_id && volume.work_id === props.book.work_id)
+}
+
+const orderedVolumes = computed(() => props.seriesBooks
+  .filter(volume => volume.series_position != null)
+  .sort((a, b) => (a.series_position ?? 0) - (b.series_position ?? 0)),
+)
+
+const adjacentVolumes = computed(() => {
+  const index = orderedVolumes.value.findIndex(isThisBook)
+  if (index === -1)
+    return { previous: null, next: null }
+
+  return {
+    previous: orderedVolumes.value[index - 1] ?? null,
+    next: orderedVolumes.value[index + 1] ?? null,
+  }
+})
+
+const seriesPositionLabel = computed(() => {
+  const position = props.book.series_position
+  const total = props.book.series?.total_books || props.seriesBooks.length
+  if (!position || !total || position > total)
+    return null
+
+  return t('book.seriesPositionOf', { position: Number.isInteger(position)
+    ? position
+    : position.toFixed(1), total })
+})
+
 const rarity = computed(() => bookRarity(props.book))
 
 const bookStats = computed(() => {
@@ -251,9 +300,11 @@ const bookStats = computed(() => {
         class="pa-6"
         align-self="start"
       >
-        <div
+        <button
           ref="coverRef"
-          class="cursor-pointer"
+          type="button"
+          class="cover-button"
+          :aria-label="t('book.enlargeCover')"
           @click="lightboxOpen = true"
         >
           <div class="book-cover-shadow book-cover-frame rounded">
@@ -267,14 +318,16 @@ const bookStats = computed(() => {
               priority
             />
           </div>
-        </div>
+        </button>
 
         <v-dialog
           v-model="lightboxOpen"
           max-width="600"
         >
-          <div
+          <button
+            type="button"
             class="lightbox-frame rounded"
+            :aria-label="t('common.close')"
             @click="lightboxOpen = false"
           >
             <BookCover
@@ -285,7 +338,7 @@ const bookStats = computed(() => {
               :height="900"
               :fallback-color="coverBg"
             />
-          </div>
+          </button>
         </v-dialog>
 
         <ClientOnly>
@@ -339,6 +392,13 @@ const bookStats = computed(() => {
                 >
                   {{ book.series.name }}
                 </NuxtLinkLocale>
+
+                <span
+                  v-if="seriesPositionLabel"
+                  class="text-body-2 text-medium-emphasis ml-3"
+                >
+                  {{ seriesPositionLabel }}
+                </span>
               </div>
 
               <!-- Series Books Horizontal Scroll -->
@@ -377,6 +437,14 @@ const bookStats = computed(() => {
                       style="top: 10px; left: 15px;"
                     />
 
+                    <div
+                      v-if="otherLanguageNote(seriesBook)"
+                      class="other-language-tag"
+                      :title="otherLanguageNote(seriesBook) ?? undefined"
+                    >
+                      {{ seriesBook.language }}
+                    </div>
+
                     <!-- Current Book Indicator -->
                     <div
                       v-if="seriesBook.book_id === book.book_id"
@@ -401,6 +469,35 @@ const bookStats = computed(() => {
                   >
                     {{ seriesBook.title }}
                   </v-tooltip>
+                </NuxtLinkLocale>
+              </div>
+
+              <div
+                v-if="adjacentVolumes.previous || adjacentVolumes.next"
+                class="d-flex justify-space-between text-body-2 mt-3 flex-wrap gap-2"
+              >
+                <NuxtLinkLocale
+                  v-if="adjacentVolumes.previous"
+                  :to="`/books/${adjacentVolumes.previous.slug}`"
+                  class="text-decoration-none"
+                >
+                  <v-icon
+                    icon="mdi-chevron-left"
+                    size="small"
+                  />
+                  {{ t('book.previousVolume', {"title": adjacentVolumes.previous.title}) }}
+                </NuxtLinkLocale>
+
+                <NuxtLinkLocale
+                  v-if="adjacentVolumes.next"
+                  :to="`/books/${adjacentVolumes.next.slug}`"
+                  class="text-decoration-none ml-auto"
+                >
+                  {{ t('book.nextVolume', {"title": adjacentVolumes.next.title}) }}
+                  <v-icon
+                    icon="mdi-chevron-right"
+                    size="small"
+                  />
                 </NuxtLinkLocale>
               </div>
             </div>
@@ -629,7 +726,7 @@ const bookStats = computed(() => {
                   >
                     <div
                       class="d-flex flex-column align-center gap-1"
-                      style="width: 80px;"
+                      style="width: 104px;"
                     >
                       <div
                         class="variant-cover-frame rounded"
@@ -645,8 +742,19 @@ const bookStats = computed(() => {
                         />
                       </div>
 
-                      <span class="text-caption text-medium-emphasis text-center">
+                      <span class="text-caption font-weight-bold text-center">
                         {{ langLabel(variant.language) }}
+                      </span>
+
+                      <span class="variant-title text-caption text-medium-emphasis text-center">
+                        {{ variant.title }}
+                      </span>
+
+                      <span
+                        v-if="variantFacts(variant)"
+                        class="text-caption text-disabled text-center"
+                      >
+                        {{ variantFacts(variant) }}
                       </span>
                     </div>
                   </NuxtLinkLocale>
@@ -731,12 +839,37 @@ const bookStats = computed(() => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
+/* A real button, so the cover can be opened from the keyboard; it must look like the bare cover. */
+.cover-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: zoom-in;
+}
+
+.cover-button:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
 /* AppImage fills its parent, so every cover slot needs an explicit box. */
 .book-cover-frame {
   position: relative;
   width: 100%;
   aspect-ratio: 0.67;
   overflow: hidden;
+}
+
+/* Full width on a phone makes the cover taller than the screen and pushes the title below the fold. */
+@media (max-width: 959.98px) {
+  .book-cover-frame {
+    max-width: 260px;
+    margin-inline: auto;
+  }
 }
 
 .series-cover-frame {
@@ -753,13 +886,38 @@ const bookStats = computed(() => {
   overflow: hidden;
 }
 
+.variant-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.25;
+}
+
 .lightbox-frame {
+  display: block;
   position: relative;
   width: 100%;
   aspect-ratio: 0.67;
   max-height: 90vh;
+  padding: 0;
+  border: 0;
   overflow: hidden;
-  cursor: pointer;
+  cursor: zoom-out;
+}
+
+.other-language-tag {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 
 .series-scroll {
