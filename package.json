@@ -13,6 +13,7 @@
     "lint": "bun --bun run eslint --ext .ts,.js,.vue .",
     "lint:fix": "bun --bun run eslint --ext .ts,.js,.vue . --fix",
     "typecheck": "bun --bun run nuxt typecheck",
+    "icons:generate": "bun scripts/generate-mdi-icons.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

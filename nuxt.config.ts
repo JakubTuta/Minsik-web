@@ -1,6 +1,7 @@
 import type { LocaleObject } from '@nuxtjs/i18n'
 import process from 'node:process'
 import vuetify from 'vite-plugin-vuetify'
+import { CATEGORY_SLUGS } from './categories.config'
 import { APP_LOCALES, DEFAULT_LOCALE } from './locales.config'
 
 function withLocalizedRouteRules<T>(rules: Record<string, T>): Record<string, T> {
@@ -156,11 +157,14 @@ export default defineNuxtConfig({
 
   routeRules: withLocalizedRouteRules({
     '/': { ssr: true, swr: 600 },
-    '/categories': { ssr: true, swr: 600 },
+    // `/categories` alone only redirects; it must not be cached, or the cache's file store has a
+    // file where the per-category entries need a directory.
+    '/categories/**': { ssr: true, swr: 600 },
     '/books/**': { ssr: true, headers: { 'cache-control': ENTITY_CACHE_CONTROL } },
     '/authors/**': { ssr: true, headers: { 'cache-control': ENTITY_CACHE_CONTROL } },
     '/series/**': { ssr: true, headers: { 'cache-control': ENTITY_CACHE_CONTROL } },
-    '/search': { ssr: true },
+    // Result pages are endless near-duplicates of the catalogue: keep them out of the index but let crawlers follow their links.
+    '/search': { ssr: true, headers: { 'X-Robots-Tag': 'noindex, follow' } },
     '/recommendations/**': { ssr: true },
     '/bookshelf/**': { ssr: true },
     '/about': { ssr: true },
@@ -187,7 +191,11 @@ export default defineNuxtConfig({
     cacheMaxAgeSeconds: 3600,
     defaultSitemapsChunkSize: 10000,
     sitemaps: {
-      pages: { includeAppSources: true },
+      pages: {
+        includeAppSources: true,
+        // Dynamic routes are not discovered from the app's pages.
+        urls: CATEGORY_SLUGS.map(slug => ({ loc: `/categories/${slug}`, _i18nTransform: true })),
+      },
       books: { sources: [sitemapSource('books')], chunks: true },
       authors: { sources: [sitemapSource('authors')], chunks: true },
       series: { sources: [sitemapSource('series')], chunks: true },

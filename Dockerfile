@@ -1,5 +1,5 @@
 # Stage 1: Dependencies
-FROM oven/bun:1-alpine AS deps
+FROM oven/bun:1.3.11-alpine AS deps
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY patches/ ./patches/
 RUN bun install --frozen-lockfile
 
 # Stage 2: Builder
-FROM oven/bun:1-alpine AS builder
+FROM oven/bun:1.3.11-alpine AS builder
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ COPY . .
 RUN bun run build
 
 # Stage 3: Runner
-FROM oven/bun:1-alpine AS runner
+FROM oven/bun:1.3.11-alpine AS runner
 
 WORKDIR /app
 
